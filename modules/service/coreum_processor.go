@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"context"
@@ -108,6 +108,7 @@ func TryTransaction() {
 	}
 	fmt.Printf("Balances: %s\n", balances.Balances)
 }
+
 func TryFT() {
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(addressPrefix, addressPrefix+"pub")
@@ -230,6 +231,7 @@ func TryFT() {
 		Address: recipientInfo.GetAddress().String(),
 		Denom:   denom,
 	})
+
 	if err != nil {
 		panic(err)
 	}
@@ -251,9 +253,4 @@ func TryFT() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func main() {
-	TryTransaction()
-	TryFT()
 }
