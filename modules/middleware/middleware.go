@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"crypto_processor/modules/internal"
-	"crypto_processor/modules/service"
+	"coreum_processor/modules/internal"
+	"coreum_processor/modules/service"
 	"fmt"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/julienschmidt/httprouter"

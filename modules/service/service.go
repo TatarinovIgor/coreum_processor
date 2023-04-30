@@ -3,9 +3,9 @@ package service
 import (
 	"bytes"
 	"context"
+	"coreum_processor/modules/storage"
 	"crypto/rsa"
 	"crypto/x509"
-	"crypto_processor/modules/storage"
 	"embed"
 	"encoding/json"
 	"encoding/pem"

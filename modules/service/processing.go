@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"crypto_processor/modules/storage"
+	"coreum_processor/modules/storage"
 	"encoding/json"
 	"errors"
 	"fmt"

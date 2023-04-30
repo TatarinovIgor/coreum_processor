@@ -1,9 +1,9 @@
 package routing
 
 import (
-	"crypto_processor/modules/handler"
-	"crypto_processor/modules/middleware"
-	"crypto_processor/modules/service"
+	"coreum_processor/modules/handler"
+	"coreum_processor/modules/middleware"
+	"coreum_processor/modules/service"
 	"github.com/julienschmidt/httprouter"
 )
 

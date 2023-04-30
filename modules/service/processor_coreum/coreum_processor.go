@@ -2,9 +2,9 @@ package processor_coreum
 
 import (
 	"context"
+	"coreum_processor/modules/service"
+	"coreum_processor/modules/storage"
 	"crypto/tls"
-	"crypto_processor/modules/service"
-	"crypto_processor/modules/storage"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -147,7 +147,7 @@ func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.Fu
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("exit from ethereum processor deposit stream")
+			log.Println("exit from coreum processor deposit stream")
 			return
 		case <-ticker.C:
 			records, err := s.store.GetNext(next, 1)

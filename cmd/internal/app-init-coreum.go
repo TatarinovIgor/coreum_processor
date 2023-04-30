@@ -1,9 +1,9 @@
 package internal
 
 import (
-	"crypto_processor/modules/service"
-	"crypto_processor/modules/service/processor_coreum"
-	"crypto_processor/modules/storage"
+	"coreum_processor/modules/service"
+	"coreum_processor/modules/service/processor_coreum"
+	"coreum_processor/modules/storage"
 	"database/sql"
 	"log"
 )
@@ -18,9 +18,9 @@ func InitProcessorCoreum(blockchain string, db *sql.DB) service.CryptoProcessor 
 		WalletSenderSeedStr      = MustString("WALLET_SENDER_SEED")
 	)
 
-	storage, err := storage.NewKeys("coreum_wallets", db)
+	store, err := storage.NewKeys("coreum_wallets", db)
 	if err != nil {
-		log.Fatalf("could not make storage for Ethereum Wallets, error: %v", err)
+		log.Fatalf("could not make store for Wallets, error: %v", err)
 	}
 
 	// Initializing Ethereum receiver as a structure
@@ -36,5 +36,5 @@ func InitProcessorCoreum(blockchain string, db *sql.DB) service.CryptoProcessor 
 		WalletSeed:    WalletSenderSeedStr,
 		Blockchain:    blockchain,
 	}
-	return processor_coreum.NewCoreumCryptoProcessor(WalletSender, WalletReceiver, blockchain, storage, float64(minValue))
+	return processor_coreum.NewCoreumCryptoProcessor(WalletSender, WalletReceiver, blockchain, store, float64(minValue))
 }

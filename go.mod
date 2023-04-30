@@ -1,4 +1,4 @@
-module crypto_processor
+module coreum_processor
 
 go 1.18
 

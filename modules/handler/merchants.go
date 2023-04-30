@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"crypto_processor/modules/internal"
-	"crypto_processor/modules/service"
-	"crypto_processor/modules/storage"
+	"coreum_processor/modules/internal"
+	"coreum_processor/modules/service"
+	"coreum_processor/modules/storage"
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"

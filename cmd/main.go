@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	internalApp "crypto_processor/cmd/internal"
-	"crypto_processor/modules/routing"
-	"crypto_processor/modules/service"
-	"crypto_processor/modules/storage"
+	internalApp "coreum_processor/cmd/internal"
+	"coreum_processor/modules/routing"
+	"coreum_processor/modules/service"
+	"coreum_processor/modules/storage"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/oklog/run"
