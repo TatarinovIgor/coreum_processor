@@ -247,7 +247,7 @@ func (s ProcessingService) Deposit(deposit CredentialDeposit, merchantID, extern
 		return nil, fmt.Errorf("could not perform deposit: %s", err)
 	}
 	/*
-		id, err := s.transactionStore.CreateTransaction(merchantID, externalId, deposit.Blockchain, "deposit", "", "", deposit.Asset, deposit.Issuer, deposit.Amount, 0)
+		id, err := s.transactionStore.CreateTransaction(merchantID, externalId, deposit.Blockchain, "deposit", "", "", deposit.Blockchain, deposit.Issuer, deposit.Amount, 0)
 		if err != nil {
 			return nil, fmt.Errorf("could not create transaction: %s", err)
 		}

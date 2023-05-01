@@ -56,6 +56,7 @@ type TransactionRequest struct {
 
 type BalanceRequest struct {
 	Blockchain string `json:"blockchain"`
+	Asset      string `json:"asset"`
 }
 
 type CredentialDeposit struct {

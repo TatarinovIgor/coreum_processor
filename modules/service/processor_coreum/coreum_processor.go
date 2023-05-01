@@ -105,18 +105,21 @@ func (s CoreumProcessing) TransferFromSending(request service.TransferRequest, m
 }
 
 func (s CoreumProcessing) GetBalance(request service.BalanceRequest, merchantID, externalId string) (*service.Balance, error) {
-	// Query initial balance hold by the issuer
-	ctx := context.Background()
-	hexAddress := ""
-	address, err := sdk.AccAddressFromHex(hexAddress)
+	_, byteAddress, err := s.store.GetByUser(merchantID, externalId)
+	if err != nil {
+		return nil, fmt.Errorf("can't get user: %v eth wallet from store, err: %v", externalId, err)
+	}
+	userWallet := service.Wallet{}
+	err = json.Unmarshal(byteAddress, &userWallet)
 	if err != nil {
 		return nil, err
 	}
-	senderInfo, _ := s.clientCtx.Keyring().KeyByAddress(address)
-	denom := request.Blockchain + "-" + senderInfo.GetAddress().String()
+	// Query initial balance hold by the issuer
+	ctx := context.Background()
+	denom := request.Asset + "-" + userWallet.WalletAddress
 	bankClient := banktypes.NewQueryClient(s.clientCtx)
 	resp, err := bankClient.Balance(ctx, &banktypes.QueryBalanceRequest{
-		Address: senderInfo.GetAddress().String(),
+		Address: userWallet.WalletAddress,
 		Denom:   denom,
 	})
 	if err != nil {
@@ -158,7 +161,7 @@ func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.Fu
 				}
 			} else {
 				record := records[len(records)-1]
-				balance, err := s.GetBalance(service.BalanceRequest{Blockchain: s.blockchain}, record.MerchantID, record.ExternalID)
+				balance, err := s.GetBalance(service.BalanceRequest{Blockchain: s.blockchain, Asset: "coreum"}, record.MerchantID, record.ExternalID)
 				if balance != nil && err == nil && balance.Amount > 0 {
 					callback(balance.Blockchain, record.MerchantID, record.ExternalID, record.Key, "",
 						balance.Asset, balance.Issuer, balance.Amount)

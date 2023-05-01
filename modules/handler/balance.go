@@ -17,6 +17,7 @@ func GetBalance(processing *service.ProcessingService) httprouter.Handle {
 
 		blockchain := service.BalanceRequest{}
 		blockchain.Blockchain = strings.ToLower(r.URL.Query().Get("blockchain"))
+		blockchain.Asset = strings.ToLower(r.URL.Query().Get("asset"))
 		externalId, err := internal.GetExternalID(r.Context())
 		if err != nil {
 			log.Println(err)
@@ -29,7 +30,8 @@ func GetBalance(processing *service.ProcessingService) httprouter.Handle {
 			http.Error(w, "could not find merchant", http.StatusBadRequest)
 			return
 		}
-		res, err := processing.GetBalance(blockchain, merchantID, externalId)
+		res, err := processing.
+			GetBalance(blockchain, merchantID, externalId)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not get balance for user", http.StatusBadRequest)
