@@ -26,6 +26,7 @@ func InitRouter(router *httprouter.Router, pathName string, processing *service.
 
 	//POST router for backend
 	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing)))
+	routerWrap.POST("/new_token", middleware.AuthMiddleware(processing, handler.NewToken(processing)))
 	routerWrap.POST("/withdraw", middleware.AuthMiddleware(processing, handler.Withdraw(processing)))
 	routerWrap.POST("/merchant", middleware.AuthMiddlewareAdmin(processing, handler.CreateMerchant(processing)))
 

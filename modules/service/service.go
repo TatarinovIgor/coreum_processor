@@ -311,6 +311,14 @@ func (s ProcessingService) DeleteWithdraw(transaction, merchantID, externalId st
 	return nil
 }
 
+func (s ProcessingService) IssueToken(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
+	response, err := s.processors[request.Blockchain].IssueToken(request, merchantID, externalId)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
 func (s ProcessingService) GetBalance(request BalanceRequest, merchantID, externalId string) (*Balance, error) {
 	processor, ok := s.processors[request.Blockchain]
 	if !ok {

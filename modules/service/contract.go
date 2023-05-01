@@ -91,6 +91,10 @@ type TransferResponse struct {
 	TransferHash string
 }
 
+type NewTokenResponse struct {
+	TxHash string
+}
+
 type Balance struct {
 	Amount     float64 `json:"amount"`
 	Blockchain string  `json:"blockchain"`
@@ -105,6 +109,12 @@ type TransferRequest struct {
 	Issuer     string
 }
 
+type NewTokenRequest struct {
+	Symbol      string `json:"symbol"`
+	Subunit     string `json:"subunit"`
+	Blockchain  string `json:"blockchain"`
+	Description string `json:"description"`
+}
 type NewMerchant struct {
 	PublicKey    string `json:"public_key"`
 	MerchantName string `json:"name"`
@@ -194,4 +204,5 @@ type CryptoProcessor interface {
 	GetTransactionStatus(hash string) (CryptoTransactionStatus, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback)
 	TransferFromSending(request TransferRequest, merchantID, receivingWallet string) (*TransferResponse, error)
+	IssueToken(request NewTokenRequest, merchantID, receivingWallet string) (*NewTokenResponse, error)
 }

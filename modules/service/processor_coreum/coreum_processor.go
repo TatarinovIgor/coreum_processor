@@ -104,6 +104,26 @@ func (s CoreumProcessing) TransferFromSending(request service.TransferRequest, m
 	return &service.TransferResponse{}, nil
 }
 
+func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID, externalId string) (*service.NewTokenResponse, error) {
+	_, byteAddress, err := s.store.GetByUser(merchantID, externalId)
+	if err != nil {
+		return nil, fmt.Errorf("can't get user: %v eth wallet from store, err: %v", externalId, err)
+	}
+	userWallet := service.Wallet{}
+	err = json.Unmarshal(byteAddress, &userWallet)
+	if err != nil {
+		return nil, err
+	}
+	if userWallet.WalletAddress == "" {
+		return nil, fmt.Errorf("empty wallet address")
+	}
+	token, err := s.createCoreumToken(request.Subunit, request.Symbol, userWallet.WalletAddress, request.Description)
+	if err != nil {
+		return nil, err
+	}
+	return &service.NewTokenResponse{TxHash: token}, nil
+}
+
 func (s CoreumProcessing) GetBalance(request service.BalanceRequest, merchantID, externalId string) (*service.Balance, error) {
 	_, byteAddress, err := s.store.GetByUser(merchantID, externalId)
 	if err != nil {
@@ -223,7 +243,6 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 }
 
 func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
-
 	Info, err := s.clientCtx.Keyring().NewAccount(
 		"key-name",
 		senderMnemonic,
@@ -238,34 +257,27 @@ func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
 	return senderMnemonic, Info.GetAddress().String(), nil
 }
 
-func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress string) (string, error) {
+func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, description string) (string, error) {
 	msgIssue := &assetfttypes.MsgIssue{
 		Issuer:        issuerAddress,
 		Symbol:        symbol,
 		Subunit:       subunit,
 		Precision:     6,
 		InitialAmount: sdk.NewInt(100_000_000),
-		Description:   "Make me Unique!",
+		Description:   description,
 		Features:      []assetfttypes.Feature{assetfttypes.Feature_freezing},
 	}
 
-	address, err := sdk.AccAddressFromBech32(issuerAddress)
-	if err != nil {
-		return "", err
-	}
-	senderInfo, err := s.clientCtx.Keyring().KeyByAddress(address)
-	if err != nil {
-		return "", err
-	}
+	SenderInfo := sdk.AccAddress{} //ToDo generate from issuer address
 	ctx := context.Background()
 	response, err := client.BroadcastTx(
 		ctx,
-		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
+		s.clientCtx.WithFromAddress(SenderInfo),
 		s.factory,
 		msgIssue,
 	)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	return response.TxHash, err
 }
