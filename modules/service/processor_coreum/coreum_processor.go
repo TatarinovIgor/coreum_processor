@@ -117,7 +117,7 @@ func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID
 	if userWallet.WalletAddress == "" {
 		return nil, fmt.Errorf("empty wallet address")
 	}
-	token, err := s.createCoreumToken(request.Subunit, request.Symbol, userWallet.WalletAddress, request.Description)
+	token, err := s.createCoreumToken(request.Symbol, request.Subunit, userWallet.WalletAddress, request.Description, userWallet.WalletSeed)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
 	return senderMnemonic, Info.GetAddress().String(), nil
 }
 
-func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, description string) (string, error) {
+func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, description, mnemonic string) (string, error) {
 	msgIssue := &assetfttypes.MsgIssue{
 		Issuer:        issuerAddress,
 		Symbol:        symbol,
@@ -267,15 +267,33 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		Description:   description,
 		Features:      []assetfttypes.Feature{assetfttypes.Feature_freezing},
 	}
+	//ToDo fix generation of same account
+	senderInfo, err := s.clientCtx.Keyring().NewAccount(
+		"key-name",
+		mnemonic,
+		"",
+		sdk.GetConfig().GetFullBIP44Path(),
+		hd.Secp256k1,
+	)
+	if err != nil {
+		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+		return "", err
+	}
 
-	SenderInfo := sdk.AccAddress{} //ToDo generate from issuer address
+	fmt.Println(senderInfo.GetAddress().String())
+
 	ctx := context.Background()
 	response, err := client.BroadcastTx(
 		ctx,
-		s.clientCtx.WithFromAddress(SenderInfo),
+		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
 		s.factory,
 		msgIssue,
 	)
+	if err != nil {
+		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+		return "", err
+	}
+	err = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
 	if err != nil {
 		return "", err
 	}
