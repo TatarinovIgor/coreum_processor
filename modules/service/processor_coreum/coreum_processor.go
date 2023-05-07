@@ -26,11 +26,6 @@ import (
 	"time"
 )
 
-const (
-	denom            = constant.DenomTest
-	recipientAddress = "testcore1534s8rz2e36lwycr6gkm9vpfe5yf67wkuca7zs"
-)
-
 type CoreumProcessing struct {
 	blockchain      string
 	client          *grpc.ClientConn
