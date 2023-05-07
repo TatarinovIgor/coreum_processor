@@ -12,7 +12,6 @@ import (
 func AuthMiddlewareAdmin(ProcessingService *service.ProcessingService, next httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		authToken := r.Header.Get("Authorization")
-		fmt.Println(authToken)
 		token, err := ProcessingService.AdminTokenDecode(authToken)
 		if err != nil {
 			log.Error(err.Error())
@@ -28,7 +27,6 @@ func AuthMiddlewareAdmin(ProcessingService *service.ProcessingService, next http
 func AuthMiddleware(ProcessingService *service.ProcessingService, next httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		authToken := r.Header.Get("Authorization")
-		fmt.Println(authToken)
 		token, err := ProcessingService.TokenDecode(authToken)
 		if err != nil {
 

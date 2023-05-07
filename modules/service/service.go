@@ -50,11 +50,11 @@ func NewProcessingService(publicKey *rsa.PublicKey, privateKey *rsa.PrivateKey,
 	}
 }
 
-func (s ProcessingService) ListenAndServe(ctx context.Context) error {
+func (s ProcessingService) ListenAndServe(ctx context.Context, interval time.Duration) error {
 	for _, processor := range s.processors {
-		processor.StreamDeposit(ctx, s.makeDepositCallback())
+		processor.StreamDeposit(ctx, s.makeDepositCallback(), interval)
 	}
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * interval)
 	for {
 		select {
 		case <-ctx.Done():
@@ -150,7 +150,6 @@ func (s ProcessingService) TokenDecode(token string) (TokenPayload, error) {
 	if err != nil {
 		return tokenData.Payload, fmt.Errorf("can't unmarshal token data, err: %v", err)
 	}
-	fmt.Println(time.Now().Unix(), tok.IssuedAt().Unix(), s.tokenTimeToLive, time.Now().Unix()-tok.IssuedAt().Unix())
 	if time.Now().Unix()-tok.IssuedAt().Unix() > s.tokenTimeToLive {
 		return tokenData.Payload, fmt.Errorf("token expaired")
 	}

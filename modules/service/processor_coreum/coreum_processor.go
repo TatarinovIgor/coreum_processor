@@ -145,7 +145,7 @@ func (s CoreumProcessing) GetBalance(request service.BalanceRequest, merchantID,
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Issuer's balance: %s\n", resp.Balance)
+	log.Println(fmt.Sprintf("Issuer's balance: %s\n", resp.Balance))
 	return &service.Balance{Blockchain: request.Blockchain, Amount: float64(resp.Balance.Amount.Uint64()), Asset: resp.Balance.Denom, Issuer: ""}, nil
 }
 
@@ -159,13 +159,15 @@ func (s CoreumProcessing) GetWalletById(merchantID, externalId string) (string, 
 	return wallet.WalletAddress, nil
 }
 
-func (s CoreumProcessing) StreamDeposit(ctx context.Context, callback service.FuncDepositCallback) {
-	go s.streamDeposit(ctx, callback)
+func (s CoreumProcessing) StreamDeposit(ctx context.Context, callback service.FuncDepositCallback,
+	interval time.Duration) {
+	go s.streamDeposit(ctx, callback, interval)
 	return
 }
 
-func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.FuncDepositCallback) {
-	ticker := time.NewTicker(time.Second)
+func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.FuncDepositCallback,
+	interval time.Duration) {
+	ticker := time.NewTicker(time.Second * interval)
 	next := int64(0)
 	for {
 		select {
@@ -187,7 +189,7 @@ func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.Fu
 						balance.Asset, balance.Issuer, balance.Amount)
 				}
 				if err != nil {
-					fmt.Println(err)
+					log.Println(err)
 				}
 				next = record.ID
 			}
@@ -279,8 +281,6 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
 		return "", err
 	}
-
-	fmt.Println(senderInfo.GetAddress().String())
 
 	ctx := context.Background()
 	response, err := client.BroadcastTx(

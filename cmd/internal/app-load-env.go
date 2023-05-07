@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 func MakeConfigFromEnv() AppConfig {
@@ -20,6 +21,8 @@ func MakeConfigFromEnv() AppConfig {
 		privateKeyPath = MustString("PRIVATE_KEY")
 		// Initializing public key for internal functions
 		publicKeyPath = MustString("PUBLIC_KEY")
+		// Initializing interval of checking transactions
+		interval = GetInt("LISTEN_AND_SERVE_INTERVAL", 15)
 	)
 
 	if len(publicKeyPath) < 1 {
@@ -66,5 +69,6 @@ func MakeConfigFromEnv() AppConfig {
 		TokenTimeToLive: int64(tokenTimeToLive),
 		PrivateKey:      private,
 		PublicKey:       public,
+		Interval:        time.Duration(interval),
 	}
 }

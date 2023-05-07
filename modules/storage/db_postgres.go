@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 )
 
@@ -16,6 +15,6 @@ func DbPSQLConnector() *sql.DB {
 	if err := db.Ping(); err != nil {
 		log.Fatalf("unable to reach database: %v", err)
 	}
-	fmt.Println("database is reachable")
+	log.Println("database is reachable")
 	return db
 }

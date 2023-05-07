@@ -48,7 +48,7 @@ func main() {
 	// Setting up API routing
 	router := httprouter.New()
 	urlPath := ""
-	fmt.Println("hello i am started")
+	log.Println("hello i am started")
 	routing.InitRouter(router, urlPath, processingService)
 
 	// Creating 2 streams one for API and another for blockchain requests
@@ -63,7 +63,7 @@ func main() {
 	})
 	g.Add(func() error {
 		// Creating a process for blockchain requests and initializing a blockchain listener
-		err := processingService.ListenAndServe(ctx)
+		err := processingService.ListenAndServe(ctx, cfg.Interval)
 		cancelFunc()
 		return err
 	}, func(err error) {

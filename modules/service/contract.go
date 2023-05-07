@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"time"
 )
 
 type ErrorService error
@@ -202,7 +203,7 @@ type CryptoProcessor interface {
 	GetBalance(request BalanceRequest, merchantID, externalId string) (*Balance, error)
 	GetWalletById(merchantID, externalId string) (string, error)
 	GetTransactionStatus(hash string) (CryptoTransactionStatus, error)
-	StreamDeposit(ctx context.Context, callback FuncDepositCallback)
+	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
 	TransferFromSending(request TransferRequest, merchantID, receivingWallet string) (*TransferResponse, error)
 	IssueToken(request NewTokenRequest, merchantID, receivingWallet string) (*NewTokenResponse, error)
 }
