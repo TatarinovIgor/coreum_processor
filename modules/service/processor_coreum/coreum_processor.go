@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/go-bip39"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"log"
@@ -26,10 +27,6 @@ import (
 )
 
 const (
-	senderMnemonic   = "unit resource ramp note attitude allow pipe hollow above kingdom siren social bless crystal student appear today orchard drive prosper during report burden film" // put mnemonic here
-	chainID          = constant.ChainIDTest
-	addressPrefix    = constant.AddressPrefixTest
-	nodeAddress      = "full-node.testnet-1.coreum.dev:9090"
 	denom            = constant.DenomTest
 	recipientAddress = "testcore1534s8rz2e36lwycr6gkm9vpfe5yf67wkuca7zs"
 )
@@ -46,6 +43,7 @@ type CoreumProcessing struct {
 	store           *storage.KeysPSQL
 	apiURL          string
 	minimumValue    float64
+	senderMnemonic  string
 }
 
 // GetTransactionStatus returns transaction status from the blockchain
@@ -198,7 +196,8 @@ func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.Fu
 }
 
 func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
-	blockchain string, store *storage.KeysPSQL, minValue float64) service.CryptoProcessor {
+	blockchain string, store *storage.KeysPSQL, minValue float64,
+	chainID constant.ChainID, nodeAddress, addressPrefix, senderMnemonic string) service.CryptoProcessor {
 
 	// Configure Cosmos SDK
 	config := sdk.GetConfig()
@@ -241,13 +240,22 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 		receivingWallet: receivingWallet,
 		store:           store,
 		minimumValue:    minValue,
+		senderMnemonic:  senderMnemonic,
 	}
 }
 
 func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
+	entropy, err := bip39.NewEntropy(132)
+	if err != nil {
+		return "", "", err
+	}
+	mnemonic, err := bip39.NewMnemonic(entropy)
+	if err != nil {
+		return "", "", err
+	}
 	Info, err := s.clientCtx.Keyring().NewAccount(
 		"key-name",
-		senderMnemonic,
+		mnemonic,
 		"",
 		sdk.GetConfig().GetFullBIP44Path(),
 		hd.Secp256k1,
@@ -256,7 +264,7 @@ func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
 		panic(err)
 	}
 
-	return senderMnemonic, Info.GetAddress().String(), nil
+	return mnemonic, Info.GetAddress().String(), nil
 }
 
 func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, description, mnemonic string) (string, error) {
