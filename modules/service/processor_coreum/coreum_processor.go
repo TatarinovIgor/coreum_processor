@@ -240,7 +240,7 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 }
 
 func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
-	entropy, err := bip39.NewEntropy(132)
+	entropy, err := bip39.NewEntropy(256)
 	if err != nil {
 		return "", "", err
 	}

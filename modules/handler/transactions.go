@@ -67,7 +67,7 @@ func GetTransaction(processing *service.ProcessingService) httprouter.Handle {
 		toUnix := time.Now().Unix()
 		transactionRequest.FromUnix = uint(fromUnix)
 		transactionRequest.ToUnix = uint(toUnix)
-		transactionRequest.Blockchain = ""
+		transactionRequest.Blockchain = "coreum"
 		merchantID, err := internal.GetMerchantID(r.Context())
 		if err != nil {
 			log.Println(err)
@@ -94,6 +94,5 @@ func GetTransaction(processing *service.ProcessingService) httprouter.Handle {
 			http.Error(w, "could not find transaction with id", http.StatusNotFound)
 			return
 		}
-		return
 	}
 }

@@ -17,21 +17,21 @@ func InitRouter(router *httprouter.Router, pathName string, processing *service.
 	routerWrap.GET("/", handler.PageLanding)
 
 	//GET routers for backend
-	routerWrap.GET("/get_balance", middleware.AuthMiddleware(processing, handler.GetBalance(processing)))
-	routerWrap.GET("/transactions", middleware.AuthMiddleware(processing, handler.GetTransactionList(processing))) //ToDo fix sorting by blockchain
-	routerWrap.GET("/merchant/:id", middleware.AuthMiddleware(processing, handler.GetMerchantById(processing)))
-	routerWrap.GET("/merchants", middleware.AuthMiddleware(processing, handler.GetMerchants(processing)))
-	routerWrap.GET("/get_wallet_by_id", middleware.AuthMiddleware(processing, handler.GetWalletById(processing)))
-	routerWrap.GET("/get_transaction_status/:id", middleware.AuthMiddleware(processing, handler.GetTransaction(processing)))
+	routerWrap.GET("/get_balance", middleware.AuthMiddleware(processing, handler.GetBalance(processing)))                    //Tested
+	routerWrap.GET("/transactions", middleware.AuthMiddleware(processing, handler.GetTransactionList(processing)))           //Tested ToDo transactions are not saved in db
+	routerWrap.GET("/merchant/:id", middleware.AuthMiddleware(processing, handler.GetMerchantById(processing)))              //Tested
+	routerWrap.GET("/merchants", middleware.AuthMiddleware(processing, handler.GetMerchants(processing)))                    //Tested
+	routerWrap.GET("/get_wallet_by_id", middleware.AuthMiddleware(processing, handler.GetWalletById(processing)))            //Tested
+	routerWrap.GET("/get_transaction_status/:id", middleware.AuthMiddleware(processing, handler.GetTransaction(processing))) //Tested ToDo fix no response
 
 	//POST router for backend
-	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing)))
-	routerWrap.POST("/new_token", middleware.AuthMiddleware(processing, handler.NewToken(processing)))
-	routerWrap.POST("/withdraw", middleware.AuthMiddleware(processing, handler.Withdraw(processing)))
-	routerWrap.POST("/merchant", middleware.AuthMiddlewareAdmin(processing, handler.CreateMerchant(processing)))
+	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing)))              //Tested
+	routerWrap.POST("/new_token", middleware.AuthMiddleware(processing, handler.NewToken(processing)))           //Tested
+	routerWrap.POST("/withdraw", middleware.AuthMiddleware(processing, handler.Withdraw(processing)))            //Tested
+	routerWrap.POST("/merchant", middleware.AuthMiddlewareAdmin(processing, handler.CreateMerchant(processing))) //Tested
 
 	// DELETE routers for backend
-	routerWrap.DELETE("/withdraw/:guid", middleware.AuthMiddleware(processing, handler.DeleteWithdraw(processing)))
+	routerWrap.DELETE("/withdraw/:guid", middleware.AuthMiddleware(processing, handler.DeleteWithdraw(processing))) //Tested
 
 	// PUT routers for backend
 	routerWrap.PUT("/withdraw/:guid", middleware.AuthMiddleware(processing, handler.UpdateWithdraw(processing)))

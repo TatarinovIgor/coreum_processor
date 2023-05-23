@@ -311,7 +311,12 @@ func (s ProcessingService) DeleteWithdraw(transaction, merchantID, externalId st
 }
 
 func (s ProcessingService) IssueToken(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
-	response, err := s.processors[request.Blockchain].IssueToken(request, merchantID, externalId)
+	processor, ok := s.processors[request.Blockchain]
+	if !ok {
+		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
+	}
+
+	response, err := processor.IssueToken(request, merchantID, externalId)
 	if err != nil {
 		return nil, err
 	}
