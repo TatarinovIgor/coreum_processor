@@ -18,7 +18,7 @@ func InitRouter(router *httprouter.Router, pathName string, processing *service.
 
 	//GET routers for backend
 	routerWrap.GET("/get_balance", middleware.AuthMiddleware(processing, handler.GetBalance(processing)))                    //Tested
-	routerWrap.GET("/transactions", middleware.AuthMiddleware(processing, handler.GetTransactionList(processing)))           //Tested ToDo transactions are not saved in db
+	routerWrap.GET("/transactions", middleware.AuthMiddleware(processing, handler.GetTransactionList(processing)))           //Tested
 	routerWrap.GET("/merchant/:id", middleware.AuthMiddleware(processing, handler.GetMerchantById(processing)))              //Tested
 	routerWrap.GET("/merchants", middleware.AuthMiddleware(processing, handler.GetMerchants(processing)))                    //Tested
 	routerWrap.GET("/get_wallet_by_id", middleware.AuthMiddleware(processing, handler.GetWalletById(processing)))            //Tested

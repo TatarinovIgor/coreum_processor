@@ -82,19 +82,132 @@ func (s CoreumProcessing) Deposit(request service.CredentialDeposit, merchantID,
 }
 
 func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantID, externalId string, merchantWallets service.Wallets) (*service.WithdrawResponse, error) {
-	return &service.WithdrawResponse{}, nil
+	ctx := context.Background()
+	commission := 0.0
+	if externalId != merchantWallets.ReceivingID || externalId != merchantWallets.SendingID {
+		commission = merchantWallets.CommissionSending.Fix
+		commission += merchantWallets.CommissionSending.Percent / 100. * (request.Amount - commission)
+	}
+
+	balance, err := s.GetBalance(service.BalanceRequest{}, merchantID, merchantWallets.SendingID)
+	if balance.Amount < request.Amount+commission {
+		return nil, fmt.Errorf("merchant: %s, doesn't have enough balance to pay: %v, with commission: %v",
+			merchantID, request.Amount, commission)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("can't get merchant: %v, sending wallet: %v, err: %w",
+			merchantID, merchantWallets.SendingID, err)
+	}
+
+	_, sendingWalletRaw, err := s.store.GetByUser(merchantID, merchantWallets.SendingID)
+	if err != nil {
+		return nil, err
+	}
+
+	sendingWallet := service.Wallet{}
+	err = json.Unmarshal(sendingWalletRaw, &sendingWallet)
+
+	msg := &banktypes.MsgSend{
+		FromAddress: sendingWallet.WalletAddress,
+		ToAddress:   request.WalletAddress,
+		//ToDo change denom in production
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, 9_000_000)),
+	}
+	bech32, err := sdk.AccAddressFromBech32(sendingWallet.WalletAddress)
+	if err != nil {
+		return nil, err
+	}
+	result, err := client.BroadcastTx(
+		ctx,
+		s.clientCtx.WithFromAddress(bech32),
+		s.factory,
+		msg,
+	)
+
+	return &service.WithdrawResponse{TransactionHash: result.TxHash}, nil
 }
 
 func (s CoreumProcessing) TransferToReceiving(request service.TransferRequest, merchantID, externalId string) (*service.TransferResponse, error) {
-	return &service.TransferResponse{}, nil
+	ctx := context.Background()
+	_, userWallet, err := s.store.GetByUser(merchantID, externalId)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	sendingWallet := service.Wallet{}
+	err = json.Unmarshal(userWallet, &sendingWallet)
+
+	msg := &banktypes.MsgSend{
+		FromAddress: sendingWallet.WalletAddress,
+		ToAddress:   s.receivingWallet.WalletAddress,
+		//ToDo change denom in production
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, 9_000_000)),
+	}
+	bech32, err := sdk.AccAddressFromBech32(sendingWallet.WalletAddress)
+	if err != nil {
+		return nil, err
+	}
+	result, err := client.BroadcastTx(
+		ctx,
+		s.clientCtx.WithFromAddress(bech32),
+		s.factory,
+		msg,
+	)
+	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
 func (s CoreumProcessing) TransferFromReceiving(request service.TransferRequest, merchantID, externalId string) (*service.TransferResponse, error) {
-	return &service.TransferResponse{}, nil
+	ctx := context.Background()
+	if request.Amount < s.minimumValue {
+		return nil, fmt.Errorf("transaction amount is to small to be recived")
+	}
+
+	_, userWallet, err := s.store.GetByUser(merchantID, externalId)
+	if err != nil {
+		return nil, err
+	}
+	clientWallet := service.Wallet{}
+	err = json.Unmarshal(userWallet, &clientWallet)
+
+	msg := &banktypes.MsgSend{
+		FromAddress: s.receivingWallet.WalletAddress,
+		ToAddress:   clientWallet.WalletAddress,
+		//ToDo change denom in production
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, 9_000_000)),
+	}
+	bech32, err := sdk.AccAddressFromBech32(s.receivingWallet.WalletAddress)
+	if err != nil {
+		return nil, err
+	}
+	result, err := client.BroadcastTx(
+		ctx,
+		s.clientCtx.WithFromAddress(bech32),
+		s.factory,
+		msg,
+	)
+	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
 func (s CoreumProcessing) TransferFromSending(request service.TransferRequest, merchantID, receivingWallet string) (*service.TransferResponse, error) {
-	return &service.TransferResponse{}, nil
+	ctx := context.Background()
+	msg := &banktypes.MsgSend{
+		FromAddress: s.receivingWallet.WalletAddress,
+		ToAddress:   receivingWallet,
+		//ToDo change denom in production
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, 9_000_000)),
+	}
+	bech32, err := sdk.AccAddressFromBech32(s.receivingWallet.WalletAddress)
+	if err != nil {
+		return nil, err
+	}
+	result, err := client.BroadcastTx(
+		ctx,
+		s.clientCtx.WithFromAddress(bech32),
+		s.factory,
+		msg,
+	)
+	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
 func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID, externalId string) (*service.NewTokenResponse, error) {
