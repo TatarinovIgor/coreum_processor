@@ -81,6 +81,7 @@ func (s CoreumProcessing) Deposit(request service.CredentialDeposit, merchantID,
 
 }
 
+// ToDo check token
 func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantID, externalId string, merchantWallets service.Wallets) (*service.WithdrawResponse, error) {
 	ctx := context.Background()
 	commission := 0.0
@@ -127,6 +128,7 @@ func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantI
 	return &service.WithdrawResponse{TransactionHash: result.TxHash}, nil
 }
 
+// ToDo check token
 func (s CoreumProcessing) TransferToReceiving(request service.TransferRequest, merchantID, externalId string) (*service.TransferResponse, error) {
 	ctx := context.Background()
 	_, userWallet, err := s.store.GetByUser(merchantID, externalId)
@@ -157,6 +159,7 @@ func (s CoreumProcessing) TransferToReceiving(request service.TransferRequest, m
 	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
+// ToDo check token
 func (s CoreumProcessing) TransferFromReceiving(request service.TransferRequest, merchantID, externalId string) (*service.TransferResponse, error) {
 	ctx := context.Background()
 	if request.Amount < s.minimumValue {
@@ -189,6 +192,7 @@ func (s CoreumProcessing) TransferFromReceiving(request service.TransferRequest,
 	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
+// ToDo check token
 func (s CoreumProcessing) TransferFromSending(request service.TransferRequest, merchantID, receivingWallet string) (*service.TransferResponse, error) {
 	ctx := context.Background()
 	msg := &banktypes.MsgSend{
