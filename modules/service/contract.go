@@ -205,5 +205,5 @@ type CryptoProcessor interface {
 	GetTransactionStatus(hash string) (CryptoTransactionStatus, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
 	TransferFromSending(request TransferRequest, merchantID, receivingWallet string) (*TransferResponse, error)
-	IssueToken(request NewTokenRequest, merchantID, receivingWallet string) (*NewTokenResponse, error)
+	IssueToken(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
 }
