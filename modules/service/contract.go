@@ -112,15 +112,17 @@ type TransferRequest struct {
 
 type NewTokenRequest struct {
 	Symbol      string `json:"symbol"`
-	Subunit     string `json:"subunit"`
+	Code        string `json:"code"`
 	Blockchain  string `json:"blockchain"`
+	Address     string `json:"address"`
 	Description string `json:"description"`
 }
 
 type TokenRequest struct {
-	Subunit    string `json:"subunit"`
+	Code       string `json:"code"`
 	Blockchain string `json:"blockchain"`
 	Amount     string `json:"amount"`
+	Address    string `json:"address"`
 }
 
 type NewMerchant struct {

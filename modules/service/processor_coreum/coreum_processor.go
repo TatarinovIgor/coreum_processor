@@ -59,7 +59,7 @@ func (s CoreumProcessing) MintToken(request service.TokenRequest, merchantID, ex
 	if err != nil {
 		return nil, err
 	}
-	token, err := s.mintCoreumToken(request.Subunit, userWallet.WalletAddress, userWallet.WalletSeed, int64(amount))
+	token, err := s.mintCoreumToken(request.Code, request.Address, userWallet.WalletSeed, int64(amount))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (s CoreumProcessing) BurnToken(request service.TokenRequest, merchantID, ex
 	if err != nil {
 		return nil, err
 	}
-	token, err := s.burnCoreumToken(request.Subunit, userWallet.WalletAddress, userWallet.WalletSeed, int64(amount))
+	token, err := s.burnCoreumToken(request.Code, request.Address, userWallet.WalletSeed, int64(amount))
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +276,7 @@ func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID
 	if userWallet.WalletAddress == "" {
 		return nil, fmt.Errorf("empty wallet address")
 	}
-	token, err := s.createCoreumToken(request.Symbol, request.Subunit, userWallet.WalletAddress, request.Description, userWallet.WalletSeed)
+	token, err := s.createCoreumToken(request.Symbol, request.Code, request.Address, request.Description, userWallet.WalletSeed)
 	if err != nil {
 		return nil, err
 	}
