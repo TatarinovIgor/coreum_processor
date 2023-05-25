@@ -322,7 +322,7 @@ func (s ProcessingService) IssueToken(request NewTokenRequest, merchantID, exter
 	}
 	return response, nil
 }
-func (s ProcessingService) MintToken(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
+func (s ProcessingService) MintToken(request TokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
 	processor, ok := s.processors[request.Blockchain]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
@@ -334,7 +334,7 @@ func (s ProcessingService) MintToken(request NewTokenRequest, merchantID, extern
 	}
 	return response, nil
 }
-func (s ProcessingService) BurnToken(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
+func (s ProcessingService) BurnToken(request TokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
 	processor, ok := s.processors[request.Blockchain]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)

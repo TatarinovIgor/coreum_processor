@@ -23,6 +23,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -54,7 +55,11 @@ func (s CoreumProcessing) MintToken(request service.TokenRequest, merchantID, ex
 	if userWallet.WalletAddress == "" {
 		return nil, fmt.Errorf("empty wallet address")
 	}
-	token, err := s.mintCoreumToken(request.Subunit, userWallet.WalletAddress, userWallet.WalletSeed)
+	amount, err := strconv.Atoi(request.Amount)
+	if err != nil {
+		return nil, err
+	}
+	token, err := s.mintCoreumToken(request.Subunit, userWallet.WalletAddress, userWallet.WalletSeed, int64(amount))
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +79,11 @@ func (s CoreumProcessing) BurnToken(request service.TokenRequest, merchantID, ex
 	if userWallet.WalletAddress == "" {
 		return nil, fmt.Errorf("empty wallet address")
 	}
-	token, err := s.burnCoreumToken(request.Subunit, userWallet.WalletAddress, userWallet.WalletSeed)
+	amount, err := strconv.Atoi(request.Amount)
+	if err != nil {
+		return nil, err
+	}
+	token, err := s.burnCoreumToken(request.Subunit, userWallet.WalletAddress, userWallet.WalletSeed, int64(amount))
 	if err != nil {
 		return nil, err
 	}
@@ -460,8 +469,8 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 	return response.TxHash, err
 }
 
-func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic string) (string, error) {
-	msgMint := &assetfttypes.MsgMint{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(100)}}
+func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic string, amount int64) (string, error) {
+	msgMint := &assetfttypes.MsgMint{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(amount)}}
 
 	//ToDo fix generation of same account
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
@@ -494,8 +503,8 @@ func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic strin
 	return response.TxHash, err
 }
 
-func (s CoreumProcessing) burnCoreumToken(subunit, issuerAddress, mnemonic string) (string, error) {
-	msgBurn := &assetfttypes.MsgBurn{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(100)}}
+func (s CoreumProcessing) burnCoreumToken(subunit, issuerAddress, mnemonic string, amount int64) (string, error) {
+	msgBurn := &assetfttypes.MsgBurn{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(amount)}}
 
 	//ToDo fix generation of same account
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(

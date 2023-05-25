@@ -120,6 +120,7 @@ type NewTokenRequest struct {
 type TokenRequest struct {
 	Subunit    string `json:"subunit"`
 	Blockchain string `json:"blockchain"`
+	Amount     string `json:"amount"`
 }
 
 type NewMerchant struct {
