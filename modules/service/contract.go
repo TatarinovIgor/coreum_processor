@@ -114,7 +114,7 @@ type NewTokenRequest struct {
 	Symbol      string `json:"symbol"`
 	Code        string `json:"code"`
 	Blockchain  string `json:"blockchain"`
-	Address     string `json:"address"`
+	Issuer      string `json:"issuer"`
 	Description string `json:"description"`
 }
 
@@ -122,7 +122,7 @@ type TokenRequest struct {
 	Code       string `json:"code"`
 	Blockchain string `json:"blockchain"`
 	Amount     string `json:"amount"`
-	Address    string `json:"address"`
+	Issuer     string `json:"issuer"`
 }
 
 type NewMerchant struct {
