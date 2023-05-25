@@ -41,7 +41,7 @@ type CoreumProcessing struct {
 	senderMnemonic  string
 }
 
-func (s CoreumProcessing) MintToken(request service.NewTokenRequest, merchantID, externalID string) (*service.NewTokenResponse, error) {
+func (s CoreumProcessing) MintToken(request service.TokenRequest, merchantID, externalID string) (*service.NewTokenResponse, error) {
 	_, byteAddress, err := s.store.GetByUser(merchantID, externalID)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v eth wallet from store, err: %v", externalID, err)
@@ -61,7 +61,7 @@ func (s CoreumProcessing) MintToken(request service.NewTokenRequest, merchantID,
 	return &service.NewTokenResponse{TxHash: token}, nil
 }
 
-func (s CoreumProcessing) BurnToken(request service.NewTokenRequest, merchantID, externalID string) (*service.NewTokenResponse, error) {
+func (s CoreumProcessing) BurnToken(request service.TokenRequest, merchantID, externalID string) (*service.NewTokenResponse, error) {
 	_, byteAddress, err := s.store.GetByUser(merchantID, externalID)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v eth wallet from store, err: %v", externalID, err)
