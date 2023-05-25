@@ -112,7 +112,7 @@ func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantI
 		FromAddress: sendingWallet.WalletAddress,
 		ToAddress:   request.WalletAddress,
 		//ToDo change denom in production
-		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, 9_000_000)),
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, int64(request.Amount))),
 	}
 	bech32, err := sdk.AccAddressFromBech32(sendingWallet.WalletAddress)
 	if err != nil {
@@ -144,7 +144,7 @@ func (s CoreumProcessing) TransferToReceiving(request service.TransferRequest, m
 		FromAddress: sendingWallet.WalletAddress,
 		ToAddress:   s.receivingWallet.WalletAddress,
 		//ToDo change denom in production
-		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, 9_000_000)),
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, int64(request.Amount))),
 	}
 	bech32, err := sdk.AccAddressFromBech32(sendingWallet.WalletAddress)
 	if err != nil {
@@ -177,7 +177,7 @@ func (s CoreumProcessing) TransferFromReceiving(request service.TransferRequest,
 		FromAddress: s.receivingWallet.WalletAddress,
 		ToAddress:   clientWallet.WalletAddress,
 		//ToDo change denom in production
-		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, 9_000_000)),
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, int64(request.Amount))),
 	}
 	bech32, err := sdk.AccAddressFromBech32(s.receivingWallet.WalletAddress)
 	if err != nil {
@@ -199,7 +199,7 @@ func (s CoreumProcessing) TransferFromSending(request service.TransferRequest, m
 		FromAddress: s.receivingWallet.WalletAddress,
 		ToAddress:   receivingWallet,
 		//ToDo change denom in production
-		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, 9_000_000)),
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(constant.DenomTest, int64(request.Amount))),
 	}
 	bech32, err := sdk.AccAddressFromBech32(s.receivingWallet.WalletAddress)
 	if err != nil {
