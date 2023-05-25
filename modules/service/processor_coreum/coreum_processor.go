@@ -41,6 +41,46 @@ type CoreumProcessing struct {
 	senderMnemonic  string
 }
 
+func (s CoreumProcessing) MintToken(request service.NewTokenRequest, merchantID, externalID string) (*service.NewTokenResponse, error) {
+	_, byteAddress, err := s.store.GetByUser(merchantID, externalID)
+	if err != nil {
+		return nil, fmt.Errorf("can't get user: %v eth wallet from store, err: %v", externalID, err)
+	}
+	userWallet := service.Wallet{}
+	err = json.Unmarshal(byteAddress, &userWallet)
+	if err != nil {
+		return nil, err
+	}
+	if userWallet.WalletAddress == "" {
+		return nil, fmt.Errorf("empty wallet address")
+	}
+	token, err := s.mintCoreumToken(request.Subunit, userWallet.WalletAddress, userWallet.WalletSeed)
+	if err != nil {
+		return nil, err
+	}
+	return &service.NewTokenResponse{TxHash: token}, nil
+}
+
+func (s CoreumProcessing) BurnToken(request service.NewTokenRequest, merchantID, externalID string) (*service.NewTokenResponse, error) {
+	_, byteAddress, err := s.store.GetByUser(merchantID, externalID)
+	if err != nil {
+		return nil, fmt.Errorf("can't get user: %v eth wallet from store, err: %v", externalID, err)
+	}
+	userWallet := service.Wallet{}
+	err = json.Unmarshal(byteAddress, &userWallet)
+	if err != nil {
+		return nil, err
+	}
+	if userWallet.WalletAddress == "" {
+		return nil, fmt.Errorf("empty wallet address")
+	}
+	token, err := s.burnCoreumToken(request.Subunit, userWallet.WalletAddress, userWallet.WalletSeed)
+	if err != nil {
+		return nil, err
+	}
+	return &service.NewTokenResponse{TxHash: token}, nil
+}
+
 // GetTransactionStatus returns transaction status from the blockchain
 func (s CoreumProcessing) GetTransactionStatus(hash string) (service.CryptoTransactionStatus, error) {
 	//todo
@@ -387,7 +427,7 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		Precision:     6,
 		InitialAmount: sdk.NewInt(100_000_000),
 		Description:   description,
-		Features:      []assetfttypes.Feature{assetfttypes.Feature_freezing},
+		Features:      []assetfttypes.Feature{assetfttypes.Feature_minting, assetfttypes.Feature_burning},
 	}
 	//ToDo fix generation of same account
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
@@ -408,6 +448,74 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
 		s.factory,
 		msgIssue,
+	)
+	if err != nil {
+		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+		return "", err
+	}
+	err = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+	if err != nil {
+		return "", err
+	}
+	return response.TxHash, err
+}
+
+func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic string) (string, error) {
+	msgMint := &assetfttypes.MsgMint{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(100)}}
+
+	//ToDo fix generation of same account
+	senderInfo, err := s.clientCtx.Keyring().NewAccount(
+		"key-name",
+		mnemonic,
+		"",
+		sdk.GetConfig().GetFullBIP44Path(),
+		hd.Secp256k1,
+	)
+	if err != nil {
+		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+		return "", err
+	}
+
+	ctx := context.Background()
+	response, err := client.BroadcastTx(
+		ctx,
+		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
+		s.factory,
+		msgMint,
+	)
+	if err != nil {
+		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+		return "", err
+	}
+	err = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+	if err != nil {
+		return "", err
+	}
+	return response.TxHash, err
+}
+
+func (s CoreumProcessing) burnCoreumToken(subunit, issuerAddress, mnemonic string) (string, error) {
+	msgBurn := &assetfttypes.MsgBurn{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(100)}}
+
+	//ToDo fix generation of same account
+	senderInfo, err := s.clientCtx.Keyring().NewAccount(
+		"key-name",
+		mnemonic,
+		"",
+		sdk.GetConfig().GetFullBIP44Path(),
+		hd.Secp256k1,
+	)
+	if err != nil {
+		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+		return "", err
+	}
+
+	ctx := context.Background()
+	response, err := client.BroadcastTx(
+		ctx,
+		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
+		s.factory,
+		msgBurn,
 	)
 	if err != nil {
 		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())

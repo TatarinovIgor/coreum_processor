@@ -205,3 +205,87 @@ func NewToken(processing *service.ProcessingService) httprouter.Handle {
 		}
 	}
 }
+
+func MintToken(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+		TokenRequest := service.NewTokenRequest{}
+		err := json.NewDecoder(r.Body).Decode(&TokenRequest)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		res := &service.NewTokenResponse{}
+		externalId, err := internal.GetExternalID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse client id", http.StatusBadRequest)
+			return
+		}
+
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not find merchant", http.StatusBadRequest)
+			return
+		}
+
+		res, err = processing.MintToken(TokenRequest, merchantID, externalId)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
+			return
+		}
+
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func BurnToken(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+		TokenRequest := service.NewTokenRequest{}
+		err := json.NewDecoder(r.Body).Decode(&TokenRequest)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		res := &service.NewTokenResponse{}
+		externalId, err := internal.GetExternalID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse client id", http.StatusBadRequest)
+			return
+		}
+
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not find merchant", http.StatusBadRequest)
+			return
+		}
+
+		res, err = processing.BurnToken(TokenRequest, merchantID, externalId)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
+			return
+		}
+
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
+	}
+}

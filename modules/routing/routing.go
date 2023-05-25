@@ -25,8 +25,10 @@ func InitRouter(router *httprouter.Router, pathName string, processing *service.
 	routerWrap.GET("/get_transaction_status/:id", middleware.AuthMiddleware(processing, handler.GetTransaction(processing))) //Tested ToDo fix no response
 
 	//POST router for backend
-	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing)))              //Tested
-	routerWrap.POST("/new_token", middleware.AuthMiddleware(processing, handler.NewToken(processing)))           //Tested
+	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing))) //Tested
+	routerWrap.POST("/token_issue", middleware.AuthMiddleware(processing, handler.NewToken(processing)))
+	routerWrap.POST("/token_mint", middleware.AuthMiddleware(processing, handler.MintToken(processing)))
+	routerWrap.POST("/token_burn", middleware.AuthMiddleware(processing, handler.BurnToken(processing)))         //Tested
 	routerWrap.POST("/withdraw", middleware.AuthMiddleware(processing, handler.Withdraw(processing)))            //Tested
 	routerWrap.POST("/merchant", middleware.AuthMiddlewareAdmin(processing, handler.CreateMerchant(processing))) //Tested
 

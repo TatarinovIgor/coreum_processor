@@ -206,4 +206,6 @@ type CryptoProcessor interface {
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
 	TransferFromSending(request TransferRequest, merchantID, receivingWallet string) (*TransferResponse, error)
 	IssueToken(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
+	MintToken(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
+	BurnToken(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
 }
