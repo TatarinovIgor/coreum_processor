@@ -116,8 +116,8 @@ func (s *UserPSQL) GetUserList(merchID string, accessFilter []int, from, to time
 func (s *UserPSQL) GetUserMerchants(identity string) ([]UserMerchant, error) {
 	query := fmt.Sprintf("select ml.merchant_id, ml.created_at, ml.updated_at, ml.deleted_at, "+
 		"ml.company_name, ml.email, ml.is_blocked, mu.access, mu.meta_data, ml.meta_data "+
-		"from %s join %s mu on user.id = mu.user_id join %s ml on ml.id = mu.merchant_list_id where identity = '%s'",
-		s.userNamespace, s.merchantUsersNamespace, s.merchantListNamespace, identity)
+		"from %s join %s mu on %s.id = mu.user_id join %s ml on ml.id = mu.merchant_list_id where identity = '%s'",
+		s.userNamespace, s.merchantUsersNamespace, s.userNamespace, s.merchantListNamespace, identity)
 	rows, err := s.db.Query(query)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
