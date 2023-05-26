@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Objects</title>
+  <style>
+    #merchant {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    #merchant #more_info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s;
+      background-color: #f1f1f1;
+    }
+
+    #merchant #myTable,
+    #merchant #myTable * {
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    #merchant #myTable {
+      flex: 1;
+      width: 100%;
+      border-top: #111111 solid;
+    }
+
+    #merchant #merchant_card {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      padding-top: 18px;
+      padding-bottom: 18px;
+      background-color: #777;
+      color: white;
+      width: 100%;
+      font-size: 15px;
+      border: none;
+    }
+
+    #merchant #merchant_card span {
+      padding-left: 10px;
+      flex: 1;
+    }
+
+    #merchant #merchant_card #button_symbol {
+      font-size: 25px;
+      color: white;
+      font-weight: bold;
+      text-align: right;
+      padding-right: 10px;
+      flex: none;
+    }
+
+    #merchant #merchant_card.active,
+    #merchant #merchant_card:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+
+<body>
+{{ range . }}
+  <div id="merchant">
+    <div id="merchant_card" onclick="toggleTable(this)">
+      <span>Merchant: {{ .MerchantName }}</span>
+      <span>ID: {{ .ID }}</span>
+      <span id="button_symbol">+</span>
+    </div>
+
+    <div id="more_info">
+      <div id="public_key_div">
+        <button id="public_key_btn" onclick="toggleDetails()">Public key</button>
+        <p id="public_key" style="display: none;">{{ .PublicKey }}</p>
+      </div>
+
+      {{ range $key, $value := .Wallets }}
+        <table id="myTable">
+          <thead>
+          <tr>
+            <th>Blockchain</th>
+            <th>Sending commission</th>
+            <th>Receiving commission</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>{{ $key }}</td>
+            <td>Fix: {{ $value.CommissionSending.Fix }} <br> Percent: {{ $value.CommissionSending.Percent }}%</td>
+            <td>Fix: {{ $value.CommissionReceiving.Fix }} <br> Percent: {{ $value.CommissionReceiving.Percent }}%</td>
+          </tr>
+          </tbody>
+        </table>
+      {{ end }}
+    </div>
+  </div>
+{{ end }}
+
+<script>
+  function toggleTable(element) {
+    var toggleButton = document.getElementById("button_symbol");
+    var moreInfoDiv = document.getElementById("more_info");
+
+    if (moreInfoDiv.style.maxHeight) {
+      moreInfoDiv.style.maxHeight = null;
+      toggleButton.textContent = "+";
+      element.classList.remove("active");
+    } else {
+      moreInfoDiv.style.maxHeight = moreInfoDiv.scrollHeight + "px";
+      toggleButton.textContent = "−";
+      element.classList.add("active");
+    }
+  }
+
+  function toggleDetails() {
+    var publicKeyDiv = document.getElementById("public_key_div");
+    var publicKey = document.getElementById("public_key")
+    var moreInfoDiv = document.getElementById("more_info");
+
+    if (publicKey.style.display === "none") {
+      publicKey.style.display = "block";
+      moreInfoDiv.style.maxHeight = publicKeyDiv.scrollHeight + moreInfoDiv.scrollHeight + "px";
+    } else {
+      publicKey.style.display = "none";
+      moreInfoDiv.style.maxHeight = moreInfoDiv.scrollHeight + "px";
+    }
+  }
+</script>
+</body>
+
+</html>

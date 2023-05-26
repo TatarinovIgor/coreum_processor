@@ -23,6 +23,8 @@ func MakeConfigFromEnv() AppConfig {
 		publicKeyPath = MustString("PUBLIC_KEY")
 		// Initializing interval of checking transactions
 		interval = GetInt("LISTEN_AND_SERVE_INTERVAL", 15)
+		// Initializing ENV variable for kratos url
+		kratosURL = MustString("KRATOS_URL")
 	)
 
 	if len(publicKeyPath) < 1 {
@@ -70,5 +72,6 @@ func MakeConfigFromEnv() AppConfig {
 		PrivateKey:      private,
 		PublicKey:       public,
 		Interval:        time.Duration(interval),
+		KratosURL:       kratosURL,
 	}
 }

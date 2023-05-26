@@ -1,20 +1,51 @@
 package routing
 
 import (
+	"context"
 	"coreum_processor/modules/handler"
+	"coreum_processor/modules/handler/ui"
 	"coreum_processor/modules/middleware"
 	"coreum_processor/modules/service"
+	user "coreum_processor/modules/user"
 	"github.com/julienschmidt/httprouter"
+	"github.com/ory/client-go"
+	"net/http"
 )
 
-func InitRouter(router *httprouter.Router, pathName string, processing *service.ProcessingService) {
+func InitRouter(ctx context.Context, ory *client.APIClient,
+	router *httprouter.Router, pathName string,
+	processing *service.ProcessingService, userService *user.Service) {
 
 	routerWrap := NewRouterWrap(pathName, router)
 
 	router.GET("/about", handler.About)
 
-	//GET routers for frontend
-	routerWrap.GET("/", handler.PageLanding)
+	//GET routers for frontend auth
+	routerWrap.GET("/login", ui.GetPageLogIn(ctx, ory))
+	routerWrap.GET("/register", ui.GetPageSignUp(ctx, ory))
+	routerWrap.GET("/logout", ui.GetPageLogOut(ctx, ory))
+	routerWrap.GET("/reset", ui.PageReset)
+	routerWrap.GET("/error", ui.PageError)
+
+	// routers for ory
+	routerWrap.POST("/kratos/create-user", handler.CreateUser(userService))
+	routerWrap.POST("/kratos/login-user", handler.LoginUser(userService))
+
+	// routers for UI
+	routerWrap.GET("/ui/dashboard", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.PageDashboard(ctx, userService, processing)))
+	routerWrap.GET("/ui/merchant/onboarding-wizard", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.PageWizardMerchant(ctx, userService)))
+	routerWrap.POST("/ui/merchant/onboarding-wizard", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.PageWizardMerchantUpdate(ctx, userService)))
+	routerWrap.GET("/ui/merchant/transactions", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.PageMerchantTransaction(processing)))
+	routerWrap.GET("/ui/merchant/users", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.PageMerchantUsers(userService, processing)))
+	routerWrap.GET("/ui/merchant/settings", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.PageMerchantSettings(processing)))
+	//GET routers for styles and assets
+	router.ServeFiles("/assets/*filepath", http.Dir("templates/assets"))
 
 	//GET routers for backend
 	routerWrap.GET("/get_balance", middleware.AuthMiddleware(processing, handler.GetBalance(processing)))                    //Tested

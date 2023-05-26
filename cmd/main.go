@@ -6,9 +6,11 @@ import (
 	"coreum_processor/modules/routing"
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/storage"
+	user "coreum_processor/modules/user"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/oklog/run"
+	ory "github.com/ory/client-go"
 	"log"
 	"net/http"
 	"os"
@@ -33,6 +35,13 @@ func main() {
 		panic(fmt.Errorf("cant open transactions storage: %v", err))
 	}
 
+	userStore, err := storage.NewUserStorage(storage.UserRegistered,
+		"users", "merchant_users", "merchant_list",
+		db)
+	if err != nil {
+		panic(fmt.Errorf("cant open user storage: %v", err))
+	}
+
 	// Adding processors to the unified structure
 	processors := map[string]service.CryptoProcessor{
 		internalApp.Coreum: internalApp.InitProcessorCoreum(internalApp.Coreum, db),
@@ -45,11 +54,18 @@ func main() {
 	processingService := service.NewProcessingService(cfg.PublicKey, cfg.PrivateKey,
 		cfg.TokenTimeToLive, processors, merchants, transactionStore)
 
+	// Initializing user management service
+	userService := user.NewService(userStore, merchants)
+	// register a new Ory client with the URL set to the Ory CLI Proxy
+	// we can also read the URL from the env or a config file
+	c := ory.NewConfiguration()
+	c.Servers = ory.ServerConfigurations{{URL: cfg.KratosURL}}
+
 	// Setting up API routing
 	router := httprouter.New()
 	urlPath := ""
 	log.Println("hello i am started")
-	routing.InitRouter(router, urlPath, processingService)
+	routing.InitRouter(ctx, ory.NewAPIClient(c), router, urlPath, processingService, userService)
 
 	// Creating 2 streams one for API and another for blockchain requests
 	var g run.Group

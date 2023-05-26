@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<!-- Meta -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="description" content=""/>
+	<meta name="keywords"
+		content="">
+	<meta name="author" content="Codedthemes, BirdHouse" />
+
+	<!-- Favicon icon -->
+	<link rel="icon" href="../../assets/images/favicon.ico" type="image/x-icon">
+	<!-- fontawesome icon -->
+	<link rel="stylesheet" href="../../assets/fonts/fontawesome/css/fontawesome-all.min.css">
+	<!-- animation css -->
+	<link rel="stylesheet" href="../../assets/plugins/animation/css/animate.min.css">
+	<!-- vendor css -->
+	<link rel="stylesheet" href="../../assets/css/style.css">
+
+	<link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<style>
+
+		.form-popup {
+			display: none;
+			position: fixed;
+			z-index: 1;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+
+		.form-container {
+			background-color: #fefefe;
+			margin: 10% auto;
+			padding: 20px;
+			border: 1px solid #888;
+			width: 80%;
+		}
+
+		.form-container h2 {
+			text-align: center;
+			margin-bottom: 20px;
+		}
+
+		.form-container input[type=text], .form-container input[type=email] {
+			width: 100%;
+			padding: 12px 20px;
+			margin: 8px 0;
+			border: 1px solid #ccc;
+			box-sizing: border-box;
+		}
+
+		.form-container .btn {
+			background-color: #4CAF50;
+			color: white;
+			padding: 12px 20px;
+			border: none;
+			cursor: pointer;
+			width: 100%;
+			margin-bottom: 10px;
+		}
+
+		.form-container .cancel {
+			background-color: #ccc;
+		}
+	</style>
+
+	<title>User management</title>
+</head>
+
+<body class="">
+	<!-- [ Pre-loader ] start -->
+	<div class="loader-bg">
+		<div class="loader-track">
+			<div class="loader-fill"></div>
+		</div>
+	</div>
+	<!-- [ Pre-loader ] End -->
+	<!-- [ Pre-loader ] End -->
+
+	<div class="sidebar">
+		<div class="logo-details">
+			<div class="logo_name">BirdHouse</div>
+			<i class='bx bx-menu' id="btn" ></i>
+		</div>
+		<ul class="nav-list">
+			<li>
+				<a href="/ui/merchant/transactions">
+					<i class='bx bx-grid-alt'></i>
+					<span class="links_name">Dashboard</span>
+				</a>
+				<span class="tooltip">Dashboard</span>
+			</li>
+			<li>
+				<a href="/ui/merchant/users">
+					<i class='bx bx-user' ></i>
+					<span class="links_name">Users</span>
+				</a>
+				<span class="tooltip">Users</span>
+			</li>
+			<li>
+				<a href="/ui/merchant/settings">
+					<i class='bx bx-cog' ></i>
+					<span class="links_name">Setting</span>
+				</a>
+				<span class="tooltip">Setting</span>
+			</li>
+			<li class="profile">
+				<div class="profile-details">
+					<div class="name_job">
+						<div class="name">User Name</div>
+						<div class="job">Organization Name</div>
+					</div>
+				</div>
+				<a href = "/logout">
+					<i class='bx bx-log-out' id="log_out" ></i>
+				</a>
+			</li>
+		</ul>
+	</div>
+	<section class="home-section">
+		<!-- [ Main Content ] start -->
+		<div class="pcoded-main-container" style="margin-left: 10px">
+			<div class="pcoded-wrapper">
+				<div class="pcoded-content"	>
+					<div class="pcoded-inner-content">
+						<div class="main-body">
+							<div class="page-wrapper">
+								<!-- [ breadcrumb ] start -->
+								<div class="page-header">
+									<div class="page-block">
+										<div class="row align-items-center">
+											<div class="col-md-12">
+												<div class="page-header-title">
+													<h5>Home</h5>
+												</div>
+												<ul class="breadcrumb">
+													<li class="breadcrumb-item">Current guid: {{ .guid }}</li>
+												</ul>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-xl-3 col-md-6">
+										<div class="card prod-p-card bg-c-red">
+											<div class="card-body">
+												<div class="row align-items-center m-b-25">
+													<div class="col">
+														<h6 class="m-b-5 text-white">Coreum Balance</h6>
+														<h3 class="m-b-0 text-white">{{ .coreum_balance }} {{ .coreum_asset}}</h3>
+													</div>
+													<div class="col-auto">
+														<i class="fas fa-money-bill-alt text-c-red f-18"></i>
+													</div>
+												</div>
+												<label style="color: white">Receiving Wallet:</label>
+												<p class="m-b-0 text-white">{{ coreum_wallet }}</p>
+											</div>
+										</div>
+									</div>
+								<div class="col-xl-8 col-md-6" style="flex: 0 0 100%; max-width: 100%">
+									<div class="card table-card">
+										<div class="card-header">
+											<h5>Users</h5>
+											<a onclick="openForm()" class="action_btn point success" style="float: right; color: green;">Add new user</a>
+										</div>
+
+										<div class="card-body px-0 py-0">
+											<div class="table-responsive">
+												<div class="session-scroll" style="height:478px;position:relative;">
+													<table class="table table-hover m-b-0">
+														<table class="table table-hover m-b-0">
+															{{ .users }}
+														</table>
+													</table>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+								<div id="myForm" class="form-popup">
+									<div id="form-container" class="form-container" style="background-color: transparent; border: 0px">
+									<form class="form-container" style="margin: 0px; width: 100%">
+										<h2>Add New User</h2>
+
+										<label for="first_name">First Name</label>
+										<input id="first_name" type="text" placeholder="Enter users name" name="name" required>
+
+										<label for="last_name">Last Name</label>
+										<input id="last_name" type="text" placeholder="Enter users last name" name="last_name" required>
+
+										<button type="submit" class="btn">Submit</button>
+									</form>
+									</div>
+								</div>
+							<!-- [ Main Content ] end -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	</section>
+
+	<!-- [ Main Content ] end -->
+
+	<script src="../../assets/js/vendor-all.min.js"></script>
+	<script src="../../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+	<script src="../../assets/js/pages/pc.js"></script>
+
+	<!-- [ Navbar script ] end -->
+	<script>
+		let sidebar = document.querySelector(".sidebar");
+		let closeBtn = document.querySelector("#btn");
+		let searchBtn = document.querySelector(".bx-search");
+		let formPopup = document.getElementById("myForm");
+		let formContainer = document.getElementById("form-container");
+
+		formPopup.addEventListener("click", outsideClick);
+
+		closeBtn.addEventListener("click", ()=>{
+			sidebar.classList.toggle("open");
+			menuBtnChange();//calling the function(optional)
+		});
+		searchBtn.addEventListener("click", ()=>{ // Sidebar open when you click on the search iocn
+			sidebar.classList.toggle("open");
+			menuBtnChange(); //calling the function(optional)
+		});
+		// following are the code to change sidebar button(optional)
+		function menuBtnChange() {
+			if(sidebar.classList.contains("open")){
+				closeBtn.classList.replace("bx-menu", "bx-menu-alt-right");//replacing the iocns class
+			}else {
+				closeBtn.classList.replace("bx-menu-alt-right","bx-menu");//replacing the iocns class
+			}
+		}
+		function openForm() {
+			formPopup.style.display = "block";
+		}
+
+		// Close the form pop-up
+		function closeForm() {
+			formPopup.style.display = "none";
+		}
+
+		// Handle clicks outside the form pop-up
+		function outsideClick(event) {
+			if (!formContainer.contains(event.target)) {
+				closeForm();
+			}
+		}
+	</script>
+</body>
+
+</html>

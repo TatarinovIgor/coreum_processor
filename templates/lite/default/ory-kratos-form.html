@@ -1,0 +1,33 @@
+<form method = "{{ .Method }}" action = "{{ .Action }}" encType="application/x-www-form-urlencoded">
+ {{ range .Nodes }} 
+ {{ if eq .Type "input" }}
+	{{ if ne .Attributes.UiNodeInputAttributes nil }}
+ 	{{ if and (ne .Meta.Label nil) (ne .Attributes.UiNodeInputAttributes.Type "submit" ) }}
+		<label for="{{ .Attributes.UiNodeInputAttributes.Name }}" >
+			{{ .Meta.Label.Text }}
+		</label><br/>
+	{{ end }}
+	<input 
+		type="{{ .Attributes.UiNodeInputAttributes.Type }}" 
+		name="{{ .Attributes.UiNodeInputAttributes.Name }}" 
+		{{ if ne .Attributes.UiNodeInputAttributes.Type "submit" }}
+			{{ if ne .Attributes.UiNodeInputAttributes.Value nil }}
+				value="{{ .Attributes.UiNodeInputAttributes.Value }}" 
+			{{ end }}
+		{{ else }} 
+			{{ if ne .Meta.Label nil }}
+				value="{{ .Meta.Label.Text }}" onclick="this.value='{{ .Attributes.UiNodeInputAttributes.Value }}'"
+			{{ end }}
+		{{ end }} 
+		{{ if .Attributes.UiNodeInputAttributes.Disabled }}
+			disabled
+		{{ end }}
+		{{ if .Attributes.UiNodeInputAttributes.Required }}
+			required
+		{{ end }}
+	/>
+	{{ end }}
+{{ end }}
+<br/>
+{{ end }}
+</form>

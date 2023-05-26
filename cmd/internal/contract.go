@@ -17,7 +17,8 @@ type AppConfig struct {
 	TokenTimeToLive int64
 	PrivateKey      *rsa.PrivateKey
 	PublicKey       *rsa.PublicKey
-	Interval		time.Duration
+	Interval        time.Duration
+	KratosURL       string
 }
 
 // MustString func returns environment variable value as a string value,

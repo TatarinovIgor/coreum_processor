@@ -157,6 +157,8 @@ func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantI
 	sendingWallet := service.Wallet{}
 	err = json.Unmarshal(sendingWalletRaw, &sendingWallet)
 
+	//check gas
+
 	msg := &banktypes.MsgSend{
 		FromAddress: sendingWallet.WalletAddress,
 		ToAddress:   request.WalletAddress,
