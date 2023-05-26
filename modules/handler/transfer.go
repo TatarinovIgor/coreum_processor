@@ -209,7 +209,7 @@ func NewToken(processing *service.ProcessingService) httprouter.Handle {
 func MintToken(processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
-		TokenRequest := service.NewTokenRequest{}
+		TokenRequest := service.TokenRequest{}
 		err := json.NewDecoder(r.Body).Decode(&TokenRequest)
 		if err != nil {
 			log.Println(err)
@@ -251,7 +251,7 @@ func MintToken(processing *service.ProcessingService) httprouter.Handle {
 func BurnToken(processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
-		TokenRequest := service.NewTokenRequest{}
+		TokenRequest := service.TokenRequest{}
 		err := json.NewDecoder(r.Body).Decode(&TokenRequest)
 		if err != nil {
 			log.Println(err)

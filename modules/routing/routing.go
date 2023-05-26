@@ -22,7 +22,7 @@ func InitRouter(router *httprouter.Router, pathName string, processing *service.
 	routerWrap.GET("/merchant/:id", middleware.AuthMiddleware(processing, handler.GetMerchantById(processing)))              //Tested
 	routerWrap.GET("/merchants", middleware.AuthMiddleware(processing, handler.GetMerchants(processing)))                    //Tested
 	routerWrap.GET("/get_wallet_by_id", middleware.AuthMiddleware(processing, handler.GetWalletById(processing)))            //Tested
-	routerWrap.GET("/get_transaction_status/:id", middleware.AuthMiddleware(processing, handler.GetTransaction(processing))) //Tested ToDo fix no response
+	routerWrap.GET("/get_transaction_status/:id", middleware.AuthMiddleware(processing, handler.GetTransaction(processing))) //Tested
 
 	//POST router for backend
 	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing))) //Tested

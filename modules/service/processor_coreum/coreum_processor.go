@@ -438,7 +438,6 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		Description:   description,
 		Features:      []assetfttypes.Feature{assetfttypes.Feature_minting, assetfttypes.Feature_burning},
 	}
-	//ToDo fix generation of same account
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
 		"key-name",
 		mnemonic,
@@ -472,7 +471,6 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic string, amount int64) (string, error) {
 	msgMint := &assetfttypes.MsgMint{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(amount)}}
 
-	//ToDo fix generation of same account
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
 		"key-name",
 		mnemonic,
@@ -506,7 +504,6 @@ func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic strin
 func (s CoreumProcessing) burnCoreumToken(subunit, issuerAddress, mnemonic string, amount int64) (string, error) {
 	msgBurn := &assetfttypes.MsgBurn{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(amount)}}
 
-	//ToDo fix generation of same account
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
 		"key-name",
 		mnemonic,

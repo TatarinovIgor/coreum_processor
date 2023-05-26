@@ -29,7 +29,7 @@ func GetTransactionList(processing *service.ProcessingService) httprouter.Handle
 		}
 		toUnix, err := strconv.Atoi(to)
 		if err != nil {
-			toUnix = time.Now().UTC().Second()
+			toUnix = int(time.Now().Unix())
 		}
 		transactionRequest.FromUnix = uint(fromUnix)
 		transactionRequest.ToUnix = uint(toUnix)
