@@ -19,13 +19,13 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	routerWrap := NewRouterWrap(pathName, router)
 
 	router.GET("/about", handler.About)
-
+	router.GET("/", handler.About)
 	//GET routers for frontend auth
 	routerWrap.GET("/login", ui.GetPageLogIn(ctx, ory))
 	routerWrap.GET("/register", ui.GetPageSignUp(ctx, ory))
 	routerWrap.GET("/logout", ui.GetPageLogOut(ctx, ory))
 	routerWrap.GET("/reset", ui.PageReset)
-	routerWrap.GET("/error", ui.PageError)
+	routerWrap.GET("/error", handler.About)
 
 	// routers for ory
 	routerWrap.POST("/kratos/create-user", handler.CreateUser(userService))

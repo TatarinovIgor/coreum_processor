@@ -110,20 +110,11 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 		}
 
 		varmap := map[string]interface{}{
-			"transactions":     generateTransactionTable(res),
-			"guid":             merchantID,
-			"tron_wallet":      nil,
-			"tron_balance":     nil,
-			"tron_asset":       nil,
-			"ethereum_wallet":  nil,
-			"ethereum_balance": nil,
-			"ethereum_asset":   "Not Connected",
-			"polygon_wallet":   nil,
-			"polygon_balance":  nil,
-			"polygon_asset":    "Not Connected",
-			"bitcoin_wallet":   nil,
-			"bitcoin_balance":  nil,
-			"bitcoin_asset":    "Not Connected",
+			"transactions":   generateTransactionTable(res),
+			"guid":           merchantID,
+			"coreum_wallet":  nil,
+			"coreum_balance": nil,
+			"coreum_asset":   nil,
 		}
 
 		_, err = processing.GetMerchantData(merchantID)
@@ -132,37 +123,14 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
 			return
 		}
-		var tronBalance, ethereumBalance, polygonBalance, bitcoinBalance *service.Balance
-		tronWallet, err := processing.GetWalletById("tron", merchantID, merchantID+"-R")
-		tronBalance, err = processing.GetBalance(service.BalanceRequest{Blockchain: "tron"}, merchantID, merchantID+"-R")
+		var coreumBalance *service.Balance
+		coreumWallet, err := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
+		coreumBalance, err = processing.GetBalance(service.BalanceRequest{Blockchain: "coreum"}, merchantID, merchantID+"-R")
 		if err == nil {
-			varmap["tron_wallet"] = tronWallet
-			varmap["tron_balance"] = tronBalance.Amount
-			varmap["tron_asset"] = tronBalance.Asset
+			varmap["coreum_wallet"] = coreumWallet
+			varmap["coreum_balance"] = coreumBalance.Amount
+			varmap["coreum_asset"] = coreumBalance.Asset
 		}
-		ethereumWallet, err := processing.GetWalletById("ethereum", merchantID, merchantID+"-R")
-		ethereumBalance, err = processing.GetBalance(service.BalanceRequest{Blockchain: "ethereum"}, merchantID, merchantID+"-R")
-		if err == nil {
-			varmap["ethereum_wallet"] = ethereumWallet
-			varmap["ethereum_balance"] = ethereumBalance.Amount
-			varmap["ethereum_asset"] = ethereumBalance.Asset
-		}
-		polygonWallet, err := processing.GetWalletById("polygon", merchantID, merchantID+"-R")
-		polygonBalance, err = processing.GetBalance(service.BalanceRequest{Blockchain: "polygon"}, merchantID, merchantID+"-R")
-		if err == nil {
-			varmap["polygon_wallet"] = polygonWallet
-			varmap["polygon_balance"] = polygonBalance.Amount
-			varmap["polygon_asset"] = polygonBalance.Asset
-		}
-
-		bitcoinWallet, err := processing.GetWalletById("bitcoin", merchantID, merchantID+"-R")
-		bitcoinBalance, _ = processing.GetBalance(service.BalanceRequest{Blockchain: "bitcoin"}, merchantID, merchantID+"-R")
-		if err == nil {
-			varmap["bitcoin_wallet"] = bitcoinWallet
-			varmap["bitcoin_balance"] = bitcoinBalance.Amount
-			varmap["bitcoin_asset"] = bitcoinBalance.Asset
-		}
-
 		err = t.ExecuteTemplate(w, "transactions.html", varmap)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
