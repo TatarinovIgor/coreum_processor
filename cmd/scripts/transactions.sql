@@ -1,7 +1,6 @@
 create table transactions
 (
-    id          bigserial
-        primary key,
+    id          bigserial primary key,
     guid        uuid                                           not null
         constraint trx_id_uq
             unique,

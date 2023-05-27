@@ -136,7 +136,7 @@ func (s *AssetPSQL) CreateAsset(blockchain, code, name, description, assetType, 
 		"WITH merchantID AS (select id from %s where merchant_id = '%s'), "+
 			" assetID AS (INSERT INTO %s "+
 			"(created_at, updated_at, blockchain, code, name, description, status, type, features, merchant_owner)"+
-			" values ($1, $2, $3, $4, $5, $6, $7, $8, $9, (select id from merchantID)) returning id) "+
+			" values ($1, $2, $3, $4, $5, $6, $7, $8, $9, (select id from merchantID)) returning id), "+
 			" INSERT INTO %s (created_at, updated_at, asset_id, merchant_list_id) "+
 			" values (now(), now(), (select id from assetID), (select id from merchantID)) returning id ",
 		s.merchantListNamespace, merchantOwnerID, s.assetsNamespace, s.merchantAssetsNamespace)

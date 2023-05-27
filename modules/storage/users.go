@@ -69,10 +69,10 @@ func (s *UserPSQL) GetUserByIdentity(identity string) (*UserStore, error) {
 	if len(userStore) == 1 {
 		return &userStore[0], nil
 	}
-	return nil, fmt.Errorf("unexpected number of user: %v, for identity: %v", len(identity), identity)
+	return nil, fmt.Errorf("unexpected number of users: %v, for identity: %v", len(userStore), identity)
 }
 
-// GetUserList get a filtered list of user
+// GetUserList get a filtered list of users
 func (s *UserPSQL) GetUserList(merchID string, accessFilter []int, from, to time.Time) ([]UserStore, error) {
 	un := s.userNamespace
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
@@ -216,7 +216,7 @@ func NewUserStorage(defaultAccess UserAccess, userNamespace, merchantUsersNamesp
 		return nil, fmt.Errorf("could not connect to user storage: %v", err)
 	}
 	if _, err := db.Exec(fmt.Sprintf("SELECT 1 FROM %q LIMIT 1", merchantUsersNamespace)); err != nil {
-		return nil, fmt.Errorf("could not connect to merchant's user storage: %v", err)
+		return nil, fmt.Errorf("could not connect to merchant's users storage: %v", err)
 	}
 	if _, err := db.Exec(fmt.Sprintf("SELECT 1 FROM %q LIMIT 1", merchantListNamespace)); err != nil {
 		return nil, fmt.Errorf("could not connect to merchant list: %v", err)
