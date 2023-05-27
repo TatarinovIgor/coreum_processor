@@ -71,5 +71,4 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	routerWrap.PUT("/merchant/:id", middleware.AuthMiddleware(processing, handler.UpdateMerchant(processing)))
 	routerWrap.PUT("/merchant/:id/:blockchain/commission",
 		middleware.AuthMiddlewareAdmin(processing, handler.UpdateMerchantCommission(processing)))
-
 }

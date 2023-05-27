@@ -304,7 +304,7 @@ func (s CoreumProcessing) GetBalance(request service.BalanceRequest, merchantID,
 		Denom:   denom,
 	})
 	if err != nil {
-		panic(err)
+		return &service.Balance{}, err
 	}
 	log.Println(fmt.Sprintf("Issuer's balance: %s\n", resp.Balance))
 	return &service.Balance{Blockchain: request.Blockchain, Amount: float64(resp.Balance.Amount.Uint64()), Asset: resp.Balance.Denom, Issuer: ""}, nil
