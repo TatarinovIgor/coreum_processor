@@ -5,12 +5,12 @@ RUN apk update && \
 
 WORKDIR /go/src/app
 
-COPY Crypto_Processor .
+COPY . .
 run mkdir /app
 run cp -a ./templates /app/templates/
 
 RUN go mod download
-RUN CGO_ENABLED=1 GOPROXY=direct go build -o /app/crypto-processing -mod=mod  ./cmd/main.go
+RUN CGO_ENABLED=1 GOPROXY=direct go build -o /app/coreum_processor -mod=mod  ./cmd/main.go
 
 # deploy-stage
 FROM alpine:latest
@@ -35,4 +35,4 @@ HEALTHCHECK --interval=30s --start-period=1m --timeout=30s --retries=3 \
 
 EXPOSE 80
 
-ENTRYPOINT ["/app/crypto-processing"]
+ENTRYPOINT ["/app/coreum_processor"]
