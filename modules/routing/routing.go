@@ -2,6 +2,7 @@ package routing
 
 import (
 	"context"
+	"coreum_processor/modules/asset"
 	"coreum_processor/modules/handler"
 	"coreum_processor/modules/handler/ui"
 	"coreum_processor/modules/middleware"
@@ -14,7 +15,7 @@ import (
 
 func InitRouter(ctx context.Context, ory *client.APIClient,
 	router *httprouter.Router, pathName string,
-	processing *service.ProcessingService, userService *user.Service) {
+	processing *service.ProcessingService, userService *user.Service, assetService *asset.Service) {
 
 	routerWrap := NewRouterWrap(pathName, router)
 
@@ -57,11 +58,11 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 
 	//POST router for backend
 	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing))) //Tested
-	routerWrap.POST("/token_issue", middleware.AuthMiddleware(processing, handler.NewToken(processing)))
-	routerWrap.POST("/token_mint", middleware.AuthMiddleware(processing, handler.MintToken(processing)))
-	routerWrap.POST("/token_burn", middleware.AuthMiddleware(processing, handler.BurnToken(processing)))         //Tested
-	routerWrap.POST("/withdraw", middleware.AuthMiddleware(processing, handler.Withdraw(processing)))            //Tested
-	routerWrap.POST("/merchant", middleware.AuthMiddlewareAdmin(processing, handler.CreateMerchant(processing))) //Tested
+	routerWrap.POST("/token_issue", middleware.AuthMiddleware(processing, handler.NewToken(processing, assetService)))
+	routerWrap.POST("/token_mint", middleware.AuthMiddleware(processing, handler.MintToken(processing, assetService)))
+	routerWrap.POST("/token_burn", middleware.AuthMiddleware(processing, handler.BurnToken(processing, assetService))) //Tested
+	routerWrap.POST("/withdraw", middleware.AuthMiddleware(processing, handler.Withdraw(processing)))                  //Tested
+	routerWrap.POST("/merchant", middleware.AuthMiddlewareAdmin(processing, handler.CreateMerchant(processing)))       //Tested
 
 	// DELETE routers for backend
 	routerWrap.DELETE("/withdraw/:guid", middleware.AuthMiddleware(processing, handler.DeleteWithdraw(processing))) //Tested

@@ -310,17 +310,17 @@ func (s ProcessingService) DeleteWithdraw(transaction, merchantID, externalId st
 	return nil
 }
 
-func (s ProcessingService) IssueToken(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
+func (s ProcessingService) IssueToken(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, []byte, error) {
 	processor, ok := s.processors[request.Blockchain]
 	if !ok {
-		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
+		return nil, nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
 
-	response, err := processor.IssueToken(request, merchantID, externalId)
+	response, features, err := processor.IssueToken(request, merchantID, externalId)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return response, nil
+	return response, features, nil
 }
 func (s ProcessingService) MintToken(request TokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
 	processor, ok := s.processors[request.Blockchain]

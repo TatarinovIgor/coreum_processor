@@ -265,24 +265,24 @@ func (s CoreumProcessing) TransferFromSending(request service.TransferRequest, m
 	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
-func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID, externalId string) (*service.NewTokenResponse, error) {
+func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID, externalId string) (*service.NewTokenResponse, []byte, error) {
 	_, byteAddress, err := s.store.GetByUser(merchantID, externalId)
 	if err != nil {
-		return nil, fmt.Errorf("can't get user: %v eth wallet from store, err: %v", externalId, err)
+		return nil, nil, fmt.Errorf("can't get user: %v eth wallet from store, err: %v", externalId, err)
 	}
 	userWallet := service.Wallet{}
 	err = json.Unmarshal(byteAddress, &userWallet)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if userWallet.WalletAddress == "" {
-		return nil, fmt.Errorf("empty wallet address")
+		return nil, nil, fmt.Errorf("empty wallet address")
 	}
-	token, err := s.createCoreumToken(request.Symbol, request.Code, request.Issuer, request.Description, userWallet.WalletSeed)
+	token, features, err := s.createCoreumToken(request.Symbol, request.Code, request.Issuer, request.Description, userWallet.WalletSeed)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &service.NewTokenResponse{TxHash: token}, nil
+	return &service.NewTokenResponse{TxHash: token}, features, nil
 }
 
 func (s CoreumProcessing) GetBalance(request service.BalanceRequest, merchantID, externalId string) (*service.Balance, error) {
@@ -430,7 +430,8 @@ func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
 	return mnemonic, Info.GetAddress().String(), nil
 }
 
-func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, description, mnemonic string) (string, error) {
+func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, description, mnemonic string) (string, []byte, error) {
+	features := []assetfttypes.Feature{assetfttypes.Feature_minting, assetfttypes.Feature_burning}
 	msgIssue := &assetfttypes.MsgIssue{
 		Issuer:        issuerAddress,
 		Symbol:        symbol,
@@ -438,7 +439,7 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		Precision:     6,
 		InitialAmount: sdk.NewInt(100_000_000),
 		Description:   description,
-		Features:      []assetfttypes.Feature{assetfttypes.Feature_minting, assetfttypes.Feature_burning},
+		Features:      features,
 	}
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
 		"key-name",
@@ -449,7 +450,7 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 	)
 	if err != nil {
 		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
-		return "", err
+		return "", nil, err
 	}
 
 	ctx := context.Background()
@@ -461,13 +462,18 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 	)
 	if err != nil {
 		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
-		return "", err
+		return "", nil, err
 	}
 	err = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
-	return response.TxHash, err
+	featuresJson, err := json.Marshal(features)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return response.TxHash, featuresJson, err
 }
 
 func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic string, amount int64) (string, error) {

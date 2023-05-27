@@ -114,7 +114,7 @@ type NewTokenRequest struct {
 	Symbol      string `json:"symbol"`
 	Code        string `json:"code"`
 	Blockchain  string `json:"blockchain"`
-	Issuer      string `json:"issuer"`
+	Issuer      string
 	Description string `json:"description"`
 }
 
@@ -122,7 +122,7 @@ type TokenRequest struct {
 	Code       string `json:"code"`
 	Blockchain string `json:"blockchain"`
 	Amount     string `json:"amount"`
-	Issuer     string `json:"issuer"`
+	Issuer     string
 }
 
 type NewMerchant struct {
@@ -214,7 +214,7 @@ type CryptoProcessor interface {
 	GetTransactionStatus(hash string) (CryptoTransactionStatus, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
 	TransferFromSending(request TransferRequest, merchantID, receivingWallet string) (*TransferResponse, error)
-	IssueToken(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
+	IssueToken(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, []byte, error)
 	MintToken(request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
 	BurnToken(request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
 }

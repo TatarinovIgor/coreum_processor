@@ -122,15 +122,19 @@
 										</div>
 										<div class="card">
 											<div class="card-body">
-												<h5>Add blockchain</h5>
+												<h5>Create token</h5>
 												<hr>
 												<form>
 													<div class="form-group">
-														<label>Receiving Wallet</label>
+														<label>Code (Symbol)</label>
+															<input type="text" class="form-control" placeholder="Text">
+													</div>
+													<div class="form-group">
+														<label>Name (Subunit)</label>
 														<input type="text" class="form-control" placeholder="Text">
 													</div>
 													<div class="form-group">
-														<label>Sending Wallet</label>
+														<label>Description</label>
 														<input type="text" class="form-control" placeholder="Text">
 													</div>
 													<button type="submit" class="btn btn-primary">Add</button>
@@ -139,12 +143,12 @@
 										</div>
 										<div class="card">
 											<div class="card-body">
-												<h5>List of wallets connected</h5>
+												<h5>List of tokens connected</h5>
 												<hr>
 												<div class="table-responsive">
 													<div class="session-scroll" style="height:478px;position:relative;">
 														<table class="table table-hover m-b-0">
-															{{ .wallets }}
+															{{ .tokens }}
 														</table>
 													</div>
 												</div>

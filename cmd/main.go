@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	internalApp "coreum_processor/cmd/internal"
+	asset "coreum_processor/modules/asset"
 	"coreum_processor/modules/routing"
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/storage"
@@ -38,8 +39,16 @@ func main() {
 	userStore, err := storage.NewUserStorage(storage.UserRegistered,
 		"users", "merchant_users", "merchant_list",
 		db)
+
 	if err != nil {
 		panic(fmt.Errorf("cant open user storage: %v", err))
+	}
+
+	assetsStore, err := storage.NewAssetsStorage(storage.UserRegistered,
+		"assets", "merchant_assets", "merchant_list",
+		db)
+	if err != nil {
+		panic(fmt.Errorf("cant open assets storage: %v", err))
 	}
 
 	// Adding processors to the unified structure
@@ -56,6 +65,7 @@ func main() {
 
 	// Initializing user management service
 	userService := user.NewService(userStore, merchants)
+	assetService := asset.NewService(assetsStore, merchants)
 	// register a new Ory client with the URL set to the Ory CLI Proxy
 	// we can also read the URL from the env or a config file
 	c := ory.NewConfiguration()
@@ -65,7 +75,7 @@ func main() {
 	router := httprouter.New()
 	urlPath := ""
 	log.Println("hello i am started")
-	routing.InitRouter(ctx, ory.NewAPIClient(c), router, urlPath, processingService, userService)
+	routing.InitRouter(ctx, ory.NewAPIClient(c), router, urlPath, processingService, userService, assetService)
 
 	// Creating 2 streams one for API and another for blockchain requests
 	var g run.Group

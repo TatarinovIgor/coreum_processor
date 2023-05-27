@@ -246,7 +246,7 @@ func PageMerchantSettings(processing *service.ProcessingService) httprouter.Hand
 		}
 
 		varmap := map[string]interface{}{
-			"wallets": generateBlockchainsTable(processing, merchantID, merchantData.Wallets),
+			"tokens": generateBlockchainsTable(processing, merchantID, merchantData.Wallets),
 		}
 
 		err = t.ExecuteTemplate(w, "settings.html", varmap)
@@ -260,44 +260,18 @@ func PageMerchantSettings(processing *service.ProcessingService) httprouter.Hand
 }
 
 func generateBlockchainsTable(processing *service.ProcessingService, merchantID string, res map[string]service.Wallets) template.HTML {
-	htmlBlock := "<thead><tr><th><span>Blockchain</span></th><th><span>Commission Fix <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Commission Percentage <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Wallet ID <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Type <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th></tr></thead>"
-	blockchain := ""
-	for i := 0; i < 4; i++ {
-		switch i {
-		case 0:
-			blockchain = "tron"
-		case 1:
-			blockchain = "ethereum"
-		case 2:
-			blockchain = "polygon"
-		case 3:
-			blockchain = "bitcoin"
-		}
-		walletSending, err := processing.GetWalletById(blockchain, merchantID, merchantID+"-S")
-		if err != nil {
-			break
-		}
-		htmlBlock = htmlBlock + "" +
-			"<tbody><tr>" +
-			"<td>" + blockchain + "</td>" +
-			"<td>" + fmt.Sprintf("%v", res[blockchain].CommissionSending.Fix) + "</td>" +
-			"<td>" + fmt.Sprintf("%v", res[blockchain].CommissionSending.Percent) + "</td>" +
-			"<td>" + walletSending + "</td>" +
-			"<td>" + "Sending" + "</td>" +
-			"</tr></tbody>"
+	htmlBlock := "<thead><tr><th><span>Code (Symbol)</span></th><th><span>Name (Subunit) <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Issuer <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span> Issued <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span> Mint <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Burn <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th></tr></thead>"
 
-		walletReceiving, err := processing.GetWalletById(blockchain, merchantID, merchantID+"-S")
-		if err != nil {
-			break
-		}
-		htmlBlock = htmlBlock + "" +
-			"<tbody><tr>" +
-			"<td>" + blockchain + "</td>" +
-			"<td>" + fmt.Sprintf("%v", res[blockchain].CommissionReceiving.Fix) + "</td>" +
-			"<td>" + fmt.Sprintf("%v", res[blockchain].CommissionReceiving.Percent) + "</td>" +
-			"<td>" + walletReceiving + "</td>" +
-			"<td>" + "Receiving" + "</td>" +
-			"</tr></tbody>"
-	}
+	htmlBlock = htmlBlock + "" +
+		"<tbody><tr>"
+	/*
+		"<td>" + blockchain + "</td>" +
+		"<td>" + fmt.Sprintf("%v", res[blockchain].CommissionSending.Fix) + "</td>" +
+		"<td>" + fmt.Sprintf("%v", res[blockchain].CommissionSending.Percent) + "</td>" +
+		"<td>" + walletSending + "</td>" +
+		"<td>" + "Sending" + "</td>" +
+		"</tr></tbody>"
+	*/
+
 	return template.HTML(htmlBlock)
 }
