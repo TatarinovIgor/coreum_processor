@@ -22,10 +22,10 @@ func IsSysAdmin(access storage.UserAccess) bool {
 }
 
 func SetBlocked(access storage.UserAccess) storage.UserAccess {
-	return access & ^storage.UserOnboarded
+	return access & ^storage.UserRegistered
 }
 func SetRegistered(access storage.UserAccess) storage.UserAccess {
-	return access | storage.UserOnboarded
+	return access | storage.UserRegistered
 }
 
 func SetOnboarded(access storage.UserAccess) storage.UserAccess {
