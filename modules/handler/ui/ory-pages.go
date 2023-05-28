@@ -20,6 +20,10 @@ func GetPageSignUp(ctx context.Context, ory *client.APIClient) httprouter.Handle
 			if err != nil {
 				log.Println(err, resp)
 				return
+			} else if execute == nil {
+				log.Println("execute is nil, res: ", resp)
+				http.Redirect(w, r, "/error", http.StatusSeeOther)
+				return
 			}
 			http.Redirect(w, r, execute.RequestUrl, http.StatusSeeOther)
 			return
@@ -70,8 +74,14 @@ func GetPageLogIn(ctx context.Context, ory *client.APIClient) httprouter.Handle 
 			execute, resp, err = ory.FrontendApi.CreateBrowserLoginFlow(ctx).Execute()
 			if err != nil {
 				log.Println("can't make flow for login, error: ", err)
+				http.Redirect(w, r, "/error", http.StatusSeeOther)
+				return
+			} else if execute == nil {
+				log.Println("execute is nil, res: ", resp)
+				http.Redirect(w, r, "/error", http.StatusSeeOther)
 				return
 			}
+			log.Println(execute)
 			http.Redirect(w, r, execute.RequestUrl, http.StatusSeeOther)
 			return
 		} else {
