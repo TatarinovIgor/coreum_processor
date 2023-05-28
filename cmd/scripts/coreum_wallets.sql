@@ -10,9 +10,6 @@ create table coreum_wallets
     value       text                     not null
 );
 
-alter table coreum_wallets
-    owner to postgres;
-
 create unique index merch_user_idx
     on coreum_wallets (merchant_id, external_id);
 

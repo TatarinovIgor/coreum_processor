@@ -25,7 +25,8 @@ func GetPageSignUp(ctx context.Context, ory *client.APIClient) httprouter.Handle
 				http.Redirect(w, r, "/error", http.StatusSeeOther)
 				return
 			}
-			http.Redirect(w, r, execute.RequestUrl, http.StatusSeeOther)
+			w.Header().Set("Set-Cookie", resp.Header.Get("Set-Cookie"))
+			http.Redirect(w, r, execute.Ui.Action, http.StatusSeeOther)
 			return
 		} else {
 			// set the cookies on the ory client
@@ -81,8 +82,8 @@ func GetPageLogIn(ctx context.Context, ory *client.APIClient) httprouter.Handle 
 				http.Redirect(w, r, "/error", http.StatusSeeOther)
 				return
 			}
-			log.Println(execute)
-			http.Redirect(w, r, execute.RequestUrl, http.StatusSeeOther)
+			w.Header().Set("Set-Cookie", resp.Header.Get("Set-Cookie"))
+			http.Redirect(w, r, execute.Ui.Action, http.StatusSeeOther)
 			return
 		} else {
 			// set the cookies on the ory client
