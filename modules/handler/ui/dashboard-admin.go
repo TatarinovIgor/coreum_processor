@@ -4,13 +4,18 @@ import (
 	"context"
 	"coreum_processor/modules/internal"
 	"coreum_processor/modules/service"
+	"coreum_processor/modules/user"
+	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
+	"time"
 )
 
-func PageDashboardAdmin(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
+func PageMerchantsAdmin(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		userStore, err := internal.GetUserStore(r.Context())
 		if err != nil {
@@ -38,6 +43,126 @@ func PageDashboardAdmin(ctx context.Context, processing *service.ProcessingServi
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
+			return
+		}
+	}
+}
+
+func PageRequestsAdmin(ctx context.Context, userService *user.Service, processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		userStore, err := internal.GetUserStore(r.Context())
+		if err != nil {
+			log.Println(`can't find user store`)
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
+			return
+		}
+		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html")
+		if err != nil {
+			w.WriteHeader(http.StatusNoContent)
+			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
+			return
+		}
+		userStore = userStore
+
+		requests, err := userService.GetUserList("", nil, time.Unix(0, 0), time.Now().UTC())
+
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		err = t.Execute(w, requests)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
+			return
+		}
+	}
+}
+
+type RawUser struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Identity  string `json:"identity"`
+}
+
+func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		//Getting data from the request
+		w = processing.SetHeaders(w)
+		raw := struct {
+			FirstName string `json:"first_name"`
+			LastName  string `json:"last_name"`
+			Identity  string `json:"identity"`
+		}{}
+		err := json.NewDecoder(r.Body).Decode(&raw)
+		if err != nil {
+			http.Error(w, "Failed to parse request body", http.StatusBadRequest)
+			return
+		}
+
+		//Creating new merchant
+		merchant := service.MerchantData{
+			PublicKey:    "",
+			MerchantName: raw.FirstName,
+			ID:           uuid.New(),
+			CallBackURL:  "",
+		}
+
+		_, err = processing.CreateMerchants(merchant.ID.String(), merchant)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not create new merchant", http.StatusBadRequest)
+			return
+		}
+
+		//Creating userStore
+		userStore, err := internal.GetUserStore(r.Context())
+		if err != nil {
+			log.Println(`can't find user store`)
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
+			return
+		}
+
+		userStore.Identity = strings.Trim(raw.Identity, " ")
+		userStore.FirstName = raw.FirstName
+		userStore.LastName = raw.LastName
+
+		//Updating user
+		err = userService.UpdateUser(*userStore)
+		if err != nil {
+			log.Println("Failed to update user: ", err)
+			http.Error(w, "Failed to update user", http.StatusBadRequest)
+		}
+
+		//Adding merchant ID to merchant_list
+		err = userService.ApproveUserMerchant(userStore.Identity, merchant.ID.String())
+		if err != nil {
+			log.Println("Failed to add merchant ID to merchant_list: ", err)
+			http.Error(w, "Failed to add merchant ID to merchant_list", http.StatusBadRequest)
+		}
+
+		//Linking user to merchant
+		err = userService.LinkUserToMerchant(userStore.Identity, merchant.ID.String())
+		if err != nil {
+			log.Println("Failed to link user to merchant: ", err)
+			http.Error(w, "Failed to link user to merchant", http.StatusBadRequest)
+		}
+
+		_, err = userService.SetUserAccess(userStore.Identity, user.SetOnboarded(userStore.Access))
+		if err != nil {
+			log.Println(err)
+		}
+
+		// Send a response
+		response := map[string]string{"message": "Updated successfully"}
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			http.Error(w, "Failed to send response", http.StatusInternalServerError)
 			return
 		}
 	}

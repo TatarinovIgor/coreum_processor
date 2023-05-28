@@ -38,11 +38,15 @@ func (s *Service) LinkUserToMerchant(identity, merchantID string) error {
 	return s.userStorage.LinkUserToMerchant(identity, merchantID, storage.MerchantAccess{})
 }
 
+func (s *Service) ApproveUserMerchant(identity, merchantID string) error {
+	return s.userStorage.ApproveUserMerchant(identity, merchantID)
+}
+
 func (s *Service) RequestMerchantForUser(identity, merchantName, merchantEmail string) error {
 	return s.userStorage.RequestMerchantForUser(identity, merchantName, merchantEmail)
 }
 
-// NewService create a service to process operation with user and merchant settings
+// NewService create a service to process operation with users and merchant settings
 func NewService(userStorage *storage.UserPSQL, merchants service.Merchants) *Service {
 	return &Service{
 		userStorage: userStorage,

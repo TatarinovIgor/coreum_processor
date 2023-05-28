@@ -76,8 +76,11 @@ func (s *TransactionPSQL) GetTransactionsByMerchant(merchID, blockchain string,
 	actionFilter []string, statusFilter []string,
 	from, to time.Time) ([]TransactionStore, error) {
 	query := fmt.Sprintf(
-		"SELECT * FROM %s WHERE deleted_at IS NULL and merchant_id = '%s' and created_at > '%v' and created_at < '%v' and blockchain = '%s'",
-		s.namespace, merchID, from.Format(time.RFC3339), to.Format(time.RFC3339), blockchain)
+		"SELECT * FROM %s WHERE deleted_at IS NULL and merchant_id = '%s' and created_at > '%v' and created_at < '%v' ",
+		s.namespace, merchID, from.Format(time.RFC3339), to.Format(time.RFC3339))
+	if blockchain != "" {
+		query += fmt.Sprintf(" and blockchain = '%s'", blockchain)
+	}
 	if actionFilter != nil && len(actionFilter) > 0 && actionFilter[0] != "" {
 		query += " and action in ("
 		for i, val := range actionFilter {

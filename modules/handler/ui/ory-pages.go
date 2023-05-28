@@ -25,7 +25,9 @@ func GetPageSignUp(ctx context.Context, ory *client.APIClient) httprouter.Handle
 				http.Redirect(w, r, "/error", http.StatusSeeOther)
 				return
 			}
-			w.Header().Set("Set-Cookie", resp.Header.Get("Set-Cookie"))
+			if resp.Header.Get("Set-Cookie") != "" {
+				w.Header().Set("Set-Cookie", resp.Header.Get("Set-Cookie"))
+			}
 			http.Redirect(w, r, execute.Ui.Action, http.StatusSeeOther)
 			return
 		} else {
@@ -43,6 +45,9 @@ func GetPageSignUp(ctx context.Context, ory *client.APIClient) httprouter.Handle
 			if err != nil {
 				log.Println(err, resp)
 				return
+			}
+			if r.Header.Get("Cookie") != "" {
+				w.Header().Set("Cookie", resp.Header.Get("Cookie"))
 			}
 		}
 
@@ -82,7 +87,9 @@ func GetPageLogIn(ctx context.Context, ory *client.APIClient) httprouter.Handle 
 				http.Redirect(w, r, "/error", http.StatusSeeOther)
 				return
 			}
-			w.Header().Set("Set-Cookie", resp.Header.Get("Set-Cookie"))
+			if resp.Header.Get("Set-Cookie") != "" {
+				w.Header().Set("Set-Cookie", resp.Header.Get("Set-Cookie"))
+			}
 			http.Redirect(w, r, execute.Ui.Action, http.StatusSeeOther)
 			return
 		} else {
@@ -96,6 +103,9 @@ func GetPageLogIn(ctx context.Context, ory *client.APIClient) httprouter.Handle 
 			// ory_session_projectid cookie to the endpoint
 			cookies = r.Header.Get("Cookie")
 			execute, resp, err = ory.FrontendApi.GetLoginFlow(ctx).Cookie(cookies).Id(flow[0]).Execute()
+			if resp.Header.Get("Set-Cookie") != "" {
+				w.Header().Set("Set-Cookie", resp.Header.Get("Set-Cookie"))
+			}
 		}
 		if err != nil {
 			log.Println(err, resp)

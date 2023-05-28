@@ -51,6 +51,10 @@ func AuthMiddlewareCookie(ctx context.Context, ory *client.APIClient,
 		merchantList, err := userService.GetUserMerchants(session.Identity.Id)
 		if err == nil && len(merchantList) > 0 {
 			ctxR = internal.WithMerchantID(ctxR, merchantList[0].MerchantID)
+		} else if err != nil {
+			log.Println(err)
+		} else {
+			log.Println("can't find merchants for user: ", session.Identity.Id)
 		}
 		next(w, r.WithContext(ctxR), ps)
 	}

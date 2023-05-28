@@ -65,7 +65,7 @@ func PageWizardMerchantUpdate(ctx context.Context, userService *user.Service) ht
 		case "001":
 			userStore.FirstName = r.Form.Get("first_name")
 			userStore.LastName = r.Form.Get("last_name")
-			userService.UpdateUser(*userStore)
+			err := userService.UpdateUser(*userStore)
 			if err != nil {
 				http.Redirect(w, r, r.URL.Path+"?step=001", http.StatusSeeOther)
 			} else {

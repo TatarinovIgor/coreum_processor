@@ -79,19 +79,19 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 	from, to time.Time) ([]AssetStore, error) {
 	an := s.assetsNamespace
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
-		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, %s.company_name, "+
+		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, "+
 		"%s.status, %s.Type, %s.Features FROM %s ",
-		an, an, an, an, an, an, an, an, an, an, s.merchantListNamespace, an, an, an)
-	query += fmt.Sprintf(" join %s mu on %s.id = mu.asset_id ",
+		an, an, an, an, an, an, an, an, an, an, an, an, an)
+	query += fmt.Sprintf("join %s mu on %s.id = mu.asset_id ",
 		s.merchantAssetsNamespace, an)
 	query += fmt.Sprintf("join %s ml on mu.merchant_list_id = ml.id ", s.merchantListNamespace)
 
 	if merchID != "" {
-		query += fmt.Sprintf(" where merchant_id = '%s' and ", merchID)
+		query += fmt.Sprintf("where merchant_id = '%s' and ", merchID)
 	} else {
-		query += " where "
+		query += "where "
 	}
-	query += fmt.Sprintf(" %s.deleted_at IS NULL and %s.created_at > '%v' and %s.created_at < '%v' ",
+	query += fmt.Sprintf("%s.deleted_at IS NULL and %s.created_at > '%v' and %s.created_at < '%v' ",
 		an, an, from.Format(time.RFC3339), an, to.Format(time.RFC3339))
 
 	if blockChain != nil && len(blockChain) > 0 && blockChain[0] != "" {
@@ -136,7 +136,7 @@ func (s *AssetPSQL) CreateAsset(blockchain, code, name, description, assetType, 
 		"WITH merchantID AS (select id from %s where merchant_id = '%s'), "+
 			" assetID AS (INSERT INTO %s "+
 			"(created_at, updated_at, blockchain, code, name, description, status, type, features, merchant_owner)"+
-			" values ($1, $2, $3, $4, $5, $6, $7, $8, $9, (select id from merchantID)) returning id) "+
+			" values ($1, $2, $3, $4, $5, $6, $7, $8, $9, (select id from merchantID)) returning id), "+
 			" INSERT INTO %s (created_at, updated_at, asset_id, merchant_list_id) "+
 			" values (now(), now(), (select id from assetID), (select id from merchantID)) returning id ",
 		s.merchantListNamespace, merchantOwnerID, s.assetsNamespace, s.merchantAssetsNamespace)

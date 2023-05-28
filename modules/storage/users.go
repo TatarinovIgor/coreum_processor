@@ -78,14 +78,16 @@ func (s *UserPSQL) GetUserList(merchID string, accessFilter []int, from, to time
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
 		" %s.identity, %s.first_name, %s.last_name, %s.terms_and_conditions, %s.access, %s.meta_data FROM %s ",
 		un, un, un, un, un, un, un, un, un, un, un)
+
+	query += fmt.Sprintf(" join %s mu on %s.id = mu.user_id ",
+		s.merchantUsersNamespace, un)
+	query += fmt.Sprintf("join %s ml on mu.merchant_list_id = ml.id ", s.merchantListNamespace)
 	if merchID != "" {
-		query += fmt.Sprintf(" join %s mu on %s.id = mu.user_id ",
-			s.merchantUsersNamespace, un)
-		query += fmt.Sprintf("join %s ml on mu.merchant_list_id = ml.id ", s.merchantListNamespace)
 		query += fmt.Sprintf(" where merchant_id = '%s' and ", merchID)
 	} else {
-		query += " where "
+		query += fmt.Sprintf(" where merchant_id IS NULL AND ")
 	}
+
 	query += fmt.Sprintf(" %s.deleted_at IS NULL and %s.created_at > '%v' and %s.created_at < '%v' ",
 		un, un, from.Format(time.RFC3339), un, to.Format(time.RFC3339))
 	if accessFilter != nil && len(accessFilter) > 0 {
@@ -179,6 +181,22 @@ func (s *UserPSQL) LinkUserToMerchant(identity, merchantID string, merchantAcces
 			"(select id from %s where merchant_id = '%s'))",
 		s.merchantUsersNamespace, s.userNamespace, identity, s.merchantListNamespace, merchantID)
 	_, err := s.db.Query(query)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *UserPSQL) ApproveUserMerchant(identity, merchantID string) error {
+	query := fmt.Sprintf(
+		"WITH user_id_var AS (SELECT id FROM %s WHERE identity = $1), "+
+			"merchant_id_var AS (SELECT merchant_list_id FROM %s JOIN %s ml ON merchant_list_id = ml.id "+
+			"WHERE user_id IN (SELECT id FROM user_id_var) AND ml.merchant_id IS NULL) "+
+			"UPDATE %s SET updated_at = $2, merchant_id = $3 WHERE id IN (SELECT merchant_list_id FROM merchant_id_var)",
+		s.userNamespace, s.merchantUsersNamespace, s.merchantListNamespace, s.merchantListNamespace)
+
+	_, err := s.db.Query(query,
+		identity, time.Now().UTC(), merchantID)
 	if err != nil {
 		return err
 	}
