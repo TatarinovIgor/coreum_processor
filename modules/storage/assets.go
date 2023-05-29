@@ -50,7 +50,7 @@ func (s *AssetPSQL) GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer s
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
 		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, %s.company_name, "+
 		"%s.status, %s.Type, %s.Features FROM %s ",
-		an, an, an, an, an, an, an, an, an, an, s.merchantListNamespace, an, an, an)
+		an, an, an, an, an, an, an, an, an, s.merchantListNamespace, an, an, an, an)
 	query += fmt.Sprintf(" join %s mu on %s.id = mu.asset_id ",
 		s.merchantAssetsNamespace, an)
 	query += fmt.Sprintf("join %s ml on mu.merchant_list_id = ml.id ", s.merchantListNamespace)
@@ -81,7 +81,7 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
 		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, %s.company_name, "+
 		"%s.status, %s.Type, %s.Features FROM %s ",
-		an, an, an, an, an, an, an, an, an, an, s.merchantListNamespace, an, an, an)
+		an, an, an, an, an, an, an, an, an, s.merchantListNamespace, an, an, an, an)
 	query += fmt.Sprintf("join %s mu on %s.id = mu.asset_id ",
 		s.merchantAssetsNamespace, an)
 	query += fmt.Sprintf("join %s ml on mu.merchant_list_id = ml.id ", s.merchantListNamespace)
