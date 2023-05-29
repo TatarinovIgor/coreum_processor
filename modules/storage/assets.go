@@ -79,9 +79,9 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 	from, to time.Time) ([]AssetStore, error) {
 	an := s.assetsNamespace
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
-		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, "+
+		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, %s.company_name, "+
 		"%s.status, %s.Type, %s.Features FROM %s ",
-		an, an, an, an, an, an, an, an, an, an, an, an, an)
+		an, an, an, an, an, an, an, an, an, an, s.merchantListNamespace, an, an, an)
 	query += fmt.Sprintf("join %s mu on %s.id = mu.asset_id ",
 		s.merchantAssetsNamespace, an)
 	query += fmt.Sprintf("join %s ml on mu.merchant_list_id = ml.id ", s.merchantListNamespace)
@@ -234,16 +234,20 @@ func rowsToAssets(rows *sql.Rows) ([]AssetStore, error) {
 	if rows == nil {
 		return assets, nil
 	}
+	var issuer *string
 	for rows.Next() {
 		asset := AssetStore{}
 		if err := rows.Scan(
 			&asset.Id,
 			&asset.CreatedAt, &asset.UpdatedAt, &asset.DeletedAt,
 			// blockchain, %s.code, %s.issuer, %s.name, %s.description, %s.company_name, %s.status
-			&asset.BlockChain, &asset.Code, &asset.Issuer,
-			&asset.Name, &asset.Description, &asset.MerchantOwner, &asset.Status,
+			&asset.BlockChain, &asset.Code, &issuer,
+			&asset.Name, &asset.Description, &asset.MerchantOwner, &asset.Status, &asset.Type, &asset.Features,
 		); err != nil {
 			return nil, err
+		}
+		if issuer != nil {
+			asset.Issuer = *issuer
 		}
 		assets = append(assets, asset)
 	}
