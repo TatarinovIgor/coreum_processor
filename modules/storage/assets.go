@@ -91,7 +91,7 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 	} else {
 		query += "where "
 	}
-	query += fmt.Sprintf("%s.deleted_at IS NULL IS NULL and %s.created_at > '%v' and %s.created_at < '%v' ",
+	query += fmt.Sprintf("%s.deleted_at IS NULL and %s.created_at > '%v' and %s.created_at < '%v' ",
 		an, an, from.Format(time.RFC3339), an, to.Format(time.RFC3339))
 
 	if blockChain != nil && len(blockChain) > 0 && blockChain[0] != "" {

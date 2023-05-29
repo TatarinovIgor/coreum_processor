@@ -182,7 +182,7 @@ func PageMerchantUsers(userService *user.Service, processing *service.Processing
 		}
 
 		varmap := map[string]interface{}{
-			"transactions":   generateUserTable(res),
+			"users":          generateUserTable(res),
 			"guid":           merchantID,
 			"coreum_wallet":  nil,
 			"coreum_balance": nil,
