@@ -48,12 +48,12 @@ type AssetPSQL struct {
 func (s *AssetPSQL) GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer string) (*AssetStore, error) {
 	an := s.assetsNamespace
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
-		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, %s.company_name, "+
+		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, ml.company_name, "+
 		"%s.status, %s.Type, %s.Features FROM %s ",
-		an, an, an, an, an, an, an, an, an, s.merchantListNamespace, an, an, an, an)
-	query += fmt.Sprintf(" join %s mu on %s.id = mu.asset_id ",
+		an, an, an, an, an, an, an, an, an, an, an, an, an)
+	query += fmt.Sprintf(" join %s ma on %s.id = ma.asset_id ",
 		s.merchantAssetsNamespace, an)
-	query += fmt.Sprintf("join %s ml on mu.merchant_list_id = ml.id ", s.merchantListNamespace)
+	query += fmt.Sprintf("join %s ml on ma.merchant_list_id = ml.id ", s.merchantListNamespace)
 	query += fmt.Sprintf(" WHERE blockchain = '%s' and code = '%s' and issuer = '%s'",
 		blockchain, code, issuer)
 	rows, err := s.db.Query(query)
@@ -79,12 +79,12 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 	from, to time.Time) ([]AssetStore, error) {
 	an := s.assetsNamespace
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
-		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, %s.company_name, "+
+		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, ml.company_name, "+
 		"%s.status, %s.Type, %s.Features FROM %s ",
-		an, an, an, an, an, an, an, an, an, s.merchantListNamespace, an, an, an, an)
-	query += fmt.Sprintf("join %s mu on %s.id = mu.asset_id ",
+		an, an, an, an, an, an, an, an, an, an, an, an, an)
+	query += fmt.Sprintf("join %s ma on %s.id = ma.asset_id ",
 		s.merchantAssetsNamespace, an)
-	query += fmt.Sprintf("join %s ml on mu.merchant_list_id = ml.id ", s.merchantListNamespace)
+	query += fmt.Sprintf("join %s ml on ma.merchant_list_id = ml.id ", s.merchantListNamespace)
 
 	if merchID != "" {
 		query += fmt.Sprintf("where merchant_id = '%s' and ", merchID)
