@@ -109,10 +109,11 @@
 												<hr>
 												<div class="row">
 													<div class="col-md-6">
-														<form>
+														<form action="/submit_public_key" method="post">
+
 															<div class="form-group">
-																<label for="exampleFormControlTextarea1">Enter your Public Key</label>
-																<textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+																<label for="public_key">Enter your Public Key</label>
+																<textarea class="form-control" id="public_key" name="public_key" rows="3" placeholder="{{ .key }}"></textarea>
 															</div>
 															<button type="submit" class="btn btn-primary">Submit</button>
 														</form>

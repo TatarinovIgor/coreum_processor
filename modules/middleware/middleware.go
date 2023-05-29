@@ -65,7 +65,6 @@ func AuthMiddleware(ProcessingService *service.ProcessingService, next httproute
 		authToken := r.Header.Get("Authorization")
 		token, err := ProcessingService.TokenDecode(authToken)
 		if err != nil {
-
 			http.Error(w, fmt.Sprintf("invalid or expired jwt, err: %s", err.Error()), http.StatusBadRequest)
 			return
 		}
