@@ -57,6 +57,10 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 		userService, handler.PublicKeySaver(processing)))
 	routerWrap.POST("/submit_new_token", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, handler.NewTokenSaver(processing, assetService)))
+	routerWrap.POST("/ui/merchant/mint", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, handler.MintTokenMerchant(processing, assetService)))
+	routerWrap.POST("/ui/merchant/burn", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, handler.BurnTokenMerchant(processing, assetService)))
 
 	//GET routers for styles and assets
 	router.ServeFiles("/assets/*filepath", http.Dir("templates/assets"))

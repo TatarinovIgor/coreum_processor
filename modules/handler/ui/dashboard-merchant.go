@@ -275,13 +275,13 @@ func generateAssetsTable(res []storage.AssetStore) template.HTML {
 
 	for i := 0; i < len(res); i++ {
 		htmlBlock = htmlBlock + "" +
-			"<tbody><tr><td>" + res[i].CreatedAt.String() + "</td>" +
+			"<tbody><tr>" +
 			"<td>" + res[i].Code + "</td>" +
 			"<td>" + res[i].Name + "</td>" +
 			"<td>" + res[i].Issuer + "</td>" +
 			"<td>" + "0" + "</td>" +
-			"<td>" + "Mint" + "</td>" +
-			"<td>" + "Burn" + "</td>" +
+			"<td class=\"action_btn point done\" onclick=\"openFormMint('" + res[i].Code + "')\">" + "Mint" + "</td>" +
+			"<td class=\"action_btn point rejected\" onclick=\"openFormBurn('" + res[i].Code + "')\">" + "Burn" + "</td>" +
 			"</tr></tbody>"
 	}
 

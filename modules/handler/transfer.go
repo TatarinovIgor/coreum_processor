@@ -272,6 +272,52 @@ func MintToken(processing *service.ProcessingService, assetService *asset.Servic
 	}
 }
 
+func MintTokenMerchant(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+		TokenRequest := service.TokenRequest{}
+		err := json.NewDecoder(r.Body).Decode(&TokenRequest)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		res := &service.NewTokenResponse{}
+
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not find merchant", http.StatusBadRequest)
+			return
+		}
+		TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, merchantID+"-R")
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
+			return
+		}
+		res, err = processing.MintToken(TokenRequest, merchantID, merchantID+"-R")
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
+			return
+		}
+		err = assetService.IssueAsset(TokenRequest.Blockchain, TokenRequest.Code, merchantID)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not save asset", http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func BurnToken(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
@@ -312,6 +358,46 @@ func BurnToken(processing *service.ProcessingService, assetService *asset.Servic
 			return
 		}
 
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func BurnTokenMerchant(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+		TokenRequest := service.TokenRequest{}
+		err := json.NewDecoder(r.Body).Decode(&TokenRequest)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		res := &service.NewTokenResponse{}
+
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not find merchant", http.StatusBadRequest)
+			return
+		}
+		TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, merchantID+"-R")
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
+			return
+		}
+		res, err = processing.BurnToken(TokenRequest, merchantID, merchantID+"-R")
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
+			return
+		}
 		err = json.NewEncoder(w).Encode(res)
 		if err != nil {
 			log.Println(err)

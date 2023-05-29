@@ -23,6 +23,55 @@
 	<link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+	<style>
+
+		.form-popup {
+			display: none;
+			position: fixed;
+			z-index: 1;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+
+		.form-container {
+			background-color: #fefefe;
+			margin: 10% auto;
+			padding: 20px;
+			border: 1px solid #888;
+			width: 80%;
+		}
+
+		.form-container h2 {
+			text-align: center;
+			margin-bottom: 20px;
+		}
+
+		.form-container input[type=text], .form-container input[type=email] {
+			width: 100%;
+			padding: 12px 20px;
+			margin: 8px 0;
+			border: 1px solid #ccc;
+			box-sizing: border-box;
+		}
+
+		.form-container .btn {
+			background-color: #4CAF50;
+			color: white;
+			padding: 12px 20px;
+			border: none;
+			cursor: pointer;
+			width: 100%;
+			margin-bottom: 10px;
+		}
+
+		.form-container .cancel {
+			background-color: #ccc;
+		}
+	</style>
 
 	<title>Settings</title>
 </head>
@@ -159,6 +208,32 @@
 										</div>
 									</div>
 									<!-- [ form-element ] end -->
+								<div id="myFormBurn" class="form-popup">
+									<div id="form-container-burn" class="form-container" style="background-color: transparent; border: 0px">
+										<form class="form-container" style="margin: 0px; width: 100%">
+											<h2>Burn Tokens</h2>
+
+											<label for="burn">Burn Amount</label>
+											<input id="burn" type="text" placeholder="Enter amount to burn" name="burn" required>
+
+											<button type="submit" class="btn" onclick="Burn()">Submit</button>
+											<button style="background-color: gray" class="btn" onclick="closeFormBurn()">Close</button>
+										</form>
+									</div>
+								</div>
+								<div id="myFormMint" class="form-popup">
+									<div id="form-container-mint" class="form-container" style="background-color: transparent; border: 0px">
+										<form class="form-container" style="margin: 0px; width: 100%">
+											<h2>Mint Tokens</h2>
+
+											<label for="mint">Mint Amount</label>
+											<input id="mint" type="text" placeholder="Enter amount to mint" name="mint" required>
+
+											<button type="submit" class="btn" onclick="Mint()">Submit</button>
+											<button style="background-color: gray" class="btn" onclick="closeFormMint()">Close</button>
+										</form>
+									</div>
+								</div>
 									<!-- [ Main Content ] end -->
 								</div>
 							</div>
@@ -179,6 +254,12 @@
 		let sidebar = document.querySelector(".sidebar");
 		let closeBtn = document.querySelector("#btn");
 		let searchBtn = document.querySelector(".bx-search");
+		let formPopupMint = document.getElementById("myFormMint");
+		let formPopupBurn = document.getElementById("myFormBurn");
+		let burnAmount = document.getElementById("burn");
+		let mintAmount = document.getElementById("mint");
+		let burnCode = ""
+		let mintCode = ""
 		closeBtn.addEventListener("click", ()=>{
 			sidebar.classList.toggle("open");
 			menuBtnChange();//calling the function(optional)
@@ -194,6 +275,48 @@
 			}else {
 				closeBtn.classList.replace("bx-menu-alt-right","bx-menu");//replacing the iocns class
 			}
+		}
+
+		function openFormBurn(code) {
+			formPopupBurn.style.display = "block";
+			burnCode = code
+		}
+		// Close the form pop-up
+		function closeFormBurn() {
+			formPopupBurn.style.display = "none";
+		}
+		function openFormMint(code) {
+			formPopupMint.style.display = "block";
+			mintCode = code
+		}
+		// Close the form pop-up
+		function closeFormMint() {
+			formPopupMint.style.display = "none";
+		}
+
+		function Burn(){
+			const json = {
+				code: burnCode,
+				blockchain: 'coreum',
+				amount: burnAmount.value,
+			}
+			let request = new XMLHttpRequest();
+			request.open("POST", "burn");
+			request.setRequestHeader('Content-Type', 'application/json');
+			console.log(json);
+			request.send(JSON.stringify(json));
+		}
+		function Mint(){
+			const json = {
+				code: mintCode,
+				blockchain: 'coreum',
+				amount: mintAmount.value,
+			}
+			let request = new XMLHttpRequest();
+			request.open("POST", "mint");
+			request.setRequestHeader('Content-Type', 'application/json');
+			console.log(json);
+			request.send(JSON.stringify(json));
 		}
 	</script>
 </body>
