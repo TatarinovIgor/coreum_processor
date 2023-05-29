@@ -125,18 +125,18 @@
 											<div class="card-body">
 												<h5>Create token</h5>
 												<hr>
-												<form>
+												<form action="/submit_new_token" method="post">
 													<div class="form-group">
 														<label>Code (Symbol)</label>
-															<input type="text" class="form-control" placeholder="Text">
+															<input type="text" class="form-control" name="code" placeholder="USDT">
 													</div>
 													<div class="form-group">
 														<label>Name (Subunit)</label>
-														<input type="text" class="form-control" placeholder="Text">
+														<input type="text" class="form-control" name="name" placeholder="USD-Token">
 													</div>
 													<div class="form-group">
 														<label>Description</label>
-														<input type="text" class="form-control" placeholder="Text">
+														<input type="text" class="form-control" name="description" placeholder="This is token for USD">
 													</div>
 													<button type="submit" class="btn btn-primary">Add</button>
 												</form>

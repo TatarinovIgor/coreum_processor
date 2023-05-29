@@ -12,7 +12,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -356,31 +355,5 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
 			return
 		}
-	}
-}
-
-func PublicKeySaver(processing *service.ProcessingService) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		publicKey := r.FormValue("public_key")
-		merchantID, err := internal.GetMerchantID(r.Context())
-		data, err := processing.GetMerchantData(merchantID)
-		if err != nil {
-			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
-			return
-		}
-		parsedKey := strings.TrimSuffix(publicKey, "\r")
-
-		merchant := service.NewMerchant{
-			PublicKey:    parsedKey,
-			MerchantName: data.MerchantName,
-			Callback:     data.CallBackURL,
-		}
-		_, err = processing.UpdateMerchant(merchantID, merchant)
-		if err != nil {
-			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
-			return
-		}
-		http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
-		return
 	}
 }
