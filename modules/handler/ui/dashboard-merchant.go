@@ -256,7 +256,7 @@ func PageMerchantSettings(processing *service.ProcessingService, assetService *a
 			return
 		}
 		varmap := map[string]interface{}{
-			"tokens": len(res),
+			"tokens": generateAssetsTable(res),
 			"key":    merchantData.PublicKey,
 		}
 
@@ -270,19 +270,20 @@ func PageMerchantSettings(processing *service.ProcessingService, assetService *a
 	}
 }
 
-func generateBlockchainsTable(processing *service.ProcessingService, merchantID string, res map[string]service.Wallets) template.HTML {
-	htmlBlock := "<thead><tr><th><span>Code (Symbol)</span></th><th><span>Name (Subunit) <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Issuer <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span> Issued <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span> Mint <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Burn <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th></tr></thead>"
+func generateAssetsTable(res []storage.AssetStore) template.HTML {
+	htmlBlock := "<thead><tr><th><span>Code (Symbol)</span></th><th><span>Name <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Issuer <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span> Issued <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span> Mint <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Burn <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th></tr></thead>"
 
-	htmlBlock = htmlBlock + "" +
-		"<tbody><tr>"
-	/*
-		"<td>" + blockchain + "</td>" +
-		"<td>" + fmt.Sprintf("%v", res[blockchain].CommissionSending.Fix) + "</td>" +
-		"<td>" + fmt.Sprintf("%v", res[blockchain].CommissionSending.Percent) + "</td>" +
-		"<td>" + walletSending + "</td>" +
-		"<td>" + "Sending" + "</td>" +
-		"</tr></tbody>"
-	*/
+	for i := 0; i < len(res); i++ {
+		htmlBlock = htmlBlock + "" +
+			"<tbody><tr><td>" + res[i].CreatedAt.String() + "</td>" +
+			"<td>" + res[i].Code + "</td>" +
+			"<td>" + res[i].Name + "</td>" +
+			"<td>" + res[i].Issuer + "</td>" +
+			"<td>" + "0" + "</td>" +
+			"<td>" + "Mint" + "</td>" +
+			"<td>" + "Burn" + "</td>" +
+			"</tr></tbody>"
+	}
 
 	return template.HTML(htmlBlock)
 }
