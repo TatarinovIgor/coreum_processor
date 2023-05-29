@@ -54,8 +54,8 @@ func (s *AssetPSQL) GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer s
 	query += fmt.Sprintf(" join %s ma on %s.id = ma.asset_id ",
 		s.merchantAssetsNamespace, an)
 	query += fmt.Sprintf("join %s ml on ma.merchant_list_id = ml.id ", s.merchantListNamespace)
-	query += fmt.Sprintf(" WHERE blockchain = '%s' and code = '%s' and issuer = '%s'",
-		blockchain, code, issuer)
+	query += fmt.Sprintf(" WHERE blockchain = '%s' and code = '%s' and issuer = '%s' and %s.deleted_at IS NULL",
+		blockchain, code, issuer, an)
 	rows, err := s.db.Query(query)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
@@ -91,7 +91,7 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 	} else {
 		query += "where "
 	}
-	query += fmt.Sprintf("%s.deleted_at IS NULL and %s.created_at > '%v' and %s.created_at < '%v' ",
+	query += fmt.Sprintf("%s.deleted_at IS NULL IS NULL and %s.created_at > '%v' and %s.created_at < '%v' ",
 		an, an, from.Format(time.RFC3339), an, to.Format(time.RFC3339))
 
 	if blockChain != nil && len(blockChain) > 0 && blockChain[0] != "" {
