@@ -132,14 +132,17 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 // CreateAsset makes a new record in the asset store for a blockchain and asset description
 func (s *AssetPSQL) CreateAsset(blockchain, code, name, description, assetType, merchantOwnerID string,
 	features json.RawMessage) error {
-	query := fmt.Sprintf(
-		"WITH merchantID AS (select id from %s where merchant_id = '%s'), "+
-			" assetID AS (INSERT INTO %s "+
-			"(created_at, updated_at, blockchain, code, name, description, status, type, features, merchant_owner)"+
-			" values ($1, $2, $3, $4, $5, $6, $7, $8, $9, (select id from merchantID)) returning id), "+
-			" INSERT INTO %s (created_at, updated_at, asset_id, merchant_list_id) "+
-			" values (now(), now(), (select id from assetID), (select id from merchantID)) returning id ",
+	query := fmt.Sprintf("WITH merchantID AS (SELECT id FROM %s WHERE merchant_id = '%s'), "+
+		"assetID AS (INSERT INTO %s "+
+		"(created_at, updated_at, blockchain, code, name, description, status, type, features, merchant_owner) "+
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, (SELECT id FROM merchantID)) RETURNING id) "+
+		"INSERT INTO %s (created_at, updated_at, asset_id, merchant_list_id) VALUES "+
+		"(now(), now(), (SELECT id FROM assetID), (SELECT id FROM merchantID)) RETURNING id",
 		s.merchantListNamespace, merchantOwnerID, s.assetsNamespace, s.merchantAssetsNamespace)
+	if features == nil {
+		features = json.RawMessage{}
+		_ = features.UnmarshalJSON([]byte("{}"))
+	}
 	_, err := s.db.Query(query,
 		time.Now().UTC(), time.Now().UTC(), blockchain, code, name, description, AssetPending, assetType, features)
 	if err != nil {
