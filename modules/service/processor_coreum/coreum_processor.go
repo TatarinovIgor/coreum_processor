@@ -358,6 +358,13 @@ func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.Fu
 	}
 }
 
+/*
+func (s CoreumProcessing) updateGas(ctx context.Context, gasLimit uint64, address common.Address,
+
+		txGasPrice, chainID *big.Int) error {
+		return nil
+	}
+*/
 func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 	blockchain string, store *storage.KeysPSQL, minValue float64,
 	chainID constant.ChainID, nodeAddress, addressPrefix, senderMnemonic string) service.CryptoProcessor {
