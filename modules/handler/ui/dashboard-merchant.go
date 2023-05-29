@@ -228,7 +228,7 @@ func generateUserTable(res []storage.UserStore) template.HTML {
 	return template.HTML(htmlBlock)
 }
 
-func PageMerchantSettings(processing *service.ProcessingService) httprouter.Handle {
+func PageMerchantSettings(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		t, err := template.ParseFiles("./templates/lite/default/settings.html")
 
@@ -245,9 +245,18 @@ func PageMerchantSettings(processing *service.ProcessingService) httprouter.Hand
 			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
 			return
 		}
+		var blockchains, code []string
+		blockchains = append(blockchains, "")
+		code = append(code, "")
+		res, err := assetService.GetAssetList(merchantID, blockchains, code, "", time.Unix(0, 0), time.Now().UTC())
 
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
+			return
+		}
 		varmap := map[string]interface{}{
-			"tokens": generateBlockchainsTable(processing, merchantID, merchantData.Wallets),
+			"tokens": len(res),
 			"key":    merchantData.PublicKey,
 		}
 
