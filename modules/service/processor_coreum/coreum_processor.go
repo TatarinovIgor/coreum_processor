@@ -437,7 +437,7 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		Symbol:        symbol,
 		Subunit:       subunit,
 		Precision:     6,
-		InitialAmount: sdk.NewInt(100_000_000),
+		InitialAmount: sdk.NewInt(1),
 		Description:   description,
 		Features:      features,
 	}
