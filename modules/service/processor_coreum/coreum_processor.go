@@ -140,13 +140,13 @@ func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantI
 	}
 
 	balance, err := s.GetBalance(service.BalanceRequest{}, merchantID, merchantWallets.SendingID)
-	if balance.Amount < request.Amount+commission {
-		return nil, fmt.Errorf("merchant: %s, doesn't have enough balance to pay: %v, with commission: %v",
-			merchantID, request.Amount, commission)
-	}
 	if err != nil {
 		return nil, fmt.Errorf("can't get merchant: %v, sending wallet: %v, err: %w",
 			merchantID, merchantWallets.SendingID, err)
+	}
+	if balance.Amount < request.Amount+commission {
+		return nil, fmt.Errorf("merchant: %s, doesn't have enough balance to pay: %v, with commission: %v",
+			merchantID, request.Amount, commission)
 	}
 
 	_, sendingWalletRaw, err := s.store.GetByUser(merchantID, merchantWallets.SendingID)
