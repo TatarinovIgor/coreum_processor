@@ -5,6 +5,7 @@ import (
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/storage"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,6 +28,12 @@ import (
 	"time"
 )
 
+const (
+	coreumFeeIssueFT = 70000
+	coerumFeeMintFT  = 11000
+	coreumFeeBurnFT  = 23000
+)
+
 type CoreumProcessing struct {
 	blockchain      string
 	client          *grpc.ClientConn
@@ -40,6 +47,7 @@ type CoreumProcessing struct {
 	apiURL          string
 	minimumValue    float64
 	senderMnemonic  string
+	denom           string
 }
 
 func (s CoreumProcessing) MintToken(request service.TokenRequest, merchantID, externalID string) (*service.NewTokenResponse, error) {
@@ -358,13 +366,27 @@ func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.Fu
 	}
 }
 
-/*
-func (s CoreumProcessing) updateGas(ctx context.Context, gasLimit uint64, address common.Address,
-
-		txGasPrice, chainID *big.Int) error {
-		return nil
+func (s CoreumProcessing) updateGas(_ context.Context, address string,
+	txGasPrice int64) (string, error) {
+	privateKeyByte, err := base64.StdEncoding.DecodeString(s.sendingWallet.WalletSeed)
+	if err != nil {
+		log.Println(err)
+		return "", err
 	}
-*/
+	senderInfo, err := s.clientCtx.Keyring().NewAccount(
+		"key-name",
+		string(privateKeyByte),
+		"",
+		sdk.GetConfig().GetFullBIP44Path(),
+		hd.Secp256k1,
+	)
+	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
+
+	trx, err := s.transferCoreumTokens(senderInfo.GetAddress().String(), address, s.denom, txGasPrice)
+
+	return trx, err
+}
+
 func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 	blockchain string, store *storage.KeysPSQL, minValue float64,
 	chainID constant.ChainID, nodeAddress, addressPrefix, senderMnemonic string) service.CryptoProcessor {
@@ -411,6 +433,7 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 		store:           store,
 		minimumValue:    minValue,
 		senderMnemonic:  senderMnemonic,
+		denom:           constant.DenomTest, // todo change depending on env
 	}
 }
 
@@ -455,8 +478,9 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		sdk.GetConfig().GetFullBIP44Path(),
 		hd.Secp256k1,
 	)
+	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
+
 	if err != nil {
-		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
 		return "", nil, err
 	}
 
@@ -468,13 +492,9 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		msgIssue,
 	)
 	if err != nil {
-		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
 		return "", nil, err
 	}
-	err = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
-	if err != nil {
-		return "", nil, err
-	}
+
 	featuresJson, err := json.Marshal(features)
 	if err != nil {
 		return "", nil, err
@@ -493,8 +513,9 @@ func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic strin
 		sdk.GetConfig().GetFullBIP44Path(),
 		hd.Secp256k1,
 	)
+	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
+
 	if err != nil {
-		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
 		return "", err
 	}
 
@@ -506,18 +527,15 @@ func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic strin
 		msgMint,
 	)
 	if err != nil {
-		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
 		return "", err
 	}
-	err = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
-	if err != nil {
-		return "", err
-	}
+
 	return response.TxHash, err
 }
 
 func (s CoreumProcessing) burnCoreumToken(subunit, issuerAddress, mnemonic string, amount int64) (string, error) {
-	msgBurn := &assetfttypes.MsgBurn{Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(amount)}}
+	msgBurn := &assetfttypes.MsgBurn{
+		Sender: issuerAddress, Coin: sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(amount)}}
 
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
 		"key-name",
@@ -526,8 +544,8 @@ func (s CoreumProcessing) burnCoreumToken(subunit, issuerAddress, mnemonic strin
 		sdk.GetConfig().GetFullBIP44Path(),
 		hd.Secp256k1,
 	)
+	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
 	if err != nil {
-		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
 		return "", err
 	}
 
@@ -539,17 +557,13 @@ func (s CoreumProcessing) burnCoreumToken(subunit, issuerAddress, mnemonic strin
 		msgBurn,
 	)
 	if err != nil {
-		_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
-		return "", err
-	}
-	err = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
-	if err != nil {
 		return "", err
 	}
 	return response.TxHash, err
 }
 
-func (s CoreumProcessing) transferCoreumTokens(senderAddress, recipientAddress, subunit string) (string, error) {
+func (s CoreumProcessing) transferCoreumTokens(senderAddress, recipientAddress, denom string,
+	amount int64) (string, error) {
 	ctx := context.Background()
 
 	address, err := sdk.AccAddressFromBech32(senderAddress)
@@ -561,12 +575,10 @@ func (s CoreumProcessing) transferCoreumTokens(senderAddress, recipientAddress, 
 		return "", err
 	}
 
-	denom := subunit + "-" + senderInfo.GetAddress().String()
-
 	msgSend := &banktypes.MsgSend{
 		FromAddress: senderAddress,
 		ToAddress:   recipientAddress,
-		Amount:      sdk.NewCoins(sdk.NewInt64Coin(denom, 1_000_000)),
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin(denom, amount)),
 	}
 	response, err := client.BroadcastTx(
 		ctx,
