@@ -352,7 +352,7 @@ func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID
 			return nil, nil, err
 		}
 
-		_, err = s.store.Put(merchantID, externalId, wallet.WalletAddress, key)
+		_, err = s.store.Put(merchantID, issuerId, wallet.WalletAddress, key)
 		if err != nil {
 			return nil, nil, err
 		}
