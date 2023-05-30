@@ -24,14 +24,16 @@ import (
 	"google.golang.org/grpc/credentials"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 )
 
 const (
-	coreumFeeIssueFT = 70000
-	coerumFeeMintFT  = 11000
-	coreumFeeBurnFT  = 23000
-	coreumFeeSendFT  = 16000
+	coreumFeeMessage = 50000
+	coreumFeeIssueFT = 70000 + coreumFeeMessage
+	coerumFeeMintFT  = 11000 + coreumFeeMessage
+	coreumFeeBurnFT  = 23000 + coreumFeeMessage
+	coreumFeeSendFT  = 16000 + coreumFeeMessage
 )
 
 type CoreumProcessing struct {
@@ -532,6 +534,7 @@ func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
+
 	Info, err := s.clientCtx.Keyring().NewAccount(
 		"key-name",
 		mnemonic,
@@ -539,6 +542,15 @@ func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
 		sdk.GetConfig().GetFullBIP44Path(),
 		hd.Secp256k1,
 	)
+
+	_ = s.clientCtx.Keyring().DeleteByAddress(Info.GetAddress())
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Validate address
+	_, err = sdk.AccAddressFromBech32(Info.GetAddress().String())
 	if err != nil {
 		panic(err)
 	}
@@ -548,16 +560,7 @@ func (s CoreumProcessing) createCoreumWallet() (string, string, error) {
 
 func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, description, mnemonic string,
 	initialAmount int64) (string, []byte, error) {
-	features := []assetfttypes.Feature{assetfttypes.Feature_minting, assetfttypes.Feature_burning}
-	msgIssue := &assetfttypes.MsgIssue{
-		Issuer:        issuerAddress,
-		Symbol:        symbol,
-		Subunit:       subunit,
-		Precision:     6,
-		InitialAmount: sdk.NewInt(initialAmount),
-		Description:   description,
-		Features:      features,
-	}
+
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
 		issuerAddress,
 		mnemonic,
@@ -565,14 +568,27 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		sdk.GetConfig().GetFullBIP44Path(),
 		hd.Secp256k1,
 	)
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
 
 	if err != nil {
 		return "", nil, err
 	}
 
+	features := []assetfttypes.Feature{assetfttypes.Feature_minting, assetfttypes.Feature_burning}
+
+	msgIssue := &assetfttypes.MsgIssue{
+		Issuer:        senderInfo.GetAddress().String(),
+		Symbol:        symbol,
+		Subunit:       strings.ToLower(subunit),
+		Precision:     6,
+		InitialAmount: sdk.NewInt(initialAmount),
+		Description:   description,
+		Features:      features,
+	}
+
+	log.Println(senderInfo.GetAddress().String())
+
 	ctx := context.Background()
-	response, err := client.BroadcastTx(
+	_, err = client.BroadcastTx(
 		ctx,
 		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
 		s.factory,
@@ -582,12 +598,14 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		return "", nil, err
 	}
 
+	_ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress())
+
 	featuresJson, err := json.Marshal(features)
 	if err != nil {
 		return "", nil, err
 	}
 
-	return response.TxHash, featuresJson, err
+	return msgIssue.Issuer, featuresJson, err
 }
 
 func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress, mnemonic string, amount int64) (string, error) {
