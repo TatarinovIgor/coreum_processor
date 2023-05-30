@@ -617,7 +617,7 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 	log.Println(senderInfo.GetAddress().String())
 
 	ctx := context.Background()
-	_, err = client.BroadcastTx(
+	trx, err := client.BroadcastTx(
 		ctx,
 		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
 		s.factory,
@@ -632,7 +632,7 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		return "", nil, err
 	}
 
-	return msgIssue.Issuer, featuresJson, err
+	return trx.TxHash, featuresJson, err
 }
 
 func (s CoreumProcessing) mintCoreumToken(subunit, issuerAddress string, amount int64) (string, error) {
