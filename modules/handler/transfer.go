@@ -205,8 +205,7 @@ func NewToken(processing *service.ProcessingService, assetService *asset.Service
 			return
 		}
 
-		err = assetService.CreateAssetRequest(TokenRequest.Blockchain, TokenRequest.Code, "",
-			TokenRequest.Symbol, TokenRequest.Description, "ft", merchantID, features)
+		err = assetService.CreateAssetRequest(TokenRequest.Blockchain, TokenRequest.Code, TokenRequest.Issuer, TokenRequest.Symbol, TokenRequest.Description, "ft", merchantID, features)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not save asset", http.StatusInternalServerError)
@@ -342,13 +341,6 @@ func BurnToken(processing *service.ProcessingService, assetService *asset.Servic
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not find merchant", http.StatusBadRequest)
-			return
-		}
-
-		TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, externalId)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
 			return
 		}
 

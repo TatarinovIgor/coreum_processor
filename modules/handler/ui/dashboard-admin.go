@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"coreum_processor/modules/asset"
 	"coreum_processor/modules/internal"
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/user"
@@ -155,6 +156,100 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 		_, err = userService.SetUserAccess(userStore.Identity, user.SetOnboarded(userStore.Access))
 		if err != nil {
 			log.Println(err)
+		}
+
+		// Send a response
+		response := map[string]string{"message": "Updated successfully"}
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			http.Error(w, "Failed to send response", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func PageAssetRequestsAdmin(ctx context.Context, assetService *asset.Service, processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		t, err := template.ParseFiles("./templates/lite/assets/asset-requests.html", "./templates/lite/sidebar.html")
+		if err != nil {
+			w.WriteHeader(http.StatusNoContent)
+			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
+			return
+		}
+
+		requests, err := assetService.GetAssetList("", nil, nil, "", "pending",
+			time.Unix(0, 0), time.Now().UTC())
+
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		err = t.Execute(w, requests)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
+			return
+		}
+	}
+}
+
+func PageAssetRequestsAdminUpdate(ctx context.Context, assetService *asset.Service, processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		//Getting data from the request
+		w = processing.SetHeaders(w)
+		raw := struct {
+			Merchant   string `json:"merchant"`
+			Blockchain string `json:"blockchain"`
+			Code       string `json:"code"`
+			Issuer     string `json:"issuer"`
+		}{}
+		err := json.NewDecoder(r.Body).Decode(&raw)
+		if err != nil {
+			http.Error(w, "Failed to parse request body", http.StatusBadRequest)
+			return
+		}
+
+		token, err := assetService.GetBlockChainAssetByCodeAndIssuer(raw.Blockchain, raw.Code, raw.Issuer)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could get asset", http.StatusBadRequest)
+			return
+		}
+
+		if raw.Issuer != "" {
+			err = assetService.ActivateAsset(raw.Blockchain, raw.Code, raw.Issuer, raw.Merchant)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "could not activate asset", http.StatusBadRequest)
+				return
+			}
+		} else {
+
+			requestAsset := service.NewTokenRequest{
+				Symbol:        token.Name,
+				Code:          token.Code,
+				Blockchain:    token.BlockChain,
+				Issuer:        "",
+				Description:   token.Description,
+				InitialAmount: 1000000,
+			}
+
+			resp, _, err := processing.IssueToken(requestAsset, raw.Merchant, raw.Merchant)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "could not issue asset", http.StatusInternalServerError)
+				return
+			}
+
+			err = assetService.ActivateAsset(raw.Blockchain, strings.ToLower(raw.Code), resp.Issuer, raw.Merchant)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "could not save asset", http.StatusInternalServerError)
+				return
+			}
 		}
 
 		// Send a response

@@ -182,7 +182,10 @@
                   <div class="card table-card">
                     <div class="card-header">
                       <h5>Users</h5>
-                      <a onclick="openForm()" class="action_btn point success" style="float: right; color: green;">Send request to add new asset</a>
+                      <a onclick="openForm()" class="action_btn point success" style="float: right; color: green;">Add already existing asset</a>
+                      <br>
+                      <br>
+                      <a onclick="openFormCreate()" class="action_btn point success" style="float: right; color: deepskyblue">Create new asset</a>
                     </div>
 
                     <div class="card-body px-0 py-0">
@@ -248,7 +251,7 @@
               <div id="myForm" class="form-popup">
                 <div id="form-container" class="form-container" style="background-color: transparent; border: 0px">
                   <form id="form" class="form-container" style="margin: 0px; width: 100%" action="/ui/merchant/assets" method="POST">
-                    <h2>Send request to add new asset</h2>
+                    <h2 id="h">Send request to add new asset</h2>
 
                     <label for="blockchain">Blockchain:</label>
                     <input id="blockchain" type="text" placeholder="Enter blockchain" name="blockchain" required>
@@ -316,10 +319,21 @@
   }
   function openForm() {
     formPopup.style.display = "block";
+    document.getElementById("h").textContent = "Send request to add new asset";
+    document.getElementById("issuer").style.display = "block";
+    document.getElementById("issuer").required = true;
+  }
+
+  function openFormCreate() {
+    formPopup.style.display = "block";
+    document.getElementById("h").textContent = "Send request to create new asset"
+    document.getElementById("issuer").style.display = "none";
+    document.getElementById("issuer").required = false;
   }
 
   // Close the form pop-up
   function closeForm() {
+    formPopup.style.display = "block";
     formPopup.style.display = "none";
   }
 

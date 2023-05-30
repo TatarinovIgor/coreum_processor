@@ -79,7 +79,7 @@ func PageDashboardMerchant(ctx context.Context, processing *service.ProcessingSe
 
 func PageMerchantTransaction(processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		t, err := template.ParseFiles("./templates/lite/default/transactions.html")
+		t, err := template.ParseFiles("./templates/lite/default/transactions.html", "./templates/lite/sidebar.html")
 
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
@@ -161,7 +161,7 @@ func generateTransactionTable(res []storage.TransactionStore) template.HTML {
 
 func PageMerchantUsers(userService *user.Service, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		t, err := template.ParseFiles("./templates/lite/default/users.html")
+		t, err := template.ParseFiles("./templates/lite/default/users.html", "./templates/lite/sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -230,7 +230,7 @@ func generateUserTable(res []storage.UserStore) template.HTML {
 
 func PageMerchantSettings(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		t, err := template.ParseFiles("./templates/lite/default/settings.html")
+		t, err := template.ParseFiles("./templates/lite/default/settings.html", "./templates/lite/sidebar.html")
 
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
@@ -366,5 +366,40 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
 			return
 		}
+	}
+}
+
+func AssetRequestMerchant(ctx context.Context, assetService *asset.Service, processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		//Getting merchant ID
+		merchantOwnerID, err := internal.GetMerchantID(r.Context())
+		// Parse the form data from the request
+		err = r.ParseForm()
+		if err != nil {
+			http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+			return
+		}
+
+		// Access the form data values by their name
+		blockchain := r.Form.Get("blockchain")
+		name := r.Form.Get("name")
+		code := r.Form.Get("code")
+		description := r.Form.Get("description")
+		assetType := r.Form.Get("assetType")
+		smartContractAddress := r.Form.Get("issuer")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
+			return
+		}
+
+		err = assetService.CreateAssetRequest(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID, nil)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `failed to add asset to database` + err.Error() + `"}`))
+			return
+		}
+
+		http.Redirect(w, r, "/ui/merchant/assets", http.StatusSeeOther)
 	}
 }

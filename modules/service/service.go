@@ -16,6 +16,7 @@ import (
 	_ "io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -34,6 +35,7 @@ type ProcessingService struct {
 	processors       map[string]CryptoProcessor
 	merchants        Merchants
 	transactionStore *storage.TransactionPSQL
+	userStorage      *storage.UserStore
 }
 
 // NewProcessingService create a service to process transaction by provided crypto processor
@@ -235,6 +237,20 @@ func (s ProcessingService) UpdateMerchantCommission(guid, blockchain string, mer
 	return wallets, nil
 }
 
+func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID string, request CredentialDeposit) (*DepositResponse, error) {
+	processor, ok := s.processors[blockchain]
+	if !ok {
+		return nil, fmt.Errorf("%s blockchain not found")
+	}
+
+	response, err := processor.Deposit(request, merchantID, externalID)
+	if err != nil {
+		return nil, fmt.Errorf("could not perform deposit: %s")
+	}
+
+	return response, nil
+}
+
 func (s ProcessingService) Deposit(deposit CredentialDeposit, merchantID, externalId string) (*DepositResponse, error) {
 	processor, ok := s.processors[deposit.Blockchain]
 	if !ok {
@@ -335,10 +351,12 @@ func (s ProcessingService) MintToken(request TokenRequest, merchantID, externalI
 	return response, nil
 }
 func (s ProcessingService) BurnToken(request TokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
-	processor, ok := s.processors[request.Blockchain]
+	processor, ok := s.processors[strings.ToLower(request.Blockchain)]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
+
+	request.Code = strings.ToLower(request.Code)
 
 	response, err := processor.BurnToken(request, merchantID, externalId)
 	if err != nil {

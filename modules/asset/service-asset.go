@@ -4,6 +4,7 @@ import (
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/storage"
 	"encoding/json"
+	"strings"
 	"time"
 )
 
@@ -26,6 +27,7 @@ func (s *Service) GetAssetList(merchID string, blockChain, code []string, codeLi
 }
 func (s *Service) CreateAssetRequest(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID string,
 	features json.RawMessage) error {
+	code = strings.ToLower(code)
 	return s.assetStorage.CreateAsset(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID, features)
 }
 func (s *Service) IssueAsset(blockchain, code, merchantID string) error {
