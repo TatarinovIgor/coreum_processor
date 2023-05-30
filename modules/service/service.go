@@ -298,19 +298,16 @@ func (s ProcessingService) UpdateWithdraw(transactionID, merchantID, externalId,
 	if err != nil {
 		return err
 	}
-
+	//ToDo add transfer
 	transaction, err := s.transactionStore.GetTransactionByGuid(merchantID, transactionID)
 	if err != nil {
 		return err
 	}
-
 	wallet, ok := merchant.Wallets[transaction.Blockchain]
 	if !ok {
 		return fmt.Errorf("cannot find blockchain: '%v' for merchant", transaction.Blockchain)
 	}
-
 	commission := transaction.Amount*wallet.CommissionSending.Percent/100.0 + wallet.CommissionSending.Fix
-
 	err = s.transactionStore.PutProcessedTransaction(merchantID, externalId, transactionID, hash, commission)
 	if err != nil {
 		return err

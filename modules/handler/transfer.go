@@ -238,17 +238,10 @@ func MintToken(processing *service.ProcessingService, assetService *asset.Servic
 			http.Error(w, "could not parse client id", http.StatusBadRequest)
 			return
 		}
-
 		merchantID, err := internal.GetMerchantID(r.Context())
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not find merchant", http.StatusBadRequest)
-			return
-		}
-		TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, externalId)
-		if err != nil {
-			log.Println(err)
-			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
 			return
 		}
 		res, err = processing.MintToken(TokenRequest, merchantID, externalId)

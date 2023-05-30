@@ -89,7 +89,7 @@ func (s CoreumProcessing) MintToken(request service.TokenRequest,
 	if err != nil {
 		return nil, err
 	}
-	_, byteAddress, err = s.store.GetByUser(merchantID, fmt.Sprintf("%s-%s", merchantID, request.Code))
+	_, byteAddress, err = s.store.GetByUser(merchantID, externalID)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalID, err)
 	}
