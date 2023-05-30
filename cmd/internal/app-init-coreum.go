@@ -2,7 +2,7 @@ package internal
 
 import (
 	"coreum_processor/modules/service"
-	"coreum_processor/modules/service/processor_coreum"
+	"coreum_processor/modules/service/processor-coreum"
 	"coreum_processor/modules/storage"
 	"database/sql"
 	"github.com/CoreumFoundation/coreum/pkg/config/constant"
