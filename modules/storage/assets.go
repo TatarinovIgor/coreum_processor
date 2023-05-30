@@ -75,12 +75,12 @@ func (s *AssetPSQL) GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer s
 }
 
 // GetAssetList get a filtered list of assets
-func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, codeLike string,
+func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, codeLike, status string,
 	from, to time.Time) ([]AssetStore, error) {
 	an := s.assetsNamespace
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
-		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, ml.company_name, "+
-		"%s.status, %s.Type, %s.Features FROM %s ",
+		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, "+
+		"%s.status, %s.Type, %s.Features, ml.merchant_id FROM %s ",
 		an, an, an, an, an, an, an, an, an, an, an, an, an)
 	query += fmt.Sprintf("join %s ma on %s.id = ma.asset_id ",
 		s.merchantAssetsNamespace, an)
@@ -115,6 +115,11 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 		}
 		query += ") "
 	}
+
+	if status != "" {
+		query += fmt.Sprintf("and %s.status = '%s' ", an, status)
+	}
+
 	rows, err := s.db.Query(query)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
@@ -130,12 +135,18 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 }
 
 // CreateAsset makes a new record in the asset store for a blockchain and asset description
-func (s *AssetPSQL) CreateAsset(blockchain, code, name, description, assetType, merchantOwnerID string,
+func (s *AssetPSQL) CreateAsset(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID string,
 	features json.RawMessage) error {
+	var issuer *string
+
+	if smartContractAddress != "" {
+		issuer = &smartContractAddress
+	}
+
 	query := fmt.Sprintf("WITH merchantID AS (SELECT id FROM %s WHERE merchant_id = '%s'), "+
 		"assetID AS (INSERT INTO %s "+
-		"(created_at, updated_at, blockchain, code, name, description, status, type, features, merchant_owner) "+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, (SELECT id FROM merchantID)) RETURNING id) "+
+		"(created_at, updated_at, blockchain, code, issuer, name, description, status, type, features, merchant_owner) "+
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, (SELECT id FROM merchantID)) RETURNING id) "+
 		"INSERT INTO %s (created_at, updated_at, asset_id, merchant_list_id) VALUES "+
 		"(now(), now(), (SELECT id FROM assetID), (SELECT id FROM merchantID)) RETURNING id",
 		s.merchantListNamespace, merchantOwnerID, s.assetsNamespace, s.merchantAssetsNamespace)
@@ -144,7 +155,7 @@ func (s *AssetPSQL) CreateAsset(blockchain, code, name, description, assetType, 
 		_ = features.UnmarshalJSON([]byte("{}"))
 	}
 	_, err := s.db.Query(query,
-		time.Now().UTC(), time.Now().UTC(), blockchain, code, name, description, AssetPending, assetType, features)
+		time.Now().UTC(), time.Now().UTC(), blockchain, code, issuer, name, description, AssetPending, assetType, features)
 	if err != nil {
 		return err
 	}
@@ -154,8 +165,8 @@ func (s *AssetPSQL) CreateAsset(blockchain, code, name, description, assetType, 
 // ActivateAsset sets the assets status in store by blockchain, code and issuer from AssetStore structure
 func (s *AssetPSQL) ActivateAsset(blockchain, code, issuer, merchantID string) error {
 	query := fmt.Sprintf(
-		"UPDATE %s SET updated_at = $4, status = $5, issuer  = $3 WHERE blockchain = $1 and code  = $2 "+
-			" and merchant_owner = (select id from %s where merchant_id = '%s') ",
+		"UPDATE %s SET updated_at = $4, status = $5, issuer  = $3 WHERE blockchain = $1 AND code  = $2 AND "+
+			"merchant_owner = (select id from %s where merchant_id = '%s') ",
 		s.assetsNamespace, s.merchantListNamespace, merchantID)
 	_, err := s.db.Query(query,
 		blockchain, code, issuer, time.Now().UTC(), AssetActive)
@@ -242,7 +253,7 @@ func rowsToAssets(rows *sql.Rows) ([]AssetStore, error) {
 			&asset.CreatedAt, &asset.UpdatedAt, &asset.DeletedAt,
 			// blockchain, %s.code, %s.issuer, %s.name, %s.description, %s.company_name, %s.status
 			&asset.BlockChain, &asset.Code, &issuer,
-			&asset.Name, &asset.Description, &asset.MerchantOwner, &asset.Status, &asset.Type, &asset.Features,
+			&asset.Name, &asset.Description, &asset.Status, &asset.Type, &asset.Features, &asset.MerchantOwner,
 		); err != nil {
 			return nil, err
 		}

@@ -64,7 +64,9 @@ func NewTokenSaver(processing *service.ProcessingService, assetService *asset.Se
 			return
 		}
 
-		err = assetService.CreateAsset(token.Blockchain, token.Code, token.Symbol, token.Description, "ft", merchantID, features)
+		err = assetService.CreateAssetRequest(
+			token.Blockchain, token.Code, "", token.Symbol, token.Description,
+			"ft", merchantID, features)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not save asset", http.StatusInternalServerError)

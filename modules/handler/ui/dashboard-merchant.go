@@ -248,7 +248,8 @@ func PageMerchantSettings(processing *service.ProcessingService, assetService *a
 		var blockchains, code []string
 		blockchains = append(blockchains, "")
 		code = append(code, "")
-		res, err := assetService.GetAssetList(merchantID, blockchains, code, "", time.Unix(0, 0), time.Now().UTC())
+		res, err := assetService.GetAssetList(merchantID, blockchains, code, "", "",
+			time.Unix(0, 0), time.Now().UTC())
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -299,7 +300,7 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 		}
 
 		//Setting template
-		t, err := template.ParseFiles("./templates/lite/assets/assets-for-merchant.html")
+		t, err := template.ParseFiles("./templates/lite/assets/assets-for-merchant.html", "./templates/lite/sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -307,7 +308,7 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 		}
 
 		//Getting all assets for merchant merchantID
-		assets, err := assetService.GetAssetList(merchantID, nil, nil, "", time.Unix(0, 0), time.Now().UTC())
+		assets, err := assetService.GetAssetList(merchantID, nil, nil, "", "active", time.Unix(0, 0), time.Now().UTC())
 
 		//Setting RawData
 		varmap := map[string]interface{}{

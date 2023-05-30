@@ -29,7 +29,7 @@ func GetTransactionList(processing *service.ProcessingService) httprouter.Handle
 		}
 		toUnix, err := strconv.Atoi(to)
 		if err != nil {
-			toUnix = int(time.Now().Unix())
+			toUnix = time.Now().UTC().Second()
 		}
 		transactionRequest.FromUnix = uint(fromUnix)
 		transactionRequest.ToUnix = uint(toUnix)
@@ -94,5 +94,6 @@ func GetTransaction(processing *service.ProcessingService) httprouter.Handle {
 			http.Error(w, "could not find transaction with id", http.StatusNotFound)
 			return
 		}
+		return
 	}
 }

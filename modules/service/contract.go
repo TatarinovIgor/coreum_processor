@@ -58,6 +58,7 @@ type TransactionRequest struct {
 type BalanceRequest struct {
 	Blockchain string `json:"blockchain"`
 	Asset      string `json:"asset"`
+	Issuer     string `json:"issuer"`
 }
 
 type CredentialDeposit struct {
@@ -93,6 +94,7 @@ type TransferResponse struct {
 }
 
 type NewTokenResponse struct {
+	Issuer string
 	TxHash string
 }
 
@@ -111,18 +113,19 @@ type TransferRequest struct {
 }
 
 type NewTokenRequest struct {
-	Symbol      string `json:"symbol"`
-	Code        string `json:"code"`
-	Blockchain  string `json:"blockchain"`
-	Issuer      string
-	Description string `json:"description"`
+	Symbol        string `json:"symbol"`
+	Code          string `json:"code"`
+	Blockchain    string `json:"blockchain"`
+	Issuer        string
+	Description   string `json:"description"`
+	InitialAmount int64  `json:"initial_amount"`
 }
 
 type TokenRequest struct {
 	Code       string `json:"code"`
 	Blockchain string `json:"blockchain"`
 	Amount     string `json:"amount"`
-	Issuer     string
+	Issuer     string `json:"issuer"`
 }
 
 type NewMerchant struct {

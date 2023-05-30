@@ -57,7 +57,7 @@ func PageRequestsAdmin(ctx context.Context, userService *user.Service, processin
 			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
 			return
 		}
-		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html")
+		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))

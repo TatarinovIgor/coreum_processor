@@ -205,7 +205,8 @@ func NewToken(processing *service.ProcessingService, assetService *asset.Service
 			return
 		}
 
-		err = assetService.CreateAsset(TokenRequest.Blockchain, TokenRequest.Code, TokenRequest.Symbol, TokenRequest.Description, "ft", merchantID, features)
+		err = assetService.CreateAssetRequest(TokenRequest.Blockchain, TokenRequest.Code, "",
+			TokenRequest.Symbol, TokenRequest.Description, "ft", merchantID, features)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not save asset", http.StatusInternalServerError)
@@ -291,13 +292,13 @@ func MintTokenMerchant(processing *service.ProcessingService, assetService *asse
 			http.Error(w, "could not find merchant", http.StatusBadRequest)
 			return
 		}
-		TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, merchantID+"-R")
+		TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, merchantID+"-S")
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
 			return
 		}
-		res, err = processing.MintToken(TokenRequest, merchantID, merchantID+"-R")
+		res, err = processing.MintToken(TokenRequest, merchantID, merchantID+"-S")
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not perform token issuing", http.StatusBadRequest)

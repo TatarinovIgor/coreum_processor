@@ -16,13 +16,17 @@ func (s *Service) GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer str
 	return s.assetStorage.GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer)
 }
 
-func (s *Service) GetAssetList(merchID string, blockChain, code []string, codeLike string,
-	from, to time.Time) ([]storage.AssetStore, error) {
-	return s.assetStorage.GetAssetList(merchID, blockChain, code, codeLike, from, to)
+func (s *Service) ActivateAsset(blockchain, code, issuer, merchantID string) error {
+	return s.assetStorage.ActivateAsset(blockchain, code, issuer, merchantID)
 }
-func (s *Service) CreateAsset(blockchain, code, name, description, assetType, merchantOwnerID string,
+
+func (s *Service) GetAssetList(merchID string, blockChain, code []string, codeLike, status string,
+	from, to time.Time) ([]storage.AssetStore, error) {
+	return s.assetStorage.GetAssetList(merchID, blockChain, code, codeLike, status, from, to)
+}
+func (s *Service) CreateAssetRequest(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID string,
 	features json.RawMessage) error {
-	return s.assetStorage.CreateAsset(blockchain, code, name, description, assetType, merchantOwnerID, features)
+	return s.assetStorage.CreateAsset(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID, features)
 }
 func (s *Service) IssueAsset(blockchain, code, merchantID string) error {
 	// TODO: issue asset in processing

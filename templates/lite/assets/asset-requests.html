@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Meta -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="description" content=""/>
+  <meta name="keywords"
+        content="">
+  <meta name="author" content="Codedthemes, BirdHouse" />
+
+  <!-- Favicon icon -->
+  <link rel="icon" href="../../assets/images/favicon.ico" type="image/x-icon">
+  <!-- fontawesome icon -->
+  <link rel="stylesheet" href="../../assets/fonts/fontawesome/css/fontawesome-all.min.css">
+  <!-- animation css -->
+  <link rel="stylesheet" href="../../assets/plugins/animation/css/animate.min.css">
+  <!-- vendor css -->
+  <link rel="stylesheet" href="../../assets/css/style.css">
+
+  <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+
+    .form-popup {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .form-container {
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      border-radius: 10px;
+    }
+
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .form-container input[type=text], .form-container input[type=email] {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .form-container .btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .form-container .cancel {
+      background-color: #ccc;
+    }
+  </style>
+
+  <title>User management</title>
+</head>
+
+<body class="">
+<!-- [ Pre-loader ] start -->
+<div class="loader-bg">
+  <div class="loader-track">
+    <div class="loader-fill"></div>
+  </div>
+</div>
+<!-- [ Pre-loader ] End -->
+<!-- [ Pre-loader ] End -->
+
+{{template "sidebar.html" .}}
+<section class="home-section">
+  <!-- [ Main Content ] start -->
+  <div class="pcoded-main-container" style="margin-left: 10px">
+    <div class="pcoded-wrapper">
+      <div class="pcoded-content"	>
+        <div class="pcoded-inner-content">
+          <div class="main-body">
+            <div class="page-wrapper">
+              <!-- [ breadcrumb ] start -->
+              <div class="page-header">
+                <div class="page-block">
+                  <div class="row align-items-center">
+                    <div class="col-md-12">
+                      <div class="page-header-title">
+                        <h5>Home</h5>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+
+                <!-- sessions-section start -->
+                <div class="col-xl-8 col-md-6" style="flex: 0 0 100%; max-width: 100%">
+                  <div class="card table-card">
+                    <div class="card-header">
+                      <h5>Users</h5>
+                    </div>
+
+                    <div class="card-body px-0 py-0">
+                      <div class="table-responsive">
+                        <div class="session-scroll" style="height:478px;position:relative;">
+                          <table class="table table-hover m-b-0">
+                            <thead>
+                            <tr>
+                              <th>
+                                <span>CREATED AT</span>
+                              </th>
+                              <th>
+                                <span>UPDATED AT</span>
+                              </th>
+                              <th>
+                                    <span>MERCHANT
+                                      <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+                                        <i class="feather icon-help-circle f-16"></i>
+                                      </a>
+                                    </span>
+                              </th>
+                              <th>
+                                    <span>NAME
+                                      <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+                                        <i class="feather icon-help-circle f-16"></i>
+                                      </a>
+                                    </span>
+                              </th>
+                              <th>
+                                    <span>BLOCKCHAIN
+                                      <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+                                        <i class="feather icon-help-circle f-16"></i>
+                                      </a>
+                                    </span>
+                              </th>
+                              <th>
+                                    <span>CODE
+                                      <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+                                        <i class="feather icon-help-circle f-16"></i>
+                                      </a>
+                                    </span>
+                              </th>
+                              <th>
+                                    <span>ADDRESS
+                                      <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+                                        <i class="feather icon-help-circle f-16"></i>
+                                      </a>
+                                    </span>
+                              </th>
+                              <th>
+                                    <span>DESCRIPTION
+                                      <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+                                        <i class="feather icon-help-circle f-16"></i>
+                                      </a>
+                                    </span>
+                              </th>
+                              <th>
+                                    <span>TYPE
+                                      <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+                                        <i class="feather icon-help-circle f-16"></i>
+                                      </a>
+                                    </span>
+                              </th>
+                              <th>
+                                    <span>FEATURES
+                                      <a class="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+                                        <i class="feather icon-help-circle f-16"></i>
+                                      </a>
+                                    </span>
+                              </th>
+                              <th>
+                                <span></span>
+                              </th>
+                            </tr>
+                            </thead>
+                            {{ range . }}
+                            <tbody>
+                            <tr>
+                              <td>{{ .CreatedAt.Format "2006-01-02" }}</td>
+                              <td>{{ .UpdatedAt.Format "2006-01-02" }}</td>
+                              <td class="merchant">{{ .MerchantOwner }}</td>
+                              <td>{{ .Name }}</td>
+                              <td class="blockchain">{{ .BlockChain }}</td>
+                              <td class="code">{{ .Code }}</td>
+                              <td class="issuer">{{ .Issuer }}</td>
+                              <td>{{ .Description }}</td>
+                              <td>{{ .Type }}</td>
+                              <td>{{ .Features }}</td>
+                              <td> <a onclick=AddToken(this) class="action_btn point success" style="float: right; color: green;">Approve</a> </td>
+                            </tr>
+                            </tbody>
+                            {{ end }}
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="myForm" class="form-popup">
+                <div id="form-container" class="form-container" style="background-color: transparent; border: 0px">
+                  <form class="form-container" style="margin: 0px; width: 100%">
+                    <h2>Add New User</h2>
+
+                    <label for="first_name">First Name</label>
+                    <input id="first_name" type="text" placeholder="Enter users name" name="name" required>
+
+                    <label for="last_name">Last Name</label>
+                    <input id="last_name" type="text" placeholder="Enter users last name" name="last_name" required>
+
+                    <button type="submit" class="btn" >Submit</button>
+                  </form>
+                </div>
+              </div>
+              <!-- [ Main Content ] end -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- [ Main Content ] end -->
+
+<script src="../../assets/js/vendor-all.min.js"></script>
+<script src="../../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+<script src="../../assets/js/pages/pc.js"></script>
+
+<!-- [ Navbar script ] end -->
+<script>
+  let sidebar = document.querySelector(".sidebar");
+  let closeBtn = document.querySelector("#btn");
+  let searchBtn = document.querySelector(".bx-search");
+  let formPopup = document.getElementById("myForm");
+  let formContainer = document.getElementById("form-container");
+
+  formPopup.addEventListener("click", outsideClick);
+
+  closeBtn.addEventListener("click", ()=>{
+    sidebar.classList.toggle("open");
+    menuBtnChange();//calling the function(optional)
+  });
+  searchBtn.addEventListener("click", ()=>{ // Sidebar open when you click on the search iocn
+    sidebar.classList.toggle("open");
+    menuBtnChange(); //calling the function(optional)
+  });
+  // following are the code to change sidebar button(optional)
+  function menuBtnChange() {
+    if(sidebar.classList.contains("open")){
+      closeBtn.classList.replace("bx-menu", "bx-menu-alt-right");//replacing the iocns class
+    }else {
+      closeBtn.classList.replace("bx-menu-alt-right","bx-menu");//replacing the iocns class
+    }
+  }
+  function openForm() {
+    formPopup.style.display = "block";
+  }
+
+  // Close the form pop-up
+  function closeForm() {
+    formPopup.style.display = "none";
+  }
+
+  // Handle clicks outside the form pop-up
+  function outsideClick(event) {
+    if (!formContainer.contains(event.target)) {
+      closeForm();
+    }
+  }
+
+  function AddToken(button) {
+
+    var td = button.closest("td");
+    var row = td.closest("tr")
+    var merchant = row.querySelector(".merchant").textContent;
+    var blockchain = row.querySelector(".blockchain").textContent;
+    var code = row.querySelector(".code").textContent;
+    var issuer = row.querySelector(".issuer").textContent;
+
+    var data = {
+      merchant: merchant,
+      blockchain: blockchain,
+      code: code,
+      issuer: issuer
+    };
+
+    console.log(data)
+
+    fetch('/ui/admin/asset-requests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+            .then(response => response.json())
+            .then(responseData => {
+              // Handle the response data
+              console.log(responseData);
+              if (responseData.message === "Updated successfully") {
+                location.reload()
+              }
+            })
+            .catch(error => {
+              // Handle any errors
+              console.error('Error:', error);
+            });
+
+  }
+</script>
+</body>
+
+</html>

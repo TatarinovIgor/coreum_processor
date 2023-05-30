@@ -45,9 +45,9 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 		userService, ui.PageMerchantUsers(userService, processing)))
 	routerWrap.GET("/ui/merchant/settings", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageMerchantSettings(processing, assetService)))
-	routerWrap.GET("/ui/admin/requests", middleware.AuthMiddlewareCookie(ctx, ory,
+	routerWrap.GET("/ui/admin/merchant-requests", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageRequestsAdmin(ctx, userService, processing)))
-	routerWrap.POST("/ui/admin/requests", middleware.AuthMiddlewareCookie(ctx, ory,
+	routerWrap.POST("/ui/admin/merchant-requests", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageRequestsAdminUpdate(ctx, userService, processing)))
 	routerWrap.GET("/ui/merchant/assets", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageMerchantAssets(assetService, processing)))
