@@ -59,7 +59,7 @@ func (s CoreumProcessing) MintToken(request service.TokenRequest,
 	_, byteAddress, err := s.store.GetByUser(merchantID, fmt.Sprintf("%s-%s", merchantID, request.Code))
 	if err != nil {
 		return nil, fmt.Errorf("can't get issuer: %v-%v coreum wallet from store, err: %v",
-			request.Code, request.Issuer, err)
+			request.Code, merchantID, err)
 	}
 	wallet := service.Wallet{}
 	err = json.Unmarshal(byteAddress, &wallet)
