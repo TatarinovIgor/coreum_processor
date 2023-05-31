@@ -89,7 +89,6 @@ func (s ProcessingService) MakeCallback(store storage.TransactionStore, callBack
 
 	_, err = client.Do(req)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	return nil
@@ -298,7 +297,6 @@ func (s ProcessingService) UpdateWithdraw(transactionID, merchantID, externalId,
 	if err != nil {
 		return err
 	}
-	//ToDo add transfer
 	transaction, err := s.transactionStore.GetTransactionByGuid(merchantID, transactionID)
 	if err != nil {
 		return err
