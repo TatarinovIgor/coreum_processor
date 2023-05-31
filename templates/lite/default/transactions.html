@@ -37,46 +37,7 @@
 	<!-- [ Pre-loader ] End -->
 	<!-- [ Pre-loader ] End -->
 
-	<div class="sidebar">
-		<div class="logo-details">
-			<div class="logo_name">BirdHouse</div>
-			<i class='bx bx-menu' id="btn" ></i>
-		</div>
-		<ul class="nav-list">
-			<li>
-				<a href="/ui/merchant/transactions">
-					<i class='bx bx-grid-alt'></i>
-					<span class="links_name">Dashboard</span>
-				</a>
-				<span class="tooltip">Dashboard</span>
-			</li>
-			<li>
-				<a href="/ui/merchant/users">
-					<i class='bx bx-user' ></i>
-					<span class="links_name">Users</span>
-				</a>
-				<span class="tooltip">Users</span>
-			</li>
-			<li>
-				<a href="/ui/merchant/settings">
-					<i class='bx bx-cog' ></i>
-					<span class="links_name">Setting</span>
-				</a>
-				<span class="tooltip">Setting</span>
-			</li>
-			<li class="profile">
-				<div class="profile-details">
-					<div class="name_job">
-						<div class="name">User Name</div>
-						<div class="job">Organization Name</div>
-					</div>
-				</div>
-				<a href = "/logout">
-					<i class='bx bx-log-out' id="log_out" ></i>
-				</a>
-			</li>
-		</ul>
-	</div>
+	{{template "sidebar.html" .}}
 	<section class="home-section">
 	<!-- [ Main Content ] start -->
 	<div class="pcoded-main-container" style="margin-left: 10px">
@@ -101,7 +62,75 @@
 							</div>
 							<div class="row">
 								<div class="col-xl-3 col-md-6" style="flex: 0 0 100%;max-width: 100%;">
+									<div class="card prod-p-card bg-c-purple">
+										<div class="card-body">
+											<div class="row align-items-center m-b-25">
+												<div class="col">
+													<h6 class="m-b-5 text-white">Polygon Balance</h6>
+													<h3 class="m-b-0 text-white">{{ .polygon_balance }} {{ .polygon_asset}}</h3>
+												</div>
+												<div class="col-auto">
+													<i class="fas fa-money-bill-alt text-c-purple f-18"></i>
+												</div>
+											</div>
+											<label style="color: white">Receiving Wallet:</label>
+											<p class="m-b-0 text-white">{{ .polygon_wallet }}</p>
+										</div>
+									</div>
+								</div>
+								<div class="col-xl-3 col-md-6">
+									<div class="card prod-p-card bg-c-blue">
+										<div class="card-body">
+											<div class="row align-items-center m-b-25">
+												<div class="col">
+													<h6 class="m-b-5 text-white">Ethereum Balance</h6>
+													<h3 class="m-b-0 text-white">{{ .ethereum_balance }} {{ .ethereum_asset }}</h3>
+												</div>
+												<div class="col-auto">
+													<i class="fas fa-database text-c-blue f-18"></i>
+												</div>
+											</div>
+											<label style="color: white">Receiving Wallet:</label>
+											<p class="m-b-0 text-white">{{ .ethereum_wallet }}</p>
+										</div>
+									</div>
+								</div>
+								<div class="col-xl-3 col-md-6">
 									<div class="card prod-p-card bg-c-red">
+										<div class="card-body">
+											<div class="row align-items-center m-b-25">
+												<div class="col">
+													<h6 class="m-b-5 text-white">Tron Balance</h6>
+													<h3 class="m-b-0 text-white">{{ .tron_balance }} {{ .tron_asset }}</h3>
+												</div>
+												<div class="col-auto">
+													<i class="fas fa-dollar-sign text-c-red f-18"></i>
+												</div>
+											</div>
+											<label style="color: white">Receiving Wallet:</label>
+											<p class="m-b-0 text-white">{{ .tron_wallet }}</p>
+										</div>
+									</div>
+								</div>
+								<div class="col-xl-3 col-md-6">
+									<div class="card prod-p-card bg-c-yellow">
+										<div class="card-body">
+											<div class="row align-items-center m-b-25">
+												<div class="col">
+													<h6 class="m-b-5 text-white">Bitcoin Balance</h6>
+													<h3 class="m-b-0 text-white">{{ .bitcoin_balance }} {{ .bitcoin_asset }}</h3>
+												</div>
+												<div class="col-auto">
+													<i class="fas fa-tags text-c-yellow f-18"></i>
+												</div>
+											</div>
+											<label style="color: white">Receiving Wallet:</label>
+											<p class="m-b-0 text-white"> {{ .bitcoin_wallet }}</p>
+										</div>
+									</div>
+								</div>
+								<div class="col-xl-3 col-md-6">
+									<div class="card prod-p-card bg-c-green">
 										<div class="card-body">
 											<div class="row align-items-center m-b-25">
 												<div class="col">

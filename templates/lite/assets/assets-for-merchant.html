@@ -110,78 +110,27 @@
                 </div>
               </div>
               <div class="row">
-                <div class="col-xl-3 col-md-6" style="flex: 0 0 100%;max-width: 100%;">
-                  <div class="card prod-p-card bg-c-red">
-                    <div class="card-body">
-                      <div class="row align-items-center m-b-25">
-                        <div class="col">
-                          <h6 class="m-b-5 text-white">Polygon Balance</h6>
-                          <h3 class="m-b-0 text-white">{{ .polygon_balance }} {{ .polygon_asset}}</h3>
-                        </div>
-                        <div class="col-auto">
-                          <i class="fas fa-money-bill-alt text-c-red f-18"></i>
-                        </div>
-                      </div>
-                      <label style="color: white">Receiving Wallet:</label>
-                      <p class="m-b-0 text-white">{{ .polygon_wallet }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                  <div class="card prod-p-card bg-c-blue">
-                    <div class="card-body">
-                      <div class="row align-items-center m-b-25">
-                        <div class="col">
-                          <h6 class="m-b-5 text-white">Ethereum Balance</h6>
-                          <h3 class="m-b-0 text-white">{{ .ethereum_balance }} {{ .ethereum_asset }}</h3>
-                        </div>
-                        <div class="col-auto">
-                          <i class="fas fa-database text-c-blue f-18"></i>
-                        </div>
-                      </div>
-                      <label style="color: white">Receiving Wallet:</label>
-                      <p class="m-b-0 text-white">{{ .ethereum_wallet }}</p>
-                    </div>
-                  </div>
-                </div>
                 <div class="col-xl-3 col-md-6">
                   <div class="card prod-p-card bg-c-green">
                     <div class="card-body">
                       <div class="row align-items-center m-b-25">
                         <div class="col">
-                          <h6 class="m-b-5 text-white">Tron Balance</h6>
-                          <h3 class="m-b-0 text-white">{{ .tron_balance }} {{ .tron_asset }}</h3>
+                          <h6 class="m-b-5 text-white">Coreum Balance</h6>
+                          <h3 class="m-b-0 text-white">{{ .coreum_balance }} {{ .coreum_asset }}</h3>
                         </div>
                         <div class="col-auto">
-                          <i class="fas fa-dollar-sign text-c-green f-18"></i>
+                          <i class="fas fa-tags text-c-green f-18"></i>
                         </div>
                       </div>
                       <label style="color: white">Receiving Wallet:</label>
-                      <p class="m-b-0 text-white">{{ .tron_wallet }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                  <div class="card prod-p-card bg-c-yellow">
-                    <div class="card-body">
-                      <div class="row align-items-center m-b-25">
-                        <div class="col">
-                          <h6 class="m-b-5 text-white">Bitcoin Balance</h6>
-                          <h3 class="m-b-0 text-white">{{ .bitcoin_balance }} {{ .bitcoin_asset }}</h3>
-                        </div>
-                        <div class="col-auto">
-                          <i class="fas fa-tags text-c-yellow f-18"></i>
-                        </div>
-                      </div>
-                      <label style="color: white">Receiving Wallet:</label>
-                      <p class="m-b-0 text-white"> {{ .bitcoin_wallet }}</p>
+                      <p class="m-b-0 text-white"> {{ .coreum_wallet }}</p>
                     </div>
                   </div>
                 </div>
                 <div class="col-xl-8 col-md-6" style="flex: 0 0 100%; max-width: 100%">
                   <div class="card table-card">
                     <div class="card-header">
-                      <h5>Users</h5>
+                      <h5>Assets</h5>
                       <a onclick="openForm()" class="action_btn point success" style="float: right; color: green;">Add already existing asset</a>
                       <br>
                       <br>
