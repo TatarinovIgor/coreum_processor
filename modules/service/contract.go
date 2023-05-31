@@ -212,7 +212,7 @@ type CryptoProcessor interface {
 	Withdraw(request CredentialWithdraw, merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
 	TransferToReceiving(request TransferRequest, merchantID, externalId string) (*TransferResponse, error)
 	TransferFromReceiving(transfer TransferRequest, merchantID, externalId string) (*TransferResponse, error)
-	GetBalance(request BalanceRequest, merchantID, externalId string) (*Balance, error)
+	GetBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error)
 	GetWalletById(merchantID, externalId string) (string, error)
 	GetTransactionStatus(hash string) (CryptoTransactionStatus, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
