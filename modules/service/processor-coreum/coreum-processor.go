@@ -205,9 +205,21 @@ func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantI
 	if err != nil {
 		return nil, err
 	}
+	senderInfo, err := s.clientCtx.Keyring().NewAccount(
+		sendingWallet.WalletAddress,
+		string(sendingWallet.WalletSeed),
+		"",
+		sdk.GetConfig().GetFullBIP44Path(),
+		hd.Secp256k1,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
+
 	msg := &banktypes.MsgSend{
 		FromAddress: sendingWallet.WalletAddress,
-		ToAddress:   request.WalletAddress,
+		ToAddress:   s.sendingWallet.WalletAddress,
 		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
 			int64(request.Amount))),
 	}
@@ -221,7 +233,9 @@ func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantI
 		s.factory,
 		msg,
 	)
-
+	if err != nil {
+		return nil, err
+	}
 	return &service.WithdrawResponse{TransactionHash: result.TxHash}, nil
 }
 
@@ -270,6 +284,9 @@ func (s CoreumProcessing) TransferToReceiving(request service.TransferRequest,
 		s.factory,
 		msg,
 	)
+	if err != nil {
+		return nil, err
+	}
 	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
@@ -321,6 +338,9 @@ func (s CoreumProcessing) TransferFromReceiving(request service.TransferRequest,
 		s.factory,
 		msg,
 	)
+	if err != nil {
+		return nil, err
+	}
 	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
@@ -340,12 +360,12 @@ func (s CoreumProcessing) TransferFromSending(request service.TransferRequest,
 	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
 
 	msg := &banktypes.MsgSend{
-		FromAddress: s.receivingWallet.WalletAddress,
+		FromAddress: s.sendingWallet.WalletAddress,
 		ToAddress:   receivingWallet,
 		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
 			int64(request.Amount))),
 	}
-	bech32, err := sdk.AccAddressFromBech32(s.receivingWallet.WalletAddress)
+	bech32, err := sdk.AccAddressFromBech32(s.sendingWallet.WalletAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -355,6 +375,9 @@ func (s CoreumProcessing) TransferFromSending(request service.TransferRequest,
 		s.factory,
 		msg,
 	)
+	if err != nil {
+		return nil, err
+	}
 	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 
