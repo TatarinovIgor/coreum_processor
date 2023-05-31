@@ -48,14 +48,19 @@ type AssetPSQL struct {
 func (s *AssetPSQL) GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer string) (*AssetStore, error) {
 	an := s.assetsNamespace
 	query := fmt.Sprintf("SELECT %s.id, %s.created_at, %s.updated_at, %s.deleted_at, "+
-		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, ml.company_name, "+
-		"%s.status, %s.Type, %s.Features FROM %s ",
+		" %s.blockchain, %s.code, %s.issuer, %s.name, %s.description, "+
+		"%s.status, %s.Type, %s.Features, ml.company_name FROM %s ",
 		an, an, an, an, an, an, an, an, an, an, an, an, an)
 	query += fmt.Sprintf(" join %s ma on %s.id = ma.asset_id ",
 		s.merchantAssetsNamespace, an)
 	query += fmt.Sprintf("join %s ml on ma.merchant_list_id = ml.id ", s.merchantListNamespace)
-	query += fmt.Sprintf(" WHERE blockchain = '%s' and code = '%s' and issuer = '%s' and %s.deleted_at IS NULL",
-		blockchain, code, issuer, an)
+	if issuer == "" {
+		query += fmt.Sprintf(" WHERE blockchain = '%s' and code = '%s' and issuer IS NULL and %s.deleted_at IS NULL",
+			blockchain, code, an)
+	} else {
+		query += fmt.Sprintf(" WHERE blockchain = '%s' and code = '%s' and issuer = '%s' and %s.deleted_at IS NULL",
+			blockchain, code, issuer, an)
+	}
 	rows, err := s.db.Query(query)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound

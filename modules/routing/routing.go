@@ -49,8 +49,14 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 		userService, ui.PageRequestsAdmin(ctx, userService, processing)))
 	routerWrap.POST("/ui/admin/merchant-requests", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageRequestsAdminUpdate(ctx, userService, processing)))
+	routerWrap.GET("/ui/admin/asset-requests", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.PageAssetRequestsAdmin(ctx, assetService, processing)))
+	routerWrap.POST("/ui/admin/asset-requests", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.PageAssetRequestsAdminUpdate(ctx, assetService, processing)))
 	routerWrap.GET("/ui/merchant/assets", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageMerchantAssets(assetService, processing)))
+	routerWrap.POST("/ui/merchant/assets", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.AssetRequestMerchant(ctx, assetService, processing)))
 
 	//Urls for form submissions from frontend
 	routerWrap.POST("/submit_public_key", middleware.AuthMiddlewareCookie(ctx, ory,
