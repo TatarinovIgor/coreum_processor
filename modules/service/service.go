@@ -359,7 +359,7 @@ func (s ProcessingService) BurnToken(request TokenRequest, merchantID, externalI
 	}
 	return response, nil
 }
-func (s ProcessingService) GetBalance(request BalanceRequest, merchantID, externalId string) (*Balance, error) {
+func (s ProcessingService) GetBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error) {
 	processor, ok := s.processors[request.Blockchain]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)

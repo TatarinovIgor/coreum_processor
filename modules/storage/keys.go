@@ -190,7 +190,7 @@ func (s *KeysPSQL) getByUser(merchantID, externalID string, query string) (*KeyR
 func (s *KeysPSQL) GetNext(id, limit int64) ([]KeyRecord, error) {
 	query := fmt.Sprintf(`SELECT id, merchant_id, external_id, key, value, updated_at
 		FROM %s 
-		WHERE id > $1 order by id LIMIT $2`,
+		WHERE id > $1 and deleted_at is null order by id LIMIT $2`,
 		s.namespace,
 	)
 	rows, err := s.db.Query(query, id, limit)
