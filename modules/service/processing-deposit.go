@@ -106,22 +106,23 @@ func (s ProcessingService) processDepositProcessed(_ context.Context, bc string,
 			tr.Hash2, commission)
 		asset = tr.Asset
 		issuer = tr.Issuer
-	}
-	if amount > 0 {
-		hash, err := processor.TransferFromReceiving(TransferRequest{
-			Amount:     amount,
-			Blockchain: bc,
-			Asset:      asset,
-			Issuer:     issuer,
-		}, merch.ID.String(), wallet.ReceivingID)
-		if err != nil {
-			log.Println(fmt.Errorf("can't settle transactions to merchant: %v, err: %v", merch.ID, err))
-			return
-		}
-		for _, tr := range trx {
-			s.transactionStore.PutSettledTransaction(tr.MerchantId, tr.ExternalId,
-				tr.GUID.String(), hash.TransferHash)
-			s.MakeCallback(tr, merch.CallBackURL)
+		if amount > 0 {
+			//ToDo group transactions by assets
+			hash, err := processor.TransferFromReceiving(TransferRequest{
+				Amount:     amount,
+				Blockchain: bc,
+				Asset:      asset,
+				Issuer:     issuer,
+			}, merch.ID.String(), wallet.ReceivingID)
+			if err != nil {
+				log.Println(fmt.Errorf("can't settle transactions to merchant: %v, err: %v", merch.ID, err))
+				return
+			}
+			for _, tr := range trx {
+				s.transactionStore.PutSettledTransaction(tr.MerchantId, tr.ExternalId,
+					tr.GUID.String(), hash.TransferHash)
+				s.MakeCallback(tr, merch.CallBackURL)
+			}
 		}
 	}
 
