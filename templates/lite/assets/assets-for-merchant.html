@@ -130,7 +130,7 @@
                 <div class="col-xl-8 col-md-6" style="flex: 0 0 100%; max-width: 100%">
                   <div class="card table-card">
                     <div class="card-header">
-                      <h5>Users</h5>
+                      <h5>Assets</h5>
                       <a onclick="openForm()" class="action_btn point success" style="float: right; color: green;">Add already existing asset</a>
                       <br>
                       <br>
@@ -217,7 +217,7 @@
                     <label for="assetType">Type of asset</label>
                     <input id="assetType" type="text" placeholder="Enter type of asset" name="assetType" required>
 
-                    <label for="issuer">Address of smart contract</label>
+                    <label id="label" for="issuer">Issuer of token</label>
                     <input id="issuer" type="text" placeholder="Enter address" name="issuer">
 
                     <button type="submit" class="btn">Submit</button>
@@ -270,6 +270,7 @@
     formPopup.style.display = "block";
     document.getElementById("h").textContent = "Send request to add new asset";
     document.getElementById("issuer").style.display = "block";
+    document.getElementById("label").style.display = "block";
     document.getElementById("issuer").required = true;
   }
 
@@ -277,6 +278,7 @@
     formPopup.style.display = "block";
     document.getElementById("h").textContent = "Send request to create new asset"
     document.getElementById("issuer").style.display = "none";
+    document.getElementById("label").style.display = "none";
     document.getElementById("issuer").required = false;
   }
 
