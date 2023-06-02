@@ -67,6 +67,8 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 		userService, handler.MintTokenMerchant(processing, assetService)))
 	routerWrap.POST("/ui/merchant/burn", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, handler.BurnTokenMerchant(processing, assetService)))
+	routerWrap.POST("/ui/merchant/create_wallet", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, handler.CreateWallet(processing)))
 
 	//GET routers for styles and assets
 	router.ServeFiles("/assets/*filepath", http.Dir("templates/assets"))

@@ -236,13 +236,13 @@ func (s ProcessingService) UpdateMerchantCommission(guid, blockchain string, mer
 	return wallets, nil
 }
 
-func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID string, request CredentialDeposit) (*DepositResponse, error) {
+func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID string) (*Wallet, error) {
 	processor, ok := s.processors[blockchain]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found")
 	}
 
-	response, err := processor.Deposit(request, merchantID, externalID)
+	response, err := processor.CreateWallet(blockchain, merchantID, externalID)
 	if err != nil {
 		return nil, fmt.Errorf("could not perform deposit: %s")
 	}
@@ -359,12 +359,22 @@ func (s ProcessingService) BurnToken(request TokenRequest, merchantID, externalI
 	}
 	return response, nil
 }
-func (s ProcessingService) GetBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error) {
+
+func (s ProcessingService) GetAssetsBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error) {
 	processor, ok := s.processors[request.Blockchain]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
-	return processor.GetBalance(request, merchantID, externalId)
+	return processor.GetAssetsBalance(request, merchantID, externalId)
+}
+
+func (s ProcessingService) GetBalance(blockchain, merchantID, externalId string) (Balance, error) {
+	var balance Balance
+	processor, ok := s.processors[blockchain]
+	if !ok {
+		return balance, fmt.Errorf("%s blockchain not found", blockchain)
+	}
+	return processor.GetBalance(merchantID, externalId)
 }
 
 func (s ProcessingService) GetTransactions(request TransactionRequest, merchantID string,

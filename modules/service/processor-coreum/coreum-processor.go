@@ -35,6 +35,7 @@ const (
 	coerumFeeMintFT   = 11000 + coreumFeeMessage
 	coreumFeeBurnFT   = 23000 + coreumFeeMessage
 	coreumFeeSendFT   = 16000 + coreumFeeMessage
+	coreumDecimals    = 1000000
 )
 
 type CoreumProcessing struct {
@@ -136,6 +137,29 @@ func (s CoreumProcessing) GetTransactionStatus(hash string) (service.CryptoTrans
 	return service.SuccessfulTransaction, nil
 }
 
+func (s CoreumProcessing) CreateWallet(blockchain, merchantID, externalId string) (*service.Wallet, error) {
+	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
+	WalletSeed, WalletAddress, err := s.createCoreumWallet()
+	if err != nil {
+		return nil, err
+	}
+
+	wallet.WalletAddress = WalletAddress
+	wallet.WalletSeed = WalletSeed
+	wallet.Blockchain = blockchain
+	key, err := json.Marshal(wallet)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.store.Put(merchantID, externalId, wallet.WalletAddress, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return &wallet, nil
+}
+
 func (s CoreumProcessing) Deposit(request service.CredentialDeposit, merchantID, externalId string) (*service.DepositResponse, error) {
 	depositData := service.DepositResponse{}
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
@@ -178,7 +202,7 @@ func (s CoreumProcessing) Withdraw(request service.CredentialWithdraw, merchantI
 		commission += merchantWallets.CommissionSending.Percent / 100. * (request.Amount - commission)
 	}
 
-	balance, err := s.GetBalance(
+	balance, err := s.GetAssetsBalance(
 		service.BalanceRequest{Blockchain: request.Blockchain, Asset: request.Asset, Issuer: request.Issuer},
 		merchantID, merchantWallets.SendingID)
 	if err != nil {
@@ -426,7 +450,47 @@ func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID
 	return &service.NewTokenResponse{TxHash: token, Issuer: wallet.WalletAddress}, features, nil
 }
 
-func (s CoreumProcessing) GetBalance(request service.BalanceRequest, merchantID, externalId string) ([]service.Balance, error) {
+func (s CoreumProcessing) GetBalance(merchantID, externalID string) (service.Balance, error) {
+	_, byteAddress, err := s.store.GetByUser(merchantID, externalID)
+	balance := service.Balance{
+		Amount:     0,
+		Blockchain: "coreum",
+		Asset:      constant.DenomTest,
+		Issuer:     "",
+	}
+	if err != nil {
+		return balance, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalID, err)
+	}
+
+	userWallet := service.Wallet{}
+	err = json.Unmarshal(byteAddress, &userWallet)
+	if err != nil {
+		return balance, err
+	}
+
+	senderInfo, err := s.clientCtx.Keyring().NewAccount(
+		userWallet.WalletAddress,
+		userWallet.WalletSeed,
+		"",
+		sdk.GetConfig().GetFullBIP44Path(),
+		hd.Secp256k1,
+	)
+	if err != nil {
+		return balance, err
+	}
+	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
+
+	amount, _, err := s.balanceCoreum(userWallet.WalletAddress, constant.DenomTest)
+	balance.Amount = float64(amount) / coreumDecimals
+
+	if err != nil {
+		return balance, err
+	}
+
+	return balance, nil
+}
+
+func (s CoreumProcessing) GetAssetsBalance(request service.BalanceRequest, merchantID, externalId string) ([]service.Balance, error) {
 	_, byteAddress, err := s.store.GetByUser(merchantID, externalId)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
@@ -513,7 +577,7 @@ func (s CoreumProcessing) streamDeposit(ctx context.Context, callback service.Fu
 				continue
 			} else {
 				record := records[len(records)-1]
-				balance, err := s.GetBalance(service.BalanceRequest{Blockchain: s.blockchain, Asset: ""}, record.MerchantID, record.ExternalID)
+				balance, err := s.GetAssetsBalance(service.BalanceRequest{Blockchain: s.blockchain, Asset: ""}, record.MerchantID, record.ExternalID)
 				if balance != nil && err == nil {
 					for i := 0; i < len(balance); i++ {
 						if balance[i].Amount > 0 {
@@ -780,6 +844,30 @@ func (s CoreumProcessing) transferCoreumTokens(senderAddress, recipientAddress, 
 		panic(err)
 	}
 	return response.TxHash, nil
+}
+
+func (s CoreumProcessing) balanceCoreum(userAddress, denom string) (int, string, error) {
+	ctx := context.Background()
+
+	address, err := sdk.AccAddressFromBech32(userAddress)
+	if err != nil {
+		return 0, "", err
+	}
+	Info, err := s.clientCtx.Keyring().KeyByAddress(address)
+	if err != nil {
+		return 0, "", err
+	}
+
+	bankClient := banktypes.NewQueryClient(s.clientCtx)
+	// Query the balance of the recipient
+	response, err := bankClient.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: Info.GetAddress().String(),
+		Denom:   denom,
+	})
+	if err != nil {
+		return 0, denom, err
+	}
+	return int(float64(response.Balance.Amount.Uint64())), response.Balance.Denom, nil
 }
 
 func (s CoreumProcessing) balanceCoreumTokens(userAddress, subunit string) (int, string, error) {

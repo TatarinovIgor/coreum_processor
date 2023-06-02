@@ -208,11 +208,13 @@ const (
 
 type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet, hash, asset, issuer string, amount float64)
 type CryptoProcessor interface {
+	CreateWallet(blockchain, merchantID, externalId string) (*Wallet, error)
 	Deposit(request CredentialDeposit, merchantID, externalId string) (*DepositResponse, error)
 	Withdraw(request CredentialWithdraw, merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
 	TransferToReceiving(request TransferRequest, merchantID, externalId string) (*TransferResponse, error)
 	TransferFromReceiving(transfer TransferRequest, merchantID, externalId string) (*TransferResponse, error)
-	GetBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error)
+	GetBalance(merchantID, externalID string) (Balance, error)
+	GetAssetsBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error)
 	GetWalletById(merchantID, externalId string) (string, error)
 	GetTransactionStatus(hash string) (CryptoTransactionStatus, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)

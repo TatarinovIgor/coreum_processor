@@ -79,7 +79,7 @@ func PageDashboardMerchant(ctx context.Context, processing *service.ProcessingSe
 
 func PageMerchantTransaction(processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		t, err := template.ParseFiles("./templates/lite/default/transactions.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/default/transactions.html", "./templates/lite/sidebar.html", "./templates/lite/wallet_card.html")
 
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
@@ -111,26 +111,36 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 		}
 
 		varmap := map[string]interface{}{
-			"transactions":   generateTransactionTable(res),
-			"guid":           merchantID,
-			"coreum_wallet":  nil,
-			"coreum_balance": nil,
-			"coreum_asset":   nil,
+			"transactions":             generateTransactionTable(res),
+			"guid":                     merchantID,
+			"coreum_receiving_wallet":  "Not activated",
+			"coreum_receiving_balance": 0,
+			"coreum_sending_wallet":    "Not activated",
+			"coreum_sending_balance":   0,
+			"coreum_asset":             "testcore",
 		}
 
 		_, err = processing.GetMerchantData(merchantID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `error while trying to get merchant's data'` + `", "error":"` + err.Error() + `"} `))
+			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
 			return
 		}
-		coreumWallet, err := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
-		coreumBalance, err := processing.GetBalance(service.BalanceRequest{Blockchain: "coreum", Asset: "coreum"}, merchantID, merchantID+"-R")
+
+		coreumReceivingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
+		coreumReceivingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-R")
 		if err == nil {
-			varmap["coreum_wallet"] = coreumWallet
-			varmap["coreum_balance"] = coreumBalance[0].Amount
-			varmap["coreum_asset"] = coreumBalance[0].Asset
+			varmap["coreum_receiving_wallet"] = coreumReceivingWallet
+			varmap["coreum_receiving_balance"] = coreumReceivingBalance.Amount
+			varmap["coreum_asset"] = coreumReceivingBalance.Asset
 		}
+		coreumSendingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-S")
+		coreumSendingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-S")
+		if err == nil {
+			varmap["coreum_sending_wallet"] = coreumSendingWallet
+			varmap["coreum_sending_balance"] = coreumSendingBalance.Amount
+		}
+
 		err = t.ExecuteTemplate(w, "transactions.html", varmap)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -160,7 +170,7 @@ func generateTransactionTable(res []storage.TransactionStore) template.HTML {
 
 func PageMerchantUsers(userService *user.Service, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		t, err := template.ParseFiles("./templates/lite/default/users.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/default/users.html", "./templates/lite/sidebar.html", "./templates/lite/wallet_card.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -181,11 +191,13 @@ func PageMerchantUsers(userService *user.Service, processing *service.Processing
 		}
 
 		varmap := map[string]interface{}{
-			"users":          generateUserTable(res),
-			"guid":           merchantID,
-			"coreum_wallet":  nil,
-			"coreum_balance": nil,
-			"coreum_asset":   nil,
+			"users":                    generateUserTable(res),
+			"guid":                     merchantID,
+			"coreum_receiving_wallet":  "Not activated",
+			"coreum_receiving_balance": 0,
+			"coreum_sending_wallet":    "Not activated",
+			"coreum_sending_balance":   0,
+			"coreum_asset":             "testcore",
 		}
 
 		_, err = processing.GetMerchantData(merchantID)
@@ -194,12 +206,19 @@ func PageMerchantUsers(userService *user.Service, processing *service.Processing
 			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
 			return
 		}
-		coreumWallet, err := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
-		coreumBalance, err := processing.GetBalance(service.BalanceRequest{Blockchain: "coreum", Asset: "coreum"}, merchantID, merchantID+"-R")
+
+		coreumReceivingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
+		coreumReceivingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-R")
 		if err == nil {
-			varmap["coreum_wallet"] = coreumWallet
-			varmap["coreum_balance"] = coreumBalance[0].Amount
-			varmap["coreum_asset"] = coreumBalance[0].Asset
+			varmap["coreum_receiving_wallet"] = coreumReceivingWallet
+			varmap["coreum_receiving_balance"] = coreumReceivingBalance.Amount
+			varmap["coreum_asset"] = coreumReceivingBalance.Asset
+		}
+		coreumSendingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-S")
+		coreumSendingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-S")
+		if err == nil {
+			varmap["coreum_sending_wallet"] = coreumSendingWallet
+			varmap["coreum_sending_balance"] = coreumSendingBalance.Amount
 		}
 
 		err = t.ExecuteTemplate(w, "users.html", varmap)
@@ -298,7 +317,7 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 		}
 
 		//Setting template
-		t, err := template.ParseFiles("./templates/lite/assets/assets-for-merchant.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/assets/assets-for-merchant.html", "./templates/lite/sidebar.html", "./templates/lite/wallet_card.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -310,11 +329,13 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 
 		//Setting RawData
 		varmap := map[string]interface{}{
-			"assets":         assets,
-			"guid":           merchantID,
-			"coreum_wallet":  nil,
-			"coreum_balance": nil,
-			"coreum_asset":   "Not Connected",
+			"assets":                   assets,
+			"guid":                     merchantID,
+			"coreum_receiving_wallet":  "Not activated",
+			"coreum_receiving_balance": 0,
+			"coreum_sending_wallet":    "Not activated",
+			"coreum_sending_balance":   0,
+			"coreum_asset":             "testcore",
 		}
 		_, err = processing.GetMerchantData(merchantID)
 		if err != nil {
@@ -322,17 +343,19 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
 			return
 		}
-		coreumWallet, err := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
-			return
-		}
-		coreumBalance, _ := processing.GetBalance(service.BalanceRequest{Blockchain: "coreum"}, merchantID, merchantID+"-R")
+
+		coreumReceivingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
+		coreumReceivingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-R")
 		if err == nil {
-			varmap["coreum_wallet"] = coreumWallet
-			varmap["coreum_balance"] = coreumBalance[0].Amount
-			varmap["coreum_asset"] = coreumBalance[0].Asset
+			varmap["coreum_receiving_wallet"] = coreumReceivingWallet
+			varmap["coreum_receiving_balance"] = coreumReceivingBalance.Amount
+			varmap["coreum_asset"] = coreumReceivingBalance.Asset
+		}
+		coreumSendingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-S")
+		coreumSendingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-S")
+		if err == nil {
+			varmap["coreum_sending_wallet"] = coreumSendingWallet
+			varmap["coreum_sending_balance"] = coreumSendingBalance.Amount
 		}
 
 		err = t.Execute(w, varmap)

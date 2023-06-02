@@ -95,6 +95,43 @@ func CreateMerchant(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
+// CreateWallet method for creating a new wallets
+func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		var data struct {
+			Blockchain string `json:"blockchain"`
+		}
+		err = json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, merchantID+"-R")
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not create receiving wallet", http.StatusBadRequest)
+			return
+		}
+
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, merchantID+"-S")
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
+			return
+		}
+	}
+}
+
 // UpdateMerchant method for updating a new record with merchants data
 func UpdateMerchant(processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
