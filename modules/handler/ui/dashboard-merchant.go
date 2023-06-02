@@ -110,8 +110,30 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 			return
 		}
 
+		request := service.BalanceRequest{
+			Blockchain: "coreum",
+			Asset:      "",
+			Issuer:     "",
+		}
+
+		balancesReceiving, err := processing.GetAssetsBalance(request, merchantID, merchantID+"-R")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `error while trying to get balances for merchant'` + `", "error":"` + err.Error() + `"} `))
+			return
+		}
+
+		balancesSending, err := processing.GetAssetsBalance(request, merchantID, merchantID+"-S")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `error while trying to get balances for merchant'` + `", "error":"` + err.Error() + `"} `))
+			return
+		}
+
 		varmap := map[string]interface{}{
 			"transactions":             generateTransactionTable(res),
+			"balancesReceiving":        balancesReceiving,
+			"balancesSending":          balancesSending,
 			"guid":                     merchantID,
 			"coreum_receiving_wallet":  "Not activated",
 			"coreum_receiving_balance": 0,
@@ -151,7 +173,7 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 }
 
 func generateTransactionTable(res []storage.TransactionStore) template.HTML {
-	htmlBlock := "<thead><tr><th><span>CREATED AT</span></th><th><span>CLIENT ID <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>BLOCKCHAIN <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>ACTION <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>WALLET <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>STATUS <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>ASSET <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>AMOUNT <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>ACTION <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th></tr></thead>"
+	htmlBlock := "<thead><tr><th><span>CREATED AT</span></th><th><span>CLIENT ID </span></th><th><span>BLOCKCHAIN </span></th><th><span>ACTION </span></th><th><span>WALLET </span></th><th><span>STATUS </span></th><th><span>ASSET </span></th><th><span>AMOUNT </span></th><th><span>ACTION </span></th></tr></thead>"
 	//ToDo add actions
 	for i := 0; i < len(res); i++ {
 		htmlBlock = htmlBlock + "" +
@@ -231,7 +253,7 @@ func PageMerchantUsers(userService *user.Service, processing *service.Processing
 }
 
 func generateUserTable(res []storage.UserStore) template.HTML {
-	htmlBlock := "<thead><tr><th><span>CREATED AT</span></th><th><span>CLIENT ID <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>FIRST NAME <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>LAST NAME <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>ACCESS LEVEL <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span></th></tr></thead>"
+	htmlBlock := "<thead><tr><th><span>CREATED AT</span></th><th><span>CLIENT ID</span></th><th><span>FIRST NAME</span></th><th><span>LAST NAME</span></th><th><span>ACCESS LEVEL</span></th><th><span></th></tr></thead>"
 	//ToDo add actions
 	for i := 0; i < len(res); i++ {
 		htmlBlock = htmlBlock + "" +
@@ -289,7 +311,7 @@ func PageMerchantSettings(processing *service.ProcessingService, assetService *a
 }
 
 func generateAssetsTable(res []storage.AssetStore) template.HTML {
-	htmlBlock := "<thead><tr><th><span>Code (Symbol)</span></th><th><span>Name <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Issuer <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span> Issued <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span> Mint <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th><th><span>Burn <a class=\"help\" data-toggle=\"popover\" title=\"Popover title\" data-content=\"And here's some amazing content. It's very engaging. Right?\"><i class=\"feather icon-help-circle f-16\"></i></a></span></th></tr></thead>"
+	htmlBlock := "<thead><tr><th><span>Code (Symbol of token)</span></th><th><span>Name</span></th><th><span>Issuer</span></th><th><span> Issued </span></th><th><span> Mint </span></th><th><span>Burn </span></th></tr></thead>"
 
 	for i := 0; i < len(res); i++ {
 		htmlBlock = htmlBlock + "" +
@@ -335,7 +357,7 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 			"coreum_receiving_balance": 0,
 			"coreum_sending_wallet":    "Not activated",
 			"coreum_sending_balance":   0,
-			"coreum_asset":             "testcore",
+			"coreum_asset":             "utestcore",
 		}
 		_, err = processing.GetMerchantData(merchantID)
 		if err != nil {

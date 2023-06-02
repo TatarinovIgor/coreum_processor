@@ -16,24 +16,24 @@
         {{ if ne .coreum_receiving_wallet "Not activated" }}
           <div class="col m-b-15">
             <label style="color: white">Receiving Wallet: {{ .coreum_receiving_balance }} {{ .coreum_asset }}</label>
-            <h5 class="m-b-0 text-white"> <a href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .coreum_receiving_wallet }}">
+            <h5 class="m-b-0"> <a href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .coreum_receiving_wallet }}">
               {{ .coreum_receiving_wallet }} </a></h5>
           </div>
 
           <div class="col-auto m-b-15">
             <label style="color: white">Sending Wallet: {{ .coreum_sending_balance }} {{ .coreum_asset }}</label>
-            <h5 class="m-b-0 text-white"> <a href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .coreum_sending_wallet }}">
+            <h5 class="m-b-0"> <a href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .coreum_sending_wallet }}">
               {{ .coreum_sending_wallet }} </a></h5>
           </div>
         {{ else }}
           <div class="col m-b-15">
-            <label style="color: white">Receiving Wallet: {{ .coreum_receiving_balance }} {{ .coreum_asset }}</label>
-            <h5 class="m-b-0 text-white">{{ .coreum_receiving_wallet }}</h5>
+            <label style="color: white">Receiving Wallet: 0 {{ .coreum_asset }}</label>
+            <h5 class="m-b-0">Not activated</h5>
           </div>
 
           <div class="col-auto m-b-15">
-            <label style="color: white">Sending Wallet: {{ .coreum_sending_balance }} {{ .coreum_asset }}</label>
-            <h5 class="m-b-0 text-white">{{ .coreum_sending_wallet }}</h5>
+            <label style="color: white">Sending Wallet: 0 {{ .coreum_asset }}</label>
+            <h5 class="m-b-0">Not activated</h5>
           </div>
 
           <button class="btn text-c-green" style="background-color: white" onclick="sendWalletData()">Create</button>

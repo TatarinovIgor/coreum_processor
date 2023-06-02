@@ -505,6 +505,7 @@ func (s CoreumProcessing) GetAssetsBalance(request service.BalanceRequest, merch
 	denom := s.denom
 	bankClient := banktypes.NewQueryClient(s.clientCtx)
 	var balances []service.Balance
+	//Check whether request wants specific token or all of them
 	if request.Asset == "" {
 		resp, err := bankClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
 			Address: userWallet.WalletAddress,
@@ -536,6 +537,7 @@ func (s CoreumProcessing) GetAssetsBalance(request service.BalanceRequest, merch
 	balances = append(balances, service.Balance{Blockchain: request.Blockchain,
 		Amount: float64(resp.Balance.Amount.Int64()),
 		Asset:  request.Asset, Issuer: request.Issuer})
+
 	return balances, nil
 
 }

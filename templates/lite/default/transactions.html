@@ -65,6 +65,70 @@
 
 								<!-- sessions-section start -->
 								<div class="col-xl-8 col-md-6" style="flex: 0 0 100%; max-width: 100%">
+									<div id="accordion">
+										<div class="card">
+											<div class="card-header" id="headingOne">
+												<h5 class="mb-0">
+													<button class="btn btn-outline-success" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+														Asset balances
+													</button>
+												</h5>
+											</div>
+
+											<div id="collapseOne" class="collapse show	" aria-labelledby="headingOne" data-parent="#accordion">
+												<div class="card-body">
+													<div class="row" style="padding-top: 10px;">
+														<div class="col-md-6">
+															<h5>Receiving wallet</h5>
+															<div class="table-responsive border-right">
+																<table class="table table-hover">
+																	<thead class="thead-light">
+																		<tr>
+																			<th scope="col">Asset</th>
+																			<th scope="col">Issuer</th>
+																			<th scope="col">Balance</th>
+																		</tr>
+																	</thead>
+																	{{ range .balancesReceiving }}
+																		<tbody>
+																			<tr>
+																				<td>{{ .Asset }}</td>
+																				<td><a href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .Issuer }}">{{ .Issuer }}</a></td>
+																				<td>{{ .Amount }}</td>
+																			</tr>
+																		</tbody>
+																	{{ end }}
+																</table>
+															</div>
+														</div>
+														<div class="col-md-6">
+															<h5>Sending wallet</h5>
+															<div class="table-responsive border-right">
+																<table class="table">
+																	<thead class="thead-light">
+																	<tr>
+																		<th scope="col">Asset</th>
+																		<th scope="col">Issuer</th>
+																		<th scope="col">Balance</th>
+																	</tr>
+																	</thead>
+																	{{ range .balancesSending }}
+																	<tbody>
+																	<tr>
+																		<td>{{ .Asset }}</td>
+																		<td><a href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .Issuer }}">{{ .Issuer }}</a></td>
+																		<td>{{ .Amount }}</td>
+																	</tr>
+																	</tbody>
+																	{{ end }}
+																</table>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
 									<div class="card table-card">
 										<div class="card-header">
 											<h5>Transactions</h5>
