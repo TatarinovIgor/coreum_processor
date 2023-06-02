@@ -841,7 +841,8 @@ func (s CoreumProcessing) transferCoreumTokens(senderAddress, recipientAddress, 
 		msgSend,
 	)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return "", err
 	}
 	return response.TxHash, nil
 }
@@ -891,10 +892,7 @@ func (s CoreumProcessing) balanceCoreumTokens(userAddress, subunit string) (int,
 		Denom:   denom,
 	})
 	if err != nil {
-		panic(err)
-	}
-	if err != nil {
-		panic(err)
+		return 0, "", err
 	}
 	return int(float64(response.Balance.Amount.Uint64())), response.Balance.Denom, nil
 }
