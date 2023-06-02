@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - codingnepalweb.com -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Coreum Landing</title>
+    <!---Custom Css File!--->
+    <link rel="stylesheet" href="../../assets/css/landing.css">
+</head>
+<body>
+
+<div class="header">
+    <nav>
+        <div class="logo">
+            <a>BirdHouse<span></span></a>
+        </div>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#use-cases">Use Cases</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <div class="buttons">
+            <a href="/login" class="login">Log in</a>
+            <a href="/register" class="btn">Register</a>
+        </div>
+    </nav>
+</div>
+<div class="container">
+    <div class="intro" id="home">
+        <div class="d-flex">
+            <div class="left">
+                <div class="content">
+                    <h2 style="color: #2BD596">Coreum<br></h2> <h2>Processing</h2>
+                    <p>A solution for businesses operating in coreum.<br><br></p>
+                </div>
+                <div class="link">
+                    <a href="#" class="more">Learn More</a>
+                </div>
+            </div>
+            <div class="right">
+                <div>
+                    <svg width="300" height="300" viewBox="0 0 202 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" width="200" height="200" fill="black"/>
+                        <circle cx="102" cy="100" r="100" fill="#2BD596"/>
+                        <circle cx="101.5" cy="99.5" r="62.5" fill="black"/>
+                        <path d="M94 100L0.249998 186.603L0.249998 13.3975L94 100Z" fill="black"/>
+                        <circle cx="102" cy="100" r="35" fill="#2BD596"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container" id="about">
+    <div class="content">
+        <h2 style="color: #2BD596">About Idea</h2>
+        <br>
+        <p>Coreum Processing is a tool that helps businesses to establish business processes on the base of Coreum. Our service has all the required functions to manage merchants and a simple-to-use API that will allow businesses to integrate faster with minimal effort.<br><br></p>
+    </div>
+</div>
+<div class="container" id="services">
+    <div class="services">
+        <h2 style="color: #2BD596">Services</h2>
+        <br>
+        <div>
+            <br>
+            <div class="horizontal">
+                <div class="d-flex">
+                    <h1 class="not-selectable" onclick="toggleTextPaymentProcessing()">Payments Processing</h1><br>
+                    <p class="invisible" id="invisible-payment-processing">Accept payments and withdraw in Coreum blockchain</p>
+                </div>
+            </div>
+            <br>
+            <div class="horizontal">
+                <div class="d-flex">
+                    <h1 class="not-selectable" onclick="toggleTextUserManagement()">User Management</h1><br>
+                    <p class="invisible" id="invisible-user-management">Manage your merchants and their access to the service</p>
+                </div>
+            </div>
+            <br>
+            <div class="horizontal">
+                <div class="d-flex">
+                    <h1 class="not-selectable" onclick="toggleTextAssetManagement()">Assets Management</h1><br>
+                    <p class="invisible" id="invisible-asset-management">Issue, mint and burn assets on Coreum blockchain</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container" id="use-cases">
+    <div class="use-cases">
+        <h2 style="color: #2BD596">Use Cases</h2>
+        <br>
+        <br>
+        <div class="d-flex">
+            <div class="leftpane">
+                <h1>Coreum based CRM</h1><br>
+                <p>Coreum-based CRM would provide a list of unique functions to our merchants to establish financial flow and provides integrated pay-in and payouts mechanism in Coreum.</p>
+            </div>
+            <div class="middlepane">
+                <h1>KYC Protocol</h1><br>
+                <p>Using our processor we can implement a KYC procedure. We would create a flow that would confirm the identity of the holder of the token and allow the holder to access certain functions.</p>
+            </div>
+            <div class="rightpane">
+                <h1>B2B transfer protocol</h1><br>
+                <p>For every business, we would be issuing unique tokens which they can later on exchange with other businesses. Then this tokens will be exchanged between businesses.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container" id="contact">
+    <div class="content">
+        <h2 style="color: #2BD596">Contact Us</h2><br>
+        <p>Coreum Processing is a tool that helps businesses to establish business processes on the base of Coreum. Our service has all the required functions to manage merchants and a simple-to-use API that will allow businesses to integrate faster with minimal effort.<br><br></p>
+    </div>
+</div>
+</body>
+<script>
+    function toggleTextPaymentProcessing() {
+        var text = document.getElementById("invisible-payment-processing");
+        if (text.style.display === "block") {
+            text.style.display = "none";
+        } else {
+            text.style.display = "block";
+        }
+    }
+    function toggleTextUserManagement() {
+        var text = document.getElementById("invisible-user-management");
+        if (text.style.display === "block") {
+            text.style.display = "none";
+        } else {
+            text.style.display = "block";
+        }
+    }function toggleTextAssetManagement() {
+        var text = document.getElementById("invisible-asset-management");
+        if (text.style.display === "block") {
+            text.style.display = "none";
+        } else {
+            text.style.display = "block";
+        }
+    }
+
+</script>
+</html>

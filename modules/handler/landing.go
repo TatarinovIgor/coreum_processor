@@ -8,7 +8,7 @@ import (
 
 // PageLanding parses a landing page, set to another routing in AWS to prevent accidental requests
 func PageLanding(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	t, err := template.ParseFiles("./templates/landing/index.html")
+	t, err := template.ParseFiles("./templates/lite/default/index.html")
 	if err != nil {
 		w.WriteHeader(http.StatusNoContent)
 		w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))

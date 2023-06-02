@@ -20,7 +20,7 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	routerWrap := NewRouterWrap(pathName, router)
 
 	router.GET("/about", handler.About)
-	router.GET("/", handler.About)
+	router.GET("/", handler.PageLanding)
 	//GET routers for frontend auth
 	routerWrap.GET("/login", ui.GetPageLogIn(ctx, ory))
 	routerWrap.GET("/register", ui.GetPageSignUp(ctx, ory))
