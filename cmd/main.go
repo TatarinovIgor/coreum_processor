@@ -92,11 +92,11 @@ func main() {
 		// Creating a process for blockchain requests and initializing a blockchain listener
 		err := processingService.ListenAndServe(ctx, cfg.Interval)
 		cancelFunc()
-		server.Shutdown(ctx)
+		_ = server.Shutdown(ctx)
 		return err
 	}, func(err error) {
 		cancelFunc()
-		server.Shutdown(ctx)
+		_ = server.Shutdown(ctx)
 	})
 	// Shutdown
 	g.Add(func() error {
