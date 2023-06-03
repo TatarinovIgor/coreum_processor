@@ -12,6 +12,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -402,9 +403,9 @@ func AssetRequestMerchant(ctx context.Context, assetService *asset.Service, proc
 		}
 
 		// Access the form data values by their name
-		blockchain := r.Form.Get("blockchain")
+		blockchain := strings.ToLower(r.Form.Get("blockchain"))
 		name := r.Form.Get("name")
-		code := r.Form.Get("code")
+		code := strings.ToLower(r.Form.Get("code"))
 		description := r.Form.Get("description")
 		assetType := r.Form.Get("assetType")
 		smartContractAddress := r.Form.Get("issuer")

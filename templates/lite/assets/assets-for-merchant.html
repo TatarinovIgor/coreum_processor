@@ -171,19 +171,25 @@
                     <h2 id="h">Send request to add new asset</h2>
 
                     <label for="blockchain">Blockchain:</label>
-                    <input id="blockchain" type="text" placeholder="Enter blockchain" name="blockchain" required>
+                    <select class="form-control" id="blockchain" name="blockchain" style="margin-bottom: 15px">
+                      <option>Coreum</option>
+                      <option>Ethereum</option>
+                      <option>Tron</option>
+                    </select>
 
                     <label for="name">Name of asset</label>
-                    <input id="name" type="text" placeholder="Enter name of asset" name="name" required>
+                    <input pattern=".{3,}" id="name" type="text" placeholder="Enter name of asset" name="name" required>
 
-                    <label for="code">Code of asset(short name)</label>
-                    <input id="code" type="text" placeholder="Enter code of asset" name="code" required>
+                    <label for="code">Code of asset(short name), minimum three symbols</label>
+                    <input pattern=".{3,}" id="code" type="text" placeholder="Enter code of asset" name="code" required>
 
                     <label for="description">Description of asset</label>
                     <input id="description" type="text" placeholder="Enter description of asset" name="description" required>
 
                     <label for="assetType">Type of asset</label>
-                    <input id="assetType" type="text" placeholder="Enter type of asset" name="assetType" required>
+                    <select class="form-control" id="assetType" name="assetType" style="margin-bottom: 20px">
+                      <option>FT</option>
+                    </select>
 
                     <label id="label" for="issuer">Issuer of token</label>
                     <input id="issuer" type="text" placeholder="Enter address" name="issuer">
