@@ -170,7 +170,10 @@
                               <td>{{ .Description }}</td>
                               <td>{{ .Type }}</td>
                               <td>{{ .Features }}</td>
-                              <td> <a onclick=AddToken(this) class="action_btn point success" style="float: right; color: green;">Approve</a> </td>
+                              <td>
+                                <a onclick=UpdateToken(this) class="action_btn point" style="float: left; color: green;">Approve</a>
+                                <a onclick=UpdateToken(this) class="action_btn point" style="float: right; color: red">Reject</a>
+                              </td>
                             </tr>
                             </tbody>
                             {{ end }}
@@ -253,7 +256,7 @@
     }
   }
 
-  function AddToken(button) {
+  function UpdateToken(button) {
 
     var td = button.closest("td");
     var row = td.closest("tr")
@@ -266,7 +269,8 @@
       merchant: merchant,
       blockchain: blockchain,
       code: code,
-      issuer: issuer
+      issuer: issuer,
+      action: button.textContent
     };
 
     console.log(data)

@@ -25,6 +25,9 @@ func (s *Service) GetAssetList(merchID string, blockChain, code []string, codeLi
 	from, to time.Time) ([]storage.AssetStore, error) {
 	return s.assetStorage.GetAssetList(merchID, blockChain, code, codeLike, status, from, to)
 }
+func (s *Service) UpdateAssetRequest(asset storage.AssetStore, status string) error {
+	return s.assetStorage.SetAssetStatus(asset, storage.AssetStatus(status))
+}
 func (s *Service) CreateAssetRequest(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID string,
 	features json.RawMessage) error {
 	code = strings.ToLower(code)

@@ -205,6 +205,7 @@ func PageAssetRequestsAdminUpdate(ctx context.Context, assetService *asset.Servi
 			Blockchain string `json:"blockchain"`
 			Code       string `json:"code"`
 			Issuer     string `json:"issuer"`
+			Action     string `json:"action"`
 		}{}
 		err := json.NewDecoder(r.Body).Decode(&raw)
 		if err != nil {
@@ -219,7 +220,14 @@ func PageAssetRequestsAdminUpdate(ctx context.Context, assetService *asset.Servi
 			return
 		}
 
-		if raw.Issuer != "" {
+		if raw.Action == "Reject" {
+			err := assetService.UpdateAssetRequest(*token, "deactivated")
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "could not activate asset", http.StatusBadRequest)
+				return
+			}
+		} else if raw.Issuer != "" {
 			err = assetService.ActivateAsset(raw.Blockchain, raw.Code, raw.Issuer, raw.Merchant)
 			if err != nil {
 				log.Println(err)

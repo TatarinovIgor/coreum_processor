@@ -184,7 +184,7 @@ func (s *AssetPSQL) ActivateAsset(blockchain, code, issuer, merchantID string) e
 // SetAssetStatus sets the assets status in store by blockchain, code and issuer from AssetStore structure
 func (s *AssetPSQL) SetAssetStatus(asset AssetStore, status AssetStatus) error {
 	query := fmt.Sprintf(
-		"UPDATE %s SET updated_at = $4, access = $5 WHERE blockchain = $1, code  = $2, issuer  = $3",
+		"UPDATE %s SET updated_at = $4, status = $5 WHERE blockchain = $1 AND code  = $2 AND issuer  = $3",
 		s.assetsNamespace)
 	_, err := s.db.Query(query,
 		asset.BlockChain, asset.Code, asset.Issuer, time.Now().UTC(), status)
