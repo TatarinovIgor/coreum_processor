@@ -343,7 +343,7 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 		}
 
 		//Getting all assets for merchant merchantID
-		assets, err := assetService.GetAssetList(merchantID, nil, nil, "", "active", time.Unix(0, 0), time.Now().UTC())
+		assets, err := assetService.GetAssetList(merchantID, nil, nil, "", "", time.Unix(0, 0), time.Now().UTC())
 
 		//Setting RawData
 		varmap := map[string]interface{}{

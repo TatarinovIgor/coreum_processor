@@ -216,7 +216,7 @@ func PageAssetRequestsAdminUpdate(ctx context.Context, assetService *asset.Servi
 		token, err := assetService.GetBlockChainAssetByCodeAndIssuer(raw.Blockchain, raw.Code, raw.Issuer)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "could get asset", http.StatusBadRequest)
+			http.Error(w, "could not get asset", http.StatusBadRequest)
 			return
 		}
 

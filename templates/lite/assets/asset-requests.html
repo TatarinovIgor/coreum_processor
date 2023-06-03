@@ -285,7 +285,6 @@
             .then(response => response.json())
             .then(responseData => {
               // Handle the response data
-              console.log(responseData);
               if (responseData.message === "Updated successfully") {
                 location.reload()
               }

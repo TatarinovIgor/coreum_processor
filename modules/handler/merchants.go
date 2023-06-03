@@ -152,6 +152,15 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
 			return
 		}
+
+		// Send a response
+		response := map[string]string{"message": "Updated successfully"}
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			http.Error(w, "Failed to send response", http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
