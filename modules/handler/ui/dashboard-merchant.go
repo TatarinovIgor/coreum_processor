@@ -117,24 +117,16 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 			Issuer:     "",
 		}
 
-		balancesReceiving, err := processing.GetAssetsBalance(request, merchantID, merchantID+"-R")
+		merchData, err := processing.GetMerchantData(merchantID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `error while trying to get balances for merchant'` + `", "error":"` + err.Error() + `"} `))
+			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
 			return
 		}
-
-		balancesSending, err := processing.GetAssetsBalance(request, merchantID, merchantID+"-S")
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `error while trying to get balances for merchant'` + `", "error":"` + err.Error() + `"} `))
-			return
-		}
-
 		varmap := map[string]interface{}{
 			"transactions":             generateTransactionTable(res),
-			"balancesReceiving":        balancesReceiving,
-			"balancesSending":          balancesSending,
+			"balancesReceiving":        []service.Balance{},
+			"balancesSending":          []service.Balance{},
 			"guid":                     merchantID,
 			"coreum_receiving_wallet":  "Not activated",
 			"coreum_receiving_balance": 0,
@@ -142,28 +134,31 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 			"coreum_sending_balance":   0,
 			"coreum_asset":             "testcore",
 		}
+		for bc, wallets := range merchData.Wallets {
+			balancesReceiving, err := processing.GetAssetsBalance(request, merchantID, wallets.ReceivingID)
+			if err == nil {
+				varmap["balancesReceiving"] = balancesReceiving
+			}
 
-		_, err = processing.GetMerchantData(merchantID)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
-			return
-		}
+			balancesSending, err := processing.GetAssetsBalance(request, merchantID, wallets.SendingID)
+			if err != nil {
+				varmap["balancesSending"] = balancesSending
+			}
 
-		coreumReceivingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
-		coreumReceivingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-R")
-		if err == nil {
-			varmap["coreum_receiving_wallet"] = coreumReceivingWallet
-			varmap["coreum_receiving_balance"] = coreumReceivingBalance.Amount
-			varmap["coreum_asset"] = coreumReceivingBalance.Asset
+			receivingWallet, _ := processing.GetWalletById("coreum", merchantID, wallets.ReceivingID)
+			receivingBalance, err := processing.GetBalance("coreum", merchantID, wallets.ReceivingID)
+			if err == nil {
+				varmap[bc+"_receiving_wallet"] = receivingWallet
+				varmap[bc+"_receiving_balance"] = receivingBalance.Amount
+				varmap[bc+"_asset"] = receivingBalance.Asset
+			}
+			sendingWallet, _ := processing.GetWalletById("coreum", merchantID, wallets.SendingID)
+			sendingBalance, err := processing.GetBalance("coreum", merchantID, wallets.SendingID)
+			if err == nil {
+				varmap[bc+"_sending_wallet"] = sendingWallet
+				varmap[bc+"_sending_balance"] = sendingBalance.Amount
+			}
 		}
-		coreumSendingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-S")
-		coreumSendingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-S")
-		if err == nil {
-			varmap["coreum_sending_wallet"] = coreumSendingWallet
-			varmap["coreum_sending_balance"] = coreumSendingBalance.Amount
-		}
-
 		err = t.ExecuteTemplate(w, "transactions.html", varmap)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
