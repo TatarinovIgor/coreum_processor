@@ -221,10 +221,10 @@ func PageAssetRequestsAdminUpdate(ctx context.Context, assetService *asset.Servi
 		}
 
 		if raw.Action == "Reject" {
-			err := assetService.UpdateAssetRequest(*token, "deactivated")
+			err := assetService.DeleteAssetRequest(*token, raw.Merchant)
 			if err != nil {
 				log.Println(err)
-				http.Error(w, "could not activate asset", http.StatusBadRequest)
+				http.Error(w, "could not delete asset", http.StatusBadRequest)
 				return
 			}
 		} else if raw.Issuer != "" {

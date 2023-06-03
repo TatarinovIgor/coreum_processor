@@ -194,6 +194,28 @@ func (s *AssetPSQL) SetAssetStatus(asset AssetStore, status AssetStatus) error {
 	return nil
 }
 
+// DeleteAssetRequest deletes the request for asset from "assets" database
+func (s *AssetPSQL) DeleteAssetRequest(asset AssetStore, merchantID string) error {
+	query := fmt.Sprintf(
+		"DELETE FROM %s WHERE merchant_list_id = (SELECT id FROM %s WHERE merchant_id = '%s') AND "+
+			"asset_id = (SELECT id FROM %s WHERE blockchain = $1 AND code  = $2 AND issuer  = $3)",
+		s.merchantAssetsNamespace, s.merchantListNamespace, merchantID, s.assetsNamespace)
+	_, err := s.db.Query(query,
+		asset.BlockChain, asset.Code, asset.Issuer)
+	if err != nil {
+		return err
+	}
+
+	query = fmt.Sprintf("DELETE FROM %s WHERE blockchain = $1 AND code  = $2 AND issuer  = $3",
+		s.assetsNamespace)
+	_, err = s.db.Query(query,
+		asset.BlockChain, asset.Code, asset.Issuer)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // UpdateDescription updates the description in store by blockchain, code and issuer from AssetStore structure
 func (s *AssetPSQL) UpdateDescription(asset AssetStore, description string) error {
 	query := fmt.Sprintf(

@@ -28,6 +28,10 @@ func (s *Service) GetAssetList(merchID string, blockChain, code []string, codeLi
 func (s *Service) UpdateAssetRequest(asset storage.AssetStore, status string) error {
 	return s.assetStorage.SetAssetStatus(asset, storage.AssetStatus(status))
 }
+func (s *Service) DeleteAssetRequest(asset storage.AssetStore, merchantID string) error {
+	asset.Code = strings.ToLower(asset.Code)
+	return s.assetStorage.DeleteAssetRequest(asset, merchantID)
+}
 func (s *Service) CreateAssetRequest(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID string,
 	features json.RawMessage) error {
 	code = strings.ToLower(code)
