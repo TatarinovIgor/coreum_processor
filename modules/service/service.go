@@ -206,6 +206,9 @@ func (s ProcessingService) UpdateMerchant(guid string, merchant NewMerchant) (st
 	return s.merchants.UpdateMerchantData(guid, merchant)
 }
 
+func (s ProcessingService) SaveMerchantData(guid string, merchant MerchantData) (int64, error) {
+	return s.merchants.CreateMerchantData(guid, merchant)
+}
 func (s ProcessingService) GetWalletById(blockchain, merchantID, externalId string) (string, error) {
 	processor, ok := s.processors[blockchain]
 	if !ok {

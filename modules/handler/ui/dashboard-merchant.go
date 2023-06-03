@@ -120,7 +120,7 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 		merchData, err := processing.GetMerchantData(merchantID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
+			w.Write([]byte(`{"message":"` + `can't find merchant data` + `"}`))
 			return
 		}
 		varmap := map[string]interface{}{

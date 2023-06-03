@@ -115,15 +115,38 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 			http.Error(w, "could not parse request data", http.StatusBadRequest)
 			return
 		}
-
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, merchantID+"-R")
+		merchData, err := processing.GetMerchantData(merchantID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `can't find merchant data` + `"}`))
+			return
+		}
+		// TODO define default commission
+		commission := service.Commission{
+			Fix:     1,
+			Percent: 1,
+		}
+		wallets := service.Wallets{
+			CommissionReceiving: commission,
+			CommissionSending:   commission,
+			ReceivingID:         merchantID + "-R",
+			SendingID:           merchantID + "-S",
+		}
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.ReceivingID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not create receiving wallet", http.StatusBadRequest)
 			return
 		}
 
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, merchantID+"-S")
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.SendingID)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
+			return
+		}
+		merchData.Wallets[data.Blockchain] = wallets
+		_, err = processing.SaveMerchantData(merchantID, merchData)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
