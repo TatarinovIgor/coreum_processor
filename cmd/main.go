@@ -76,12 +76,13 @@ func main() {
 	urlPath := ""
 	log.Println("hello i am started")
 	routing.InitRouter(ctx, ory.NewAPIClient(c), router, urlPath, processingService, userService, assetService)
+	server := &http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router}
 
 	// Creating 2 streams one for API and another for blockchain requests
 	var g run.Group
 	g.Add(func() error {
 		// Creating a process for API and initializing an API listener
-		err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), router)
+		err := server.ListenAndServe()
 		cancelFunc()
 		return err
 	}, func(err error) {
@@ -91,19 +92,22 @@ func main() {
 		// Creating a process for blockchain requests and initializing a blockchain listener
 		err := processingService.ListenAndServe(ctx, cfg.Interval)
 		cancelFunc()
+		server.Shutdown(ctx)
 		return err
 	}, func(err error) {
 		cancelFunc()
+		server.Shutdown(ctx)
 	})
 	// Shutdown
 	g.Add(func() error {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt, os.Kill)
-
 		select {
 		case c := <-sigChan:
+			cancelFunc()
 			return fmt.Errorf("interrupted with sig %q", c)
 		case <-ctx.Done():
+			cancelFunc()
 			return nil
 		}
 	}, func(err error) {
@@ -112,6 +116,7 @@ func main() {
 
 	err = g.Run()
 	if err != nil {
+		log.Println("exit from processing, err:", err)
 		return
 	}
 

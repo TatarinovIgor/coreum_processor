@@ -1,4 +1,7 @@
 cmd/.env
 cmd/key
+cmd/cryptoProcessorKey.key.pub
+cmd/cryptoProcessorKey
+cmd/cryptoProcessorKey.pub
 .github
 .idea

@@ -244,7 +244,7 @@ func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID strin
 
 	response, err := processor.CreateWallet(blockchain, merchantID, externalID)
 	if err != nil {
-		return nil, fmt.Errorf("could not perform deposit: %s")
+		return nil, fmt.Errorf("could not create wallet for blockchain: %s, err: %s", blockchain, err)
 	}
 
 	return response, nil
