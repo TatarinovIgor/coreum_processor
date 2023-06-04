@@ -165,6 +165,34 @@ func DeleteWithdraw(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
+func GetTokenSupply(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+		SupplyRequest := service.BalanceRequest{}
+		SupplyRequest.Blockchain = strings.TrimSpace(strings.ToLower(r.URL.Query().Get("blockchain")))
+		SupplyRequest.Asset = strings.TrimSpace(strings.ToLower(r.URL.Query().Get("asset")))
+		SupplyRequest.Issuer = strings.TrimSpace(strings.ToLower(r.URL.Query().Get("issuer")))
+
+		supply, err := processing.GetTokenSupply(SupplyRequest)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not get total supply for token", http.StatusBadRequest)
+		}
+
+		var res struct {
+			Supply int64 `json:"supply"`
+		}
+		res.Supply = supply
+
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func NewToken(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)

@@ -80,6 +80,7 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	routerWrap.GET("/merchants", middleware.AuthMiddleware(processing, handler.GetMerchants(processing)))                    //Tested
 	routerWrap.GET("/get_wallet_by_id", middleware.AuthMiddleware(processing, handler.GetWalletById(processing)))            //Tested
 	routerWrap.GET("/get_transaction_status/:id", middleware.AuthMiddleware(processing, handler.GetTransaction(processing))) //Tested
+	routerWrap.GET("/get_supply", middleware.AuthMiddlewareCookie(ctx, ory, userService, handler.GetTokenSupply(processing)))
 
 	//POST router for backend
 	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing))) //Tested

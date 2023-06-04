@@ -450,6 +450,22 @@ func (s CoreumProcessing) IssueToken(request service.NewTokenRequest, merchantID
 	return &service.NewTokenResponse{TxHash: token, Issuer: wallet.WalletAddress}, features, nil
 }
 
+func (s CoreumProcessing) GetTokenSupply(request service.BalanceRequest) (int64, error) {
+	ctx := context.Background()
+
+	denom := request.Asset + "-" + request.Issuer
+
+	bankClient := banktypes.NewQueryClient(s.clientCtx)
+	// Query the balance of the recipient
+	response, err := bankClient.SupplyOf(ctx, &banktypes.QuerySupplyOfRequest{
+		Denom: denom,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return response.Amount.Amount.Int64(), nil
+}
+
 func (s CoreumProcessing) GetBalance(merchantID, externalID string) (service.Balance, error) {
 	_, byteAddress, err := s.store.GetByUser(merchantID, externalID)
 	balance := service.Balance{
@@ -727,8 +743,6 @@ func (s CoreumProcessing) createCoreumToken(symbol, subunit, issuerAddress, desc
 		Description:   description,
 		Features:      features,
 	}
-
-	log.Println(senderInfo.GetAddress().String())
 
 	ctx := context.Background()
 	trx, err := client.BroadcastTx(
