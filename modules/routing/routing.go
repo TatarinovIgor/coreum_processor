@@ -85,9 +85,9 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	routerWrap.POST("/deposit", middleware.AuthMiddleware(processing, handler.Deposit(processing))) //Tested
 	routerWrap.POST("/token_issue", middleware.AuthMiddleware(processing, handler.NewToken(processing, assetService)))
 	routerWrap.POST("/token_mint", middleware.AuthMiddleware(processing, handler.MintToken(processing, assetService)))
-	routerWrap.POST("/token_burn", middleware.AuthMiddleware(processing, handler.BurnToken(processing, assetService))) //Tested
-	routerWrap.POST("/withdraw", middleware.AuthMiddleware(processing, handler.Withdraw(processing)))                  //Tested
-	routerWrap.POST("/merchant", middleware.AuthMiddlewareAdmin(processing, handler.CreateMerchant(processing)))       //Tested
+	routerWrap.POST("/token_burn", middleware.AuthMiddleware(processing, handler.BurnTokenMerchant(processing, assetService))) //Tested
+	routerWrap.POST("/withdraw", middleware.AuthMiddleware(processing, handler.Withdraw(processing)))                          //Tested
+	routerWrap.POST("/merchant", middleware.AuthMiddlewareAdmin(processing, handler.CreateMerchant(processing)))               //Tested
 
 	// DELETE routers for backend
 	routerWrap.DELETE("/withdraw/:guid", middleware.AuthMiddleware(processing, handler.DeleteWithdraw(processing))) //Tested

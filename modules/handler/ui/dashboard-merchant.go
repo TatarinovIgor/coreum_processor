@@ -141,7 +141,7 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 			}
 
 			balancesSending, err := processing.GetAssetsBalance(request, merchantID, wallets.SendingID)
-			if err != nil {
+			if err == nil {
 				varmap["balancesSending"] = balancesSending
 			}
 
