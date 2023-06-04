@@ -140,10 +140,16 @@
                                 <span>BLOCKCHAIN</span>
                               </th>
                               <th>
+                                <span>ISSUER</span>
+                              </th>
+                              <th>
                                 <span>DESCRIPTION</span>
                               </th>
                               <th>
                                 <span>Status</span>
+                              </th>
+                              <th>
+                                <span>Details</span>
                               </th>
                               <th>
                                 <span></span>
@@ -155,10 +161,13 @@
                             <tr>
                               <td> {{ .CreatedAt.Format "2006-01-02" }} </td>
                               <td> {{ .Name }} </td>
-                              <td> {{ .Code }} </td>
-                              <td> {{ .BlockChain }} </td>
+                              <td class="assetCode"> {{ .Code }} </td>
+                              <td class="assetBlockchain"> {{ .BlockChain }} </td>
+                              <td class="assetIssuer"> {{ .Issuer }} </td>
                               <td> {{ .Description }} </td>
                               <td> {{ .Status }} </td>
+                              <td> <button class="btn btn-outline-success" onclick="getTotalSupply(this)"> details </button> </td>
+                              <td class="totalSupply">  </td>
                             </tr>
                             </tbody>
                             {{ end }}
@@ -266,21 +275,30 @@
     formPopup.style.display = "none";
   }
 
-  function submitRequest() {
-    var form = document.getElementById("form"); // Get the form element
-    var formData = new FormData(form); // Collect form data
-    console.log(formData);
+  function getTotalSupply(button) {
+    // Get the corresponding data from the row
+    const td = button.closest("td");
+    const row = td.closest('tr');
+    const assetCode = row.querySelector('.assetCode').textContent;
+    const assetBlockchain = row.querySelector('.assetBlockchain').textContent;
+    const assetIssuer = row.querySelector('.assetIssuer').textContent;
 
-    fetch("/ui/merchant/assets", {
-      method: 'POST',
-      body: formData
-    })
-            .then(function(response) {
-              // Handle the response from the server
-              console.log('Response:', response);
+    // Construct the GET request URL with the data
+    const url = `/get_supply?asset=${assetCode}&blockchain=${assetBlockchain}&issuer=${assetIssuer}`;
+
+    // Send GET request
+    fetch(url)
+            .then(response => response.json())
+            .then(data => {
+              // Extract the total supply from the response
+              console.log(data)
+
+              // Update the HTML element next to the button to display the total supply
+              const totalSupplyElement = button.closest('tr').querySelector('.totalSupply');
+              totalSupplyElement.textContent = "Total Supply: " + data.supply;
             })
-            .catch(function(error) {
-              // Handle any errors
+            .catch(error => {
+              // Handle any errors that occur during the GET request
               console.error('Error:', error);
             });
   }
