@@ -142,25 +142,33 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 // CreateAsset makes a new record in the asset store for a blockchain and asset description
 func (s *AssetPSQL) CreateAsset(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID string,
 	features json.RawMessage) error {
-	var issuer *string
-
+	var err error
 	if smartContractAddress != "" {
-		issuer = &smartContractAddress
+		query := fmt.Sprintf("WITH merchantID AS (SELECT id FROM %s WHERE merchant_id = '%s'), "+
+			"assetID AS (INSERT INTO %s(created_at, updated_at, blockchain, code, issuer, name, description, status) "+
+			"values ($1, $1, $2, $3, $4, $5, $6, $7) "+
+			"on conflict (blockchain, code, issuer)  do update set blockchain = $2 RETURNING id) "+
+			"INSERT INTO %s (created_at, updated_at, asset_id, merchant_list_id) VALUES "+
+			"($1, $1, (SELECT id FROM assetID), (SELECT id FROM merchantID)) RETURNING id",
+			s.merchantListNamespace, merchantOwnerID, s.assetsNamespace, s.merchantAssetsNamespace)
+		_, err = s.db.Query(query,
+			time.Now().UTC(), blockchain, code, smartContractAddress, name, description, AssetPending)
+	} else {
+		query := fmt.Sprintf("WITH merchantID AS (SELECT id FROM %s WHERE merchant_id = '%s'), "+
+			"assetID AS (INSERT INTO %s "+
+			"(created_at, updated_at, blockchain, code, issuer, name, description, status, type, features, merchant_owner) "+
+			"VALUES ($1, $1, $2, $3, $4, $5, $6, $7, $8, $9, (SELECT id FROM merchantID)) RETURNING id) "+
+			"INSERT INTO %s (created_at, updated_at, asset_id, merchant_list_id) VALUES "+
+			"($1, $1, (SELECT id FROM assetID), (SELECT id FROM merchantID)) RETURNING id",
+			s.merchantListNamespace, merchantOwnerID, s.assetsNamespace, s.merchantAssetsNamespace)
+		if features == nil {
+			features = json.RawMessage{}
+			_ = features.UnmarshalJSON([]byte("{}"))
+		}
+		_, err = s.db.Query(query,
+			time.Now().UTC(), blockchain, code, nil, name, description, AssetPending, assetType, features)
 	}
 
-	query := fmt.Sprintf("WITH merchantID AS (SELECT id FROM %s WHERE merchant_id = '%s'), "+
-		"assetID AS (INSERT INTO %s "+
-		"(created_at, updated_at, blockchain, code, issuer, name, description, status, type, features, merchant_owner) "+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, (SELECT id FROM merchantID)) RETURNING id) "+
-		"INSERT INTO %s (created_at, updated_at, asset_id, merchant_list_id) VALUES "+
-		"(now(), now(), (SELECT id FROM assetID), (SELECT id FROM merchantID)) RETURNING id",
-		s.merchantListNamespace, merchantOwnerID, s.assetsNamespace, s.merchantAssetsNamespace)
-	if features == nil {
-		features = json.RawMessage{}
-		_ = features.UnmarshalJSON([]byte("{}"))
-	}
-	_, err := s.db.Query(query,
-		time.Now().UTC(), time.Now().UTC(), blockchain, code, issuer, name, description, AssetPending, assetType, features)
 	if err != nil {
 		return err
 	}
