@@ -47,9 +47,9 @@
                 <div class="input-group-append">
                   <button class="btn text-c-green" style="background-color: white" onclick="transferAssets()">transfer</button>
                 </div>
-                <h6 id="TransferResult" style="color: white; display: none">Success</h6>
               </div>
             </div>
+            <h6 id="TransferResult" style="color: white; display: none"><strong>Success</strong></h6>
           </div>
 
 
@@ -197,7 +197,8 @@
             .then(responseData => {
               // Handle the response data
               console.log(responseData);
-              $('.alert').alert()
+              var success = document.getElementById("TransferResult");
+              success.style.display = "block";
             })
             .catch(error => {
               // Handle any errors
