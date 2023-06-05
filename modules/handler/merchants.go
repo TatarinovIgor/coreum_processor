@@ -145,6 +145,9 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
 			return
 		}
+		if merchData.Wallets == nil {
+			merchData.Wallets = map[string]service.Wallets{}
+		}
 		merchData.Wallets[data.Blockchain] = wallets
 		_, err = processing.SaveMerchantData(merchantID, merchData)
 		if err != nil {
