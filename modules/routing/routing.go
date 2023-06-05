@@ -71,6 +71,10 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 		userService, handler.CreateWallet(processing)))
 	routerWrap.POST("/ui/merchant/deposit", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.Deposit(processing)))
+	routerWrap.POST("/ui/merchant/withdraw", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.Withdraw(processing)))
+	routerWrap.POST("/ui/merchant/transfer", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.TransferMerchantWallets(processing)))
 
 	//GET routers for styles and assets
 	router.ServeFiles("/assets/*filepath", http.Dir("templates/assets"))

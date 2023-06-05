@@ -23,15 +23,16 @@
                 {{ .coreum_receiving_wallet }}
               </a>
             </h5>
-            <div class="row">
-              <label for="depositFrom">Deposit on receiving wallet from user (user's email):</label>
-              <input id="depositFrom" type="text" placeholder="Enter user's id(email)" name="depositFrom">
-              <button class="btn text-c-green m-2" onclick="deposit()">Deposit</button>
+            <div class="input-group mb-3" style="margin-top: 5px; background-color: transparent">
+              <input id="depositFrom" type="text" class="form-control" placeholder="Enter user's id(email)" name="depositFrom">
+              <div class="input-group-append">
+                <button class="btn text-c-green" style="background-color: white" onclick="deposit()">Deposit</button>
+              </div>
             </div>
           </div>
 
           <div>
-            <button class="btn text-c-green" style="background-color: white">
+            <button class="btn text-c-green" style="background-color: white" onclick="openTransferForm()">
               <span>Transfer</span>
               <i class='bx bx-right-arrow-circle'></i>
             </button>
@@ -45,7 +46,16 @@
                 {{ .coreum_sending_wallet }}
               </a>
             </h5>
-            <button class="btn text-c-green m-2" style="background-color: white">Withdraw</button>
+            <input id="WithdrawTo" type="text" class="form-control" placeholder="User's wallet" name="WithdrawTo" style="margin: 10px 0 5px">
+            <input id="WithdrawExternalID" type="text" class="form-control" placeholder="User's id(email)" name="WithdrawExternalID">
+            <input id="AssetIssuer" type="text" class="form-control" placeholder="Asset's issuer" name="AssetIssuer" style="margin-top: 5px">
+            <div class="input-group mb-3" style="margin-top: 5px; background-color: transparent">
+              <input id="AssetCode" type="text" class="form-control" placeholder="Asset's code" name="AssetCode">
+              <input id="AssetAmount" type="text" class="form-control" placeholder="Amount of assets" name="AssetAmount">
+              <div class="input-group-append">
+                <button class="btn text-c-green" style="background-color: white" onclick="withdraw()">Withdraw</button>
+              </div>
+            </div>
           </div>
         {{ else }}
           <div class="col m-b-15">
@@ -127,4 +137,59 @@
 
   }
 
+  function openTransferForm() {
+    var form = document.getElementById("transferForm")
+    form.style.display = "block";
+  }
+
+  function closeTransferForm() {
+    var form = document.getElementById("transferForm")
+    form.style.display = "none";
+  }
+
+  function withdraw() {
+    var amount = parseFloat(document.getElementById("AssetAmount").value);
+    var blockchain = document.getElementById('blockchainLabel').innerText.trim().toLowerCase();
+    var walletAddress = document.getElementById("WithdrawTo").value.trim().toLowerCase();
+    var asset = document.getElementById("AssetCode").value.trim().toLowerCase();
+    var issuer = document.getElementById("AssetIssuer").value.trim().toLowerCase();
+    var externalID = document.getElementById("WithdrawExternalID").value.trim().toLowerCase();
+
+    var data = {
+      amount: amount,
+      blockchain: blockchain,
+      wallet_address: walletAddress,
+      asset: asset,
+      issuer: issuer,
+      externalID: externalID
+    };
+    console.log(data)
+
+    fetch('/ui/merchant/withdraw', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+            .then(response => response.json())
+            .then(responseData => {
+              // Handle the response data
+              if (responseData.message === "Updated successfully") {
+                console.log(responseData);
+                location.reload();
+              }
+            })
+            .catch(error => {
+              // Handle any errors
+              console.error('Error:', error);
+            });
+
+  }
+
+  function outsideClick(event) {
+    if (!formContainer.contains(event.target)) {
+      closeTransferForm();
+    }
+  }
 </script>

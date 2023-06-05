@@ -277,6 +277,20 @@ func (s ProcessingService) Deposit(deposit CredentialDeposit, merchantID, extern
 	return response, nil
 }
 
+func (s ProcessingService) TransferMerchantWallets(request TransferRequest, merchantID string) (*TransferResponse, error) {
+	processor, ok := s.processors[request.Blockchain]
+	if !ok {
+		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
+	}
+
+	response, err := processor.TransferBetweenMerchantWallets(request, merchantID)
+	if err != nil {
+		return nil, fmt.Errorf("could not perform deposit: %s", err)
+	}
+
+	return response, nil
+}
+
 func (s ProcessingService) InitWithdraw(withdraw CredentialWithdraw, merchantID, externalId string) (*WithdrawResponse, error) {
 	_, ok := s.processors[withdraw.Blockchain]
 	if !ok {

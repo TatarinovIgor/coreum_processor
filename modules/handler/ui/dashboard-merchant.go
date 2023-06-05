@@ -465,3 +465,103 @@ func Deposit(processing *service.ProcessingService) httprouter.Handle {
 		}
 	}
 }
+
+func TransferMerchantWallets(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+
+		var raw struct {
+			Amount     float64 `json:"amount"`
+			Blockchain string  `json:"blockchain"`
+			Asset      string  `json:"asset"`
+			Issuer     string  `json:"issuer"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&raw)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		credentialsWithdraw := service.TransferRequest{
+			Amount:     raw.Amount,
+			Blockchain: raw.Blockchain,
+			Asset:      raw.Asset,
+			Issuer:     raw.Issuer,
+		}
+
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not find merchant", http.StatusBadRequest)
+			return
+		}
+
+		credentialsWithdraw.Blockchain = strings.ToLower(credentialsWithdraw.Blockchain)
+		res, err := processing.TransferMerchantWallets(credentialsWithdraw, merchantID)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform withdraw", http.StatusBadRequest)
+			return
+		}
+
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func Withdraw(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+
+		var raw struct {
+			Amount        float64 `json:"amount"`
+			Blockchain    string  `json:"blockchain"`
+			WalletAddress string  `json:"wallet_address"`
+			Asset         string  `json:"asset"`
+			Issuer        string  `json:"issuer"`
+			ExternalID    string  `json:"externalID"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&raw)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		credentialsWithdraw := service.CredentialWithdraw{
+			Amount:        raw.Amount,
+			Blockchain:    raw.Blockchain,
+			WalletAddress: raw.WalletAddress,
+			Asset:         raw.Asset,
+			Issuer:        raw.Issuer,
+			Memo:          "",
+		}
+
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not find merchant", http.StatusBadRequest)
+			return
+		}
+
+		credentialsWithdraw.Blockchain = strings.ToLower(credentialsWithdraw.Blockchain)
+		res, err := processing.InitWithdraw(credentialsWithdraw, merchantID, raw.ExternalID)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform withdraw", http.StatusBadRequest)
+			return
+		}
+
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
+	}
+}

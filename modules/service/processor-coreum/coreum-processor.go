@@ -316,7 +316,7 @@ func (s CoreumProcessing) TransferFromReceiving(request service.TransferRequest,
 	merchantID, externalId string) (*service.TransferResponse, error) {
 	ctx := context.Background()
 	if request.Amount < s.minimumValue {
-		return nil, fmt.Errorf("transaction amount is to small to be recived")
+		return nil, fmt.Errorf("transaction amount is to small to be received")
 	}
 
 	_, userWallet, err := s.store.GetByUser(merchantID, externalId)
@@ -363,6 +363,67 @@ func (s CoreumProcessing) TransferFromReceiving(request service.TransferRequest,
 	if err != nil {
 		return nil, err
 	}
+	return &service.TransferResponse{TransferHash: result.TxHash}, nil
+}
+
+func (s CoreumProcessing) TransferBetweenMerchantWallets(request service.TransferRequest, merchantID string) (*service.TransferResponse, error) {
+	ctx := context.Background()
+
+	_, userWallet, err := s.store.GetByUser(merchantID, merchantID+"-R")
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	receivingWallet := service.Wallet{}
+	err = json.Unmarshal(userWallet, &receivingWallet)
+
+	_, userWallet, err = s.store.GetByUser(merchantID, merchantID+"-S")
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	sendingWallet := service.Wallet{}
+	err = json.Unmarshal(userWallet, &sendingWallet)
+	//check gas
+
+	_, err = s.updateGas(receivingWallet.WalletAddress, coreumFeeSendFT)
+	if err != nil {
+		return nil, err
+	}
+
+	senderInfo, err := s.clientCtx.Keyring().NewAccount(
+		receivingWallet.WalletAddress,
+		string(receivingWallet.WalletSeed),
+		"",
+		sdk.GetConfig().GetFullBIP44Path(),
+		hd.Secp256k1,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
+	msg := &banktypes.MsgSend{
+		FromAddress: receivingWallet.WalletAddress,
+		ToAddress:   sendingWallet.WalletAddress,
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
+			int64(request.Amount))),
+	}
+
+	bech32, err := sdk.AccAddressFromBech32(receivingWallet.WalletAddress)
+	if err != nil {
+		return nil, err
+	}
+	result, err := client.BroadcastTx(
+		ctx,
+		s.clientCtx.WithFromAddress(bech32),
+		s.factory,
+		msg,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	return &service.TransferResponse{TransferHash: result.TxHash}, nil
 }
 

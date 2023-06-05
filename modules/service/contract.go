@@ -213,6 +213,7 @@ type CryptoProcessor interface {
 	Withdraw(request CredentialWithdraw, merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
 	TransferToReceiving(request TransferRequest, merchantID, externalId string) (*TransferResponse, error)
 	TransferFromReceiving(transfer TransferRequest, merchantID, externalId string) (*TransferResponse, error)
+	TransferBetweenMerchantWallets(request TransferRequest, merchantID string) (*TransferResponse, error)
 	GetTokenSupply(request BalanceRequest) (int64, error)
 	GetBalance(merchantID, externalID string) (Balance, error)
 	GetAssetsBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error)
