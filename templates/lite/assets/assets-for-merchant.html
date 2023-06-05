@@ -167,7 +167,7 @@
                               <td> {{ .Description }} </td>
                               <td> {{ .Status }} </td>
                               <td> <button class="btn btn-outline-success" onclick="getTotalSupply(this)"> details </button> </td>
-                              <td class="totalSupply">  </td>
+                              <td class="totalSupply"></td>
                             </tr>
                             </tbody>
                             {{ end }}
@@ -276,31 +276,36 @@
   }
 
   function getTotalSupply(button) {
-    // Get the corresponding data from the row
-    const td = button.closest("td");
-    const row = td.closest('tr');
-    const assetCode = row.querySelector('.assetCode').textContent;
-    const assetBlockchain = row.querySelector('.assetBlockchain').textContent;
-    const assetIssuer = row.querySelector('.assetIssuer').textContent;
+    const totalSupplyElement = button.closest('tr').querySelector('.totalSupply');
+    console.log(totalSupplyElement.textContent);
+    if (totalSupplyElement.textContent === "") {
+      // Get the corresponding data from the row
+      let td = button.closest('td');
+      const row = td.closest('tr');
+      const assetCode = row.querySelector('.assetCode').textContent;
+      const assetBlockchain = row.querySelector('.assetBlockchain').textContent;
+      const assetIssuer = row.querySelector('.assetIssuer').textContent;
 
-    // Construct the GET request URL with the data
-    const url = `/get_supply?asset=${assetCode}&blockchain=${assetBlockchain}&issuer=${assetIssuer}`;
+      // Construct the GET request URL with the data
+      const url = `/get_supply?asset=${assetCode}&blockchain=${assetBlockchain}&issuer=${assetIssuer}`;
 
-    // Send GET request
-    fetch(url)
-            .then(response => response.json())
-            .then(data => {
-              // Extract the total supply from the response
-              console.log(data)
+      // Send GET request
+      fetch(url)
+              .then(response => response.json())
+              .then(data => {
+                // Extract the total supply from the response
+                console.log(data)
 
-              // Update the HTML element next to the button to display the total supply
-              const totalSupplyElement = button.closest('tr').querySelector('.totalSupply');
-              totalSupplyElement.textContent = "Total Supply: " + data.supply;
-            })
-            .catch(error => {
-              // Handle any errors that occur during the GET request
-              console.error('Error:', error);
-            });
+                // Update the HTML element next to the button to display the total supply
+                totalSupplyElement.textContent = "Total Supply: " + data.supply;
+              })
+              .catch(error => {
+                // Handle any errors that occur during the GET request
+                console.error('Error:', error);
+              });
+    } else {
+      totalSupplyElement.textContent = "";
+    }
   }
 
 

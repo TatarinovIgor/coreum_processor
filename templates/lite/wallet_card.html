@@ -3,7 +3,7 @@
     <div class="card-body">
       <div class="row align-items-center m-b-10">
         <div class="col">
-          <h3 class="m-b-5 text-white" id="blockchain">Coreum</h3>
+          <h3 class="m-b-5 text-white" id="blockchainLabel">Coreum</h3>
         </div>
         <div class="col-auto">
           <i class="fas fa-money-bill-alt text-c-green f-18"></i>
@@ -11,19 +11,41 @@
       </div>
 
       <h5 style="color: white">Wallets:</h5>
-      <div class="column align-items-center m-b-10">
+      <div class="row justify-content-around">
 
         {{ if ne .coreum_receiving_wallet "Not activated" }}
-          <div class="col m-b-15">
+          <div class="col-auto m-b-15">
             <label style="color: white">Receiving Wallet: {{ .coreum_receiving_balance }} {{ .coreum_asset }}</label>
-            <h5 class="m-b-0 text-white"> <a style="color: white" href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .coreum_receiving_wallet }}" target="_blank">
-              {{ .coreum_receiving_wallet }} </a></h5>
+            <h5 class="m-b-0 text-white">
+              <a style="color: white; text-decoration: underline"
+                 href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .coreum_receiving_wallet }}"
+                 target="_blank">
+                {{ .coreum_receiving_wallet }}
+              </a>
+            </h5>
+            <div class="row">
+              <label for="depositFrom">Deposit on receiving wallet from user (user's email):</label>
+              <input id="depositFrom" type="text" placeholder="Enter user's id(email)" name="depositFrom">
+              <button class="btn text-c-green m-2" onclick="deposit()">Deposit</button>
+            </div>
           </div>
 
+          <div>
+            <button class="btn text-c-green" style="background-color: white">
+              <span>Transfer</span>
+              <i class='bx bx-right-arrow-circle'></i>
+            </button>
+          </div>
           <div class="col-auto m-b-15">
             <label style="color: white">Sending Wallet: {{ .coreum_sending_balance }} {{ .coreum_asset }}</label>
-            <h5 class="m-b-0 text-white"> <a style="color: white;" href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .coreum_sending_wallet }}" target="_blank">
-              {{ .coreum_sending_wallet }} </a></h5>
+            <h5 class="m-b-0 text-white">
+              <a style="color: white; text-decoration: underline"
+                 href="https://explorer.testnet-1.coreum.dev/coreum/accounts/{{ .coreum_sending_wallet }}"
+                 target="_blank">
+                {{ .coreum_sending_wallet }}
+              </a>
+            </h5>
+            <button class="btn text-c-green m-2" style="background-color: white">Withdraw</button>
           </div>
         {{ else }}
           <div class="col m-b-15">
@@ -38,7 +60,6 @@
 
           <button class="btn text-c-green" style="background-color: white" onclick="sendWalletData()">Create</button>
         {{ end }}
-
       </div>
     </div>
   </div>
@@ -49,7 +70,6 @@
     var blockchainElement = document.getElementById('blockchain');
     var blockchain = blockchainElement.innerText.trim().toLowerCase();
 
-    console.log(blockchain)
     var data = {
       blockchain: blockchain
     };
@@ -74,4 +94,37 @@
               console.error('Error:', error);
             });
   }
+
+  function deposit() {
+    var blockchainElement = document.getElementById('blockchainLabel');
+    var blockchain = blockchainElement.innerText.trim().toLowerCase();
+    var externalID = document.getElementById("depositFrom").value.trim().toLowerCase();
+
+    var data = {
+      blockchain: blockchain,
+      externalID: externalID
+    };
+
+    fetch('/ui/merchant/deposit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+            .then(response => response.json())
+            .then(responseData => {
+              // Handle the response data
+              if (responseData.message === "Updated successfully") {
+                console.log(responseData);
+                location.reload();
+              }
+            })
+            .catch(error => {
+              // Handle any errors
+              console.error('Error:', error);
+            });
+
+  }
+
 </script>

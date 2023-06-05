@@ -7,6 +7,7 @@ import (
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/storage"
 	"coreum_processor/modules/user"
+	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"html/template"
@@ -403,14 +404,18 @@ func AssetRequestMerchant(ctx context.Context, assetService *asset.Service, proc
 		code := strings.ToLower(r.Form.Get("code"))
 		description := r.Form.Get("description")
 		assetType := r.Form.Get("assetType")
-		smartContractAddress := r.Form.Get("issuer")
+		issuer := r.Form.Get("issuer")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
 			return
 		}
 
-		err = assetService.CreateAssetRequest(blockchain, code, smartContractAddress, name, description, assetType, merchantOwnerID, nil)
+		if issuer != "" {
+			merchantOwnerID = ""
+		}
+
+		err = assetService.CreateAssetRequest(blockchain, code, issuer, name, description, assetType, merchantOwnerID, nil)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"message":"` + `failed to add asset to database` + err.Error() + `"}`))
@@ -418,5 +423,45 @@ func AssetRequestMerchant(ctx context.Context, assetService *asset.Service, proc
 		}
 
 		http.Redirect(w, r, "/ui/merchant/assets", http.StatusSeeOther)
+	}
+}
+
+func Deposit(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+		var raw struct {
+			Blockchain string `json:"blockchain"`
+			ExternalID string `json:"externalID"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&raw)
+		CredentialsDeposit := service.CredentialDeposit{
+			Amount:     0,
+			Blockchain: raw.Blockchain,
+			Asset:      "",
+			Issuer:     "",
+		}
+
+		res := &service.DepositResponse{}
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not find merchant", http.StatusBadRequest)
+			return
+		}
+
+		CredentialsDeposit.Blockchain = strings.ToLower(CredentialsDeposit.Blockchain)
+		res, err = processing.Deposit(CredentialsDeposit, merchantID, raw.ExternalID)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not perform deposit", http.StatusBadRequest)
+			return
+		}
+
+		err = json.NewEncoder(w).Encode(res)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
 	}
 }
