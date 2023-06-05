@@ -26,9 +26,10 @@
             <div class="input-group mb-3" style="margin-top: 5px; background-color: transparent">
               <input id="depositFrom" type="text" class="form-control" placeholder="Enter user's id(email)" name="depositFrom">
               <div class="input-group-append">
-                <button class="btn text-c-green" style="background-color: white" onclick="deposit()">Deposit</button>
+                <button class="btn text-c-green" style="background-color: white" onclick="deposit(this)">Deposit</button>
               </div>
             </div>
+            <h6 id="DepositResult" style="color: white; display: none">Send your assets here: </h6>
           </div>
 
           <div class="d-flex flex-column align-items-center col-md-4">
@@ -46,6 +47,7 @@
                 <div class="input-group-append">
                   <button class="btn text-c-green" style="background-color: white" onclick="transferAssets()">transfer</button>
                 </div>
+                <h6 id="TransferResult" style="color: white; display: none">Success</h6>
               </div>
             </div>
           </div>
@@ -130,6 +132,7 @@
     var blockchainElement = document.getElementById('blockchainLabel');
     var blockchain = blockchainElement.innerText.trim().toLowerCase();
     var externalID = document.getElementById("depositFrom").value.trim().toLowerCase();
+    var result = document.getElementById("DepositResult");
 
     var data = {
       blockchain: blockchain,
@@ -143,17 +146,22 @@
       },
       body: JSON.stringify(data)
     })
-            .then(response => response.json())
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Request failed');
+              }
+              return response.json(); // Parse the response as JSON
+            })
             .then(responseData => {
               // Handle the response data
-              if (responseData.message === "Updated successfully") {
-                console.log(responseData);
-                location.reload();
-              }
+              console.log(responseData);
+
+              result.innerText = "Success! Send your assets here: " + responseData.wallet_address;
+              result.style.display = "block";
             })
             .catch(error => {
               // Handle any errors
-              console.error('Error:', error);
+              console.error(error);
             });
 
   }
@@ -163,6 +171,7 @@
     var blockchain = document.getElementById('blockchainLabel').innerText.trim().toLowerCase();
     var asset = document.getElementById("TransferAssetCode").value.trim().toLowerCase();
     var issuer = document.getElementById("TransferAssetIssuer").value.trim().toLowerCase();
+    var result = document.getElementById("TransferResult")
 
     var data = {
       amount: amount,
@@ -179,17 +188,20 @@
       },
       body: JSON.stringify(data)
     })
-            .then(response => response.json())
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Request failed');
+              }
+              return response.json(); // Parse the response as JSON
+            })
             .then(responseData => {
               // Handle the response data
-              if (responseData.message === "Updated successfully") {
-                console.log(responseData);
-                location.reload();
-              }
+              console.log(responseData);
+              $('.alert').alert()
             })
             .catch(error => {
               // Handle any errors
-              console.error('Error:', error);
+              console.error(error);
             });
   }
 
