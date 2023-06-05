@@ -565,3 +565,42 @@ func Withdraw(processing *service.ProcessingService) httprouter.Handle {
 		}
 	}
 }
+
+func UpdateWithdraw(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w = processing.SetHeaders(w)
+
+		var raw struct {
+			Guid       string `json:"guid"`
+			ExternalID string `json:"externalID"`
+		}
+
+		err := json.NewDecoder(r.Body).Decode(&raw)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not find merchant", http.StatusBadRequest)
+			return
+		}
+
+		err = processing.UpdateWithdraw(raw.Guid, merchantID, raw.ExternalID, "")
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not update withdraw", http.StatusBadRequest)
+			return
+		}
+
+		deleteWithdrawReturn := service.DeleteWithdrawResponse{Status: "success"}
+		err = json.NewEncoder(w).Encode(deleteWithdrawReturn)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse response from server", http.StatusInternalServerError)
+			return
+		}
+	}
+}

@@ -73,6 +73,8 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 		userService, ui.Deposit(processing)))
 	routerWrap.POST("/ui/merchant/withdraw", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.Withdraw(processing)))
+	routerWrap.POST("/ui/merchant/update_withdraw", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, ui.UpdateWithdraw(processing)))
 	routerWrap.POST("/ui/merchant/transfer", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.TransferMerchantWallets(processing)))
 
