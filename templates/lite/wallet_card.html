@@ -84,11 +84,8 @@
 
 <script>
   function sendWalletData() {
-    var blockchainElement = document.getElementById('blockchain');
-    var blockchain = blockchainElement.innerText.trim().toLowerCase();
-
     var data = {
-      blockchain: blockchain
+      blockchain: 'coreum'
     };
 
     // Send the data to the server using AJAX or fetch
