@@ -46,14 +46,21 @@
                 {{ .coreum_sending_wallet }}
               </a>
             </h5>
-            <input id="WithdrawTo" type="text" class="form-control" placeholder="User's wallet" name="WithdrawTo" style="margin: 10px 0 5px">
-            <input id="WithdrawExternalID" type="text" class="form-control" placeholder="User's id(email)" name="WithdrawExternalID">
-            <input id="AssetIssuer" type="text" class="form-control" placeholder="Asset's issuer" name="AssetIssuer" style="margin-top: 5px">
-            <div class="input-group mb-3" style="margin-top: 5px; background-color: transparent">
-              <input id="AssetCode" type="text" class="form-control" placeholder="Asset's code" name="AssetCode">
-              <input id="AssetAmount" type="text" class="form-control" placeholder="Amount of assets" name="AssetAmount">
-              <div class="input-group-append">
-                <button class="btn text-c-green" style="background-color: white" onclick="withdraw()">Withdraw</button>
+
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseWithdrawForm"
+                    aria-expanded="false" aria-controls="collapseExample" style="margin-top: 10px">
+              Withdraw
+            </button>
+            <div class="collapse" id="collapseWithdrawForm">
+              <input id="WithdrawTo" type="text" class="form-control" placeholder="User's wallet" name="WithdrawTo" style="margin: 5px 0">
+              <input id="WithdrawExternalID" type="text" class="form-control" placeholder="User's id(email)" name="WithdrawExternalID">
+              <input id="AssetIssuer" type="text" class="form-control" placeholder="Asset's issuer" name="AssetIssuer" style="margin-top: 5px">
+              <div class="input-group mb-3" style="margin-top: 5px; background-color: transparent">
+                <input id="AssetCode" type="text" class="form-control" placeholder="Asset's code" name="AssetCode">
+                <input id="AssetAmount" type="text" class="form-control" placeholder="Amount of assets" name="AssetAmount">
+                <div class="input-group-append">
+                  <button class="btn text-c-green" style="background-color: white" onclick="withdraw()">Withdraw</button>
+                </div>
               </div>
             </div>
           </div>
