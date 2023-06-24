@@ -61,6 +61,7 @@ func (s *UserPSQL) GetUserByIdentity(identity string) (*UserStore, error) {
 	} else if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
+	defer func() { _ = rows.Close() }()
 
 	userStore, err := rowsToUser(rows)
 	if err != nil {
@@ -106,6 +107,7 @@ func (s *UserPSQL) GetUserList(merchID string, accessFilter []int, from, to time
 	} else if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
+	defer func() { _ = rows.Close() }()
 
 	userStore, err := rowsToUser(rows)
 	if err != nil {
@@ -126,6 +128,7 @@ func (s *UserPSQL) GetUserMerchants(identity string) ([]UserMerchant, error) {
 	} else if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
+	defer func() { _ = rows.Close() }()
 
 	return rowsToMerchants(rows)
 }
@@ -135,7 +138,7 @@ func (s *UserPSQL) CreateUser(identity, firstName, lastName string) error {
 	query := fmt.Sprintf("INSERT INTO %s (identity, created_at, updated_at, first_name, last_name, terms_and_conditions, access)",
 		s.userNamespace)
 	query += "VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
-	_, err := s.db.Query(query,
+	_, err := s.db.Exec(query,
 		identity, time.Now().UTC(), time.Now().UTC(), firstName, lastName, false, s.defaultAccess)
 	if err != nil {
 		return err
@@ -153,6 +156,7 @@ func (s *UserPSQL) SetUserAccess(identity string, access UserAccess) (*UserStore
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = rows.Close() }()
 	userStore, err := rowsToUser(rows)
 	if err != nil {
 		return nil, err
@@ -165,7 +169,7 @@ func (s *UserPSQL) UpdateUser(user UserStore) error {
 	query := fmt.Sprintf(
 		"UPDATE %s SET updated_at = $2, first_name = $3, last_name = $4, terms_and_conditions = $5, access = $6, meta_data = $7 WHERE identity = $1",
 		s.userNamespace)
-	_, err := s.db.Query(query,
+	_, err := s.db.Exec(query,
 		user.Identity, time.Now().UTC(), user.FirstName, user.LastName, user.TermsAndConditions, user.Access, user.MetaData)
 	if err != nil {
 		return err
@@ -180,7 +184,7 @@ func (s *UserPSQL) LinkUserToMerchant(identity, merchantID string, merchantAcces
 			"values (now(), now(), null, (select id from %s where identity = '%s'), "+
 			"(select id from %s where merchant_id = '%s'))",
 		s.merchantUsersNamespace, s.userNamespace, identity, s.merchantListNamespace, merchantID)
-	_, err := s.db.Query(query)
+	_, err := s.db.Exec(query)
 	if err != nil {
 		return err
 	}
@@ -195,7 +199,7 @@ func (s *UserPSQL) ApproveUserMerchant(identity, merchantID string) error {
 			"UPDATE %s SET updated_at = $2, merchant_id = $3 WHERE id IN (SELECT merchant_list_id FROM merchant_id_var)",
 		s.userNamespace, s.merchantUsersNamespace, s.merchantListNamespace, s.merchantListNamespace)
 
-	_, err := s.db.Query(query,
+	_, err := s.db.Exec(query,
 		identity, time.Now().UTC(), merchantID)
 	if err != nil {
 		return err
@@ -212,7 +216,7 @@ func (s *UserPSQL) RequestMerchantForUser(identity, merchantName, merchantEmail 
 			"values (now(), now(), null, (select id from %s where identity = '%s'), "+
 			"(select id from merchantID))",
 		s.merchantListNamespace, merchantEmail, merchantName, s.merchantUsersNamespace, s.userNamespace, identity)
-	_, err := s.db.Query(query)
+	_, err := s.db.Exec(query)
 	if err != nil {
 		return err
 	}

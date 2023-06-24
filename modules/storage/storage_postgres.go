@@ -178,6 +178,7 @@ func (s *StoragePSQL) getAll(query string) ([]Record, error) {
 		value     []byte
 		updatedAt *time.Time
 	)
+	defer func() { _ = rows.Close() }()
 	if err != nil {
 		return nil, err
 	}

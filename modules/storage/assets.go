@@ -67,7 +67,7 @@ func (s *AssetPSQL) GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer s
 	} else if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
-
+	defer func() { _ = rows.Close() }()
 	assetsStore, err := rowsToAssets(rows)
 	if err != nil {
 		return nil, err
@@ -131,6 +131,7 @@ func (s *AssetPSQL) GetAssetList(merchID string, blockChain, code []string, code
 	} else if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
+	defer func() { _ = rows.Close() }()
 
 	assetStore, err := rowsToAssets(rows)
 	if err != nil {
@@ -165,7 +166,7 @@ func (s *AssetPSQL) CreateAsset(blockchain, code, smartContractAddress, name, de
 			features = json.RawMessage{}
 			_ = features.UnmarshalJSON([]byte("{}"))
 		}
-		_, err = s.db.Query(query,
+		_, err = s.db.Exec(query,
 			time.Now().UTC(), blockchain, code, nil, name, description, AssetPending, assetType, features)
 	}
 
@@ -181,7 +182,7 @@ func (s *AssetPSQL) ActivateAsset(blockchain, code, issuer, merchantID string) e
 		"UPDATE %s SET updated_at = $4, status = $5, issuer  = $3 WHERE blockchain = $1 AND code  = $2 AND "+
 			"merchant_owner = (select id from %s where merchant_id = '%s') ",
 		s.assetsNamespace, s.merchantListNamespace, merchantID)
-	_, err := s.db.Query(query,
+	_, err := s.db.Exec(query,
 		blockchain, code, issuer, time.Now().UTC(), AssetActive)
 	if err != nil {
 		return err
@@ -194,7 +195,7 @@ func (s *AssetPSQL) SetAssetStatus(asset AssetStore, status AssetStatus) error {
 	query := fmt.Sprintf(
 		"UPDATE %s SET updated_at = $4, status = $5 WHERE blockchain = $1 AND code  = $2 AND issuer  = $3",
 		s.assetsNamespace)
-	_, err := s.db.Query(query,
+	_, err := s.db.Exec(query,
 		asset.BlockChain, asset.Code, asset.Issuer, time.Now().UTC(), status)
 	if err != nil {
 		return err
@@ -216,7 +217,7 @@ func (s *AssetPSQL) DeleteAssetRequest(asset AssetStore, merchantID string) erro
 
 	query = fmt.Sprintf("DELETE FROM %s WHERE blockchain = $1 AND code  = $2 AND issuer  = $3",
 		s.assetsNamespace)
-	_, err = s.db.Query(query,
+	_, err = s.db.Exec(query,
 		asset.BlockChain, asset.Code, asset.Issuer)
 	if err != nil {
 		return err
@@ -229,7 +230,7 @@ func (s *AssetPSQL) UpdateDescription(asset AssetStore, description string) erro
 	query := fmt.Sprintf(
 		"UPDATE %s SET updated_at = $4, description = $5 WHERE blockchain = $1, code  = $2, issuer  = $3",
 		s.assetsNamespace)
-	_, err := s.db.Query(query,
+	_, err := s.db.Exec(query,
 		asset.BlockChain, asset.Code, asset.Issuer, time.Now().UTC(), description)
 	if err != nil {
 		return err
@@ -244,7 +245,7 @@ func (s *UserPSQL) LinkAssetToMerchant(identity, merchantID string, merchantAcce
 			"values (now(), now(), null, (select id from %s where identity = '%s'), "+
 			"(select id from %s where merchant_id = '%s'))",
 		s.merchantUsersNamespace, s.userNamespace, identity, s.merchantListNamespace, merchantID)
-	_, err := s.db.Query(query)
+	_, err := s.db.Exec(query)
 	if err != nil {
 		return err
 	}

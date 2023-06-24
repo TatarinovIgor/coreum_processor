@@ -31,9 +31,12 @@ func (s ProcessingService) processWithdrawProcessed(ctx context.Context, bc stri
 		log.Println(fmt.Errorf("can't get merchant transactions to settle, err: %v", err))
 	} else if err == nil {
 		for _, tr := range trx {
+
 			commission := wallet.CommissionSending.Fix + tr.Amount*wallet.CommissionSending.Percent/100
+
 			s.transactionStore.PutProcessedTransaction(tr.MerchantId, tr.ExternalId, tr.GUID.String(),
 				tr.Hash1, commission)
+
 			hash, err := processor.Withdraw(CredentialWithdraw{
 				Amount:        tr.Amount,
 				Blockchain:    tr.Blockchain,

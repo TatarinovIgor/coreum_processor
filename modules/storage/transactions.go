@@ -61,6 +61,7 @@ func (s *TransactionPSQL) GetTransactionByGuid(merchID, guid string) (*Transacti
 	} else if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
+	defer func() { _ = rows.Close() }()
 
 	transactionStore, err := rowsToTransaction(rows)
 	if err != nil {
@@ -106,6 +107,7 @@ func (s *TransactionPSQL) GetTransactionsByMerchant(merchID, blockchain string,
 	if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
+	defer func() { _ = rows.Close() }()
 
 	var transactions []TransactionStore
 
@@ -141,6 +143,7 @@ func (s *TransactionPSQL) GetMerchantTrxForProcessingInBlockChain(merchantID, bl
 	} else if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
+	defer func() { _ = rows.Close() }()
 	transactions, err := rowsToTransaction(rows)
 	if err != nil {
 		return nil, fmt.Errorf("could not get tensaction from query: %w", err)
@@ -165,6 +168,7 @@ func (s *TransactionPSQL) GetInitTransactions(merchantID, externalID,
 	} else if err != nil {
 		return nil, fmt.Errorf("could not execute query: %w", err)
 	}
+	defer func() { _ = rows.Close() }()
 
 	transactions, err := rowsToTransaction(rows)
 	if err != nil {
@@ -187,7 +191,7 @@ func (s *TransactionPSQL) CreateTransaction(merchantID, externalID, blockchain s
 	query := fmt.Sprintf("INSERT INTO %s (guid, created_at, updated_at, merchant_id, external_id, blockchain, action, ext_wallet, status, asset, issuer, amount, commission, hash1)",
 		s.namespace)
 	query += "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING guid"
-	_, err = s.db.Query(
+	_, err = s.db.Exec(
 		query,
 		guid, time.Now().UTC(), time.Now().UTC(), merchantID, externalID, blockchain, action, externalWallet,
 		InitTransaction, asset, issuer, amount, commission, hash)
@@ -202,7 +206,7 @@ func (s *TransactionPSQL) RejectTransaction(merchantID, externalID, transaction 
 	// TODO: check status transaction only "init" can be rejected
 	query := fmt.Sprintf("UPDATE %s set status = '%s' where guid = $1 and merchant_id = $2 and external_id = $3",
 		s.namespace, RejectedTransaction)
-	_, err := s.db.Query(query, transaction, merchantID, externalID)
+	_, err := s.db.Exec(query, transaction, merchantID, externalID)
 
 	if err != nil {
 		return err
@@ -216,7 +220,7 @@ func (s *TransactionPSQL) PutInitiatedPendingTransaction(merchantID, externalID,
 	// TODO: check status transaction only "init" can be pending
 	query := fmt.Sprintf("UPDATE %s set status = '%s', hash2 = $1 where guid = $2 and merchant_id = $3 and external_id = $4",
 		s.namespace, InitTransaction)
-	_, err := s.db.Query(query, hash, transaction, merchantID, externalID)
+	_, err := s.db.Exec(query, hash, transaction, merchantID, externalID)
 	if err != nil {
 		return err
 	}
@@ -225,20 +229,21 @@ func (s *TransactionPSQL) PutInitiatedPendingTransaction(merchantID, externalID,
 
 func (s *TransactionPSQL) PutProcessedTransaction(merchantID, externalID, transaction, hash string, commission float64) error {
 	// TODO: check status transaction only "init" can be processed
-	query := fmt.Sprintf("UPDATE %s set status = '%s', hash2 = $1, commission =$5 where guid = $2 and merchant_id = $3 and external_id = $4",
+	query := fmt.Sprintf("UPDATE %s set status = '%s', hash2 = $1, commission =$2 where guid = $3 and merchant_id = $4 and external_id = $5",
 		s.namespace, ProcessedTransaction)
-	_, err := s.db.Query(query, hash, transaction, merchantID, externalID, commission)
+	_, err := s.db.Exec(query, hash, commission, transaction, merchantID, externalID)
 	if err != nil {
 		return err
 	}
-	return nil
+	//err = row.Close()
+	return err
 }
 
 func (s *TransactionPSQL) PutSettledTransaction(merchantID, externalID, transaction, hash string) error {
 	// TODO: check status transaction only "processed" can be settled
 	query := fmt.Sprintf("UPDATE %s set status = '%s', hash3 = $1 where guid = $2 and merchant_id = $3 and external_id = $4",
 		s.namespace, SettledTransaction)
-	_, err := s.db.Query(query, hash, transaction, merchantID, externalID)
+	_, err := s.db.Exec(query, hash, transaction, merchantID, externalID)
 	if err != nil {
 		return err
 	}
@@ -249,7 +254,7 @@ func (s *TransactionPSQL) PutDoneTransaction(merchantID, externalID, transaction
 	// TODO: check status transaction only "settled" can be done
 	query := fmt.Sprintf("UPDATE %s set status = '%s', hash5 = $1 where guid = $2 and merchant_id = $3 and external_id = $4",
 		s.namespace, DoneTransaction)
-	_, err := s.db.Query(query, hash, transaction, merchantID, externalID)
+	_, err := s.db.Exec(query, hash, transaction, merchantID, externalID)
 	if err != nil {
 		return err
 	}

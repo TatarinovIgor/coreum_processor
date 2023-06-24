@@ -197,6 +197,7 @@ func (s *KeysPSQL) GetNext(id, limit int64) ([]KeyRecord, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = rows.Close() }()
 	var records []KeyRecord
 	for rows.Next() {
 		var (
