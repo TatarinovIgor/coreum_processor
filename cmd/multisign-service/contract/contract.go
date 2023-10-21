@@ -1,8 +1,8 @@
 package contract
 
 type MultiSignAddresses struct {
-	Addresses []string `json:"addresses"`
-	Threshold int      `json:"threshold"`
+	Addresses map[string]float64 `json:"addresses"`
+	Threshold int                `json:"threshold"`
 }
 
 type SignTransactionRequest struct {

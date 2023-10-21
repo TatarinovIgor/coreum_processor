@@ -13,12 +13,13 @@ func LoadMultiSignEnv() MultiSignConfig {
 
 	var (
 		// Initializing ENV variable for listening port
-		port = MustInt("MULTISIGNATURE_PORT")
+		port = MustInt("PORT")
 		// Initializing mnemonics for signature
 		mnemonics = MustString("MNEMONICS")
 		// Initializing public key for internal functions
 		publicKeyPath = MustString("PUBLIC_KEY")
 		networkType   = MustString("NETWORK_TYPE")
+		threshold     = GetInt("THRESHOLD", 1)
 	)
 
 	if len(publicKeyPath) < 1 {
@@ -45,6 +46,7 @@ func LoadMultiSignEnv() MultiSignConfig {
 
 	return MultiSignConfig{
 		Port:        fmt.Sprintf("%v", port),
+		Threshold:   threshold,
 		Mnemonics:   mnemonics,
 		PublicKey:   public,
 		networkType: networkType,

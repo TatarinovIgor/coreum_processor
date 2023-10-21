@@ -56,11 +56,11 @@ func NewMultiSignService(clientCtx client.Context, fn FuncTrxIDVerification, mne
 	return &MultiSignService{clientCtx: clientCtx, privateKey: privateKey, trxVerificationFn: fn}
 }
 
-// GetMultiSignAddresses returns array of addresses that should be used to create multi sign accounts
-func (s *MultiSignService) GetMultiSignAddresses() []string {
-	var res []string
+// GetMultiSignAddresses returns map of addresses and their weight that should be used to create multi sign accounts
+func (s *MultiSignService) GetMultiSignAddresses() map[string]float64 {
+	var res map[string]float64
 	for pubKey := range s.privateKey {
-		res = append(res, pubKey)
+		res[pubKey] = 1.0
 	}
 	return res
 }

@@ -14,6 +14,7 @@ const (
 
 type MultiSignConfig struct {
 	Port            string
+	Threshold       int
 	TokenTimeToLive int64
 	Mnemonics       string
 	PublicKey       *rsa.PublicKey
