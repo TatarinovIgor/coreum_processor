@@ -34,7 +34,7 @@ func NewStorage(namespace string, db *sql.DB) (Storage, error) {
 }
 
 // Set creates a record in the storage with the key and data and returns
-// numberic ID, true of the created record. If key has already exists,
+// numeric ID, true of the created record. If key has already exists and ttl is not expired,
 // then (0, false, nil) returned.
 func (s *StoragePSQL) Set(key string, data []byte, ttl time.Duration) (int64, bool, error) {
 	row := s.db.QueryRow(fmt.Sprintf(`INSERT INTO %s(key, value, ttl)
@@ -50,11 +50,12 @@ RETURNING id`, s.namespace, s.namespace, s.namespace), key, data, ttl.Seconds())
 		return id, true, nil
 	}
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return 0, false, nil
 	}
 
-	if pgErr, ok := err.(*pq.Error); ok {
+	var pgErr *pq.Error
+	if errors.As(err, &pgErr) {
 		if pgErr.Code == errCodePgUniqueViolation {
 			return 0, false, nil
 		}

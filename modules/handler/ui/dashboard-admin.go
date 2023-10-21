@@ -25,7 +25,7 @@ func PageMerchantsAdmin(ctx context.Context, processing *service.ProcessingServi
 			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
 			return
 		}
-		t, err := template.ParseFiles("./templates/lite/dashboard/dashboard.html")
+		t, err := template.ParseFiles("./templates/lite/dashboard/dashboard.html", "./templates/lite/admin_sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -58,7 +58,7 @@ func PageRequestsAdmin(ctx context.Context, userService *user.Service, processin
 			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
 			return
 		}
-		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/admin_sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -83,12 +83,6 @@ func PageRequestsAdmin(ctx context.Context, userService *user.Service, processin
 	}
 }
 
-type RawUser struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Identity  string `json:"identity"`
-}
-
 func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		//Getting data from the request
@@ -106,10 +100,11 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 
 		//Creating new merchant
 		merchant := service.MerchantData{
-			PublicKey:    "",
-			MerchantName: raw.FirstName,
-			ID:           uuid.New(),
-			CallBackURL:  "",
+			PublicKey:       "",
+			MerchantName:    raw.FirstName,
+			ID:              uuid.New(),
+			CallBackURL:     "",
+			SignCallBackURL: "",
 		}
 
 		_, err = processing.CreateMerchants(merchant.ID.String(), merchant)
@@ -171,7 +166,7 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 
 func PageAssetRequestsAdmin(ctx context.Context, assetService *asset.Service, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		t, err := template.ParseFiles("./templates/lite/assets/asset-requests.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/assets/asset-requests.html", "./templates/lite/admin_sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -245,7 +240,7 @@ func PageAssetRequestsAdminUpdate(ctx context.Context, assetService *asset.Servi
 				InitialAmount: 1000000,
 			}
 
-			resp, _, err := processing.IssueToken(requestAsset, raw.Merchant, raw.Merchant)
+			resp, _, err := processing.IssueFT(requestAsset, raw.Merchant, raw.Merchant)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "could not issue asset", http.StatusInternalServerError)

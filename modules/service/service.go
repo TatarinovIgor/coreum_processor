@@ -54,6 +54,9 @@ func NewProcessingService(publicKey *rsa.PublicKey, privateKey *rsa.PrivateKey,
 
 func (s ProcessingService) ListenAndServe(ctx context.Context, interval time.Duration) error {
 	for _, processor := range s.processors {
+		if processor == nil {
+			continue
+		}
 		processor.StreamDeposit(ctx, s.makeDepositCallback(), interval)
 	}
 	ticker := time.NewTicker(time.Second * interval)
@@ -89,6 +92,7 @@ func (s ProcessingService) MakeCallback(store storage.TransactionStore, callBack
 
 	_, err = client.Do(req)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	return nil
@@ -166,7 +170,11 @@ func (s ProcessingService) TokenDecode(token string) (TokenPayload, error) {
 	if err != nil {
 		return tokenData.Payload, fmt.Errorf("can't unmarshal token data, err: %v", err)
 	}
-	_, err = jwt.Parse([]byte(token), jwt.WithVerify(jwa.RS256, pub.(*rsa.PublicKey)), jwt.WithValidate(true))
+	publicKey, ok := pub.(*rsa.PublicKey)
+	if !ok {
+		return tokenData.Payload, fmt.Errorf("parsed public key is not of type *rsa.PublicKey")
+	}
+	_, err = jwt.Parse([]byte(token), jwt.WithVerify(jwa.RS256, publicKey), jwt.WithValidate(true))
 	if err != nil {
 		return tokenData.Payload, fmt.Errorf("can't parse token: %s, err: %v", token, err)
 	}
@@ -239,13 +247,13 @@ func (s ProcessingService) UpdateMerchantCommission(guid, blockchain string, mer
 	return wallets, nil
 }
 
-func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID string) (*Wallet, error) {
+func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID, signPublicKey string) (*Wallet, error) {
 	processor, ok := s.processors[blockchain]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found")
 	}
 
-	response, err := processor.CreateWallet(blockchain, merchantID, externalID)
+	response, err := processor.CreateWallet(blockchain, merchantID, externalID, signPublicKey)
 	if err != nil {
 		return nil, fmt.Errorf("could not create wallet for blockchain: %s, err: %s", blockchain, err)
 	}
@@ -314,15 +322,19 @@ func (s ProcessingService) UpdateWithdraw(transactionID, merchantID, externalId,
 	if err != nil {
 		return err
 	}
+
 	transaction, err := s.transactionStore.GetTransactionByGuid(merchantID, transactionID)
 	if err != nil {
 		return err
 	}
+
 	wallet, ok := merchant.Wallets[transaction.Blockchain]
 	if !ok {
 		return fmt.Errorf("cannot find blockchain: '%v' for merchant", transaction.Blockchain)
 	}
+
 	commission := transaction.Amount*wallet.CommissionSending.Percent/100.0 + wallet.CommissionSending.Fix
+
 	err = s.transactionStore.PutProcessedTransaction(merchantID, externalId, transactionID, hash, commission)
 	if err != nil {
 		return err
@@ -351,30 +363,58 @@ func (s ProcessingService) GetTokenSupply(request BalanceRequest) (int64, error)
 	return response, nil
 }
 
-func (s ProcessingService) IssueToken(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, []byte, error) {
+func (s ProcessingService) IssueFT(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, []byte, error) {
 	processor, ok := s.processors[request.Blockchain]
 	if !ok {
 		return nil, nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
 
-	response, features, err := processor.IssueToken(request, merchantID, externalId)
+	response, features, err := processor.IssueFT(request, merchantID, externalId)
 	if err != nil {
 		return nil, nil, err
 	}
 	return response, features, nil
 }
-func (s ProcessingService) MintToken(request TokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
+
+func (s ProcessingService) IssueNFT(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, []byte, error) {
+	processor, ok := s.processors[request.Blockchain]
+	if !ok {
+		return nil, nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
+	}
+
+	response, features, err := processor.IssueNFTClass(request, merchantID, externalId)
+	if err != nil {
+		return nil, nil, err
+	}
+	return response, features, nil
+}
+
+func (s ProcessingService) MintFT(request MintTokenRequest, merchantID string) (*NewTokenResponse, error) {
 	processor, ok := s.processors[request.Blockchain]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
 
-	response, err := processor.MintToken(request, merchantID, externalId)
+	response, err := processor.MintFT(request, merchantID)
 	if err != nil {
 		return nil, err
 	}
 	return response, nil
 }
+
+func (s ProcessingService) MintNFT(request MintTokenRequest, merchantID string) (*NewTokenResponse, error) {
+	processor, ok := s.processors[request.Blockchain]
+	if !ok {
+		return nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
+	}
+
+	response, err := processor.MintNFT(request, merchantID)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
 func (s ProcessingService) BurnToken(request TokenRequest, merchantID, externalId string) (*NewTokenResponse, error) {
 	processor, ok := s.processors[strings.ToLower(request.Blockchain)]
 	if !ok {
@@ -388,6 +428,34 @@ func (s ProcessingService) BurnToken(request TokenRequest, merchantID, externalI
 		return nil, err
 	}
 	return response, nil
+}
+
+func (s ProcessingService) TransferFungibleToken(request TransferTokenRequest, merchantID string) (string, error) {
+	processor, ok := s.processors[request.Blockchain]
+	if !ok {
+		return "", fmt.Errorf("%s blockchain not found", request.Blockchain)
+	}
+
+	res, err := processor.TransferFT(request, merchantID)
+	if err != nil {
+		return "", err
+	}
+
+	return res, nil
+}
+
+func (s ProcessingService) TransferNonFungibleToken(request TransferTokenRequest, merchantID string) (string, error) {
+	processor, ok := s.processors[request.Blockchain]
+	if !ok {
+		return "", fmt.Errorf("%s blockchain not found", request.Blockchain)
+	}
+
+	res, err := processor.TransferNFT(request, merchantID)
+	if err != nil {
+		return "", err
+	}
+
+	return res, nil
 }
 
 func (s ProcessingService) GetAssetsBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error) {

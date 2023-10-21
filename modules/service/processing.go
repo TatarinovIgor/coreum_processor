@@ -88,6 +88,9 @@ func (s ProcessingService) processTransaction(ctx context.Context) {
 				log.Println(fmt.Errorf("processing can't find processor for blockchain: %v", bc))
 				continue
 			}
+			if processor == nil {
+				continue
+			}
 
 			// deposit processing
 			s.processDeposit(ctx, bc, processor, merch, wallet)

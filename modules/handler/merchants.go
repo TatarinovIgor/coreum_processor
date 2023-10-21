@@ -5,6 +5,7 @@ import (
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/storage"
 	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 	"log"
@@ -107,7 +108,8 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 		}
 
 		var data struct {
-			Blockchain string `json:"blockchain"`
+			Blockchain    string `json:"blockchain"`
+			SignPublicKey string `json:"sign_public_key"`
 		}
 		err = json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
@@ -121,6 +123,13 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 			w.Write([]byte(`{"message":"` + `can't find merchant data` + `"}`))
 			return
 		}
+		_, ok := merchData.Wallets[data.Blockchain]
+		if ok {
+			err := fmt.Errorf("wallet for merchant already exists")
+			log.Println(err)
+			http.Error(w, "wallet all ready exists", http.StatusBadRequest)
+			return
+		}
 		// TODO define default commission
 		commission := service.Commission{
 			Fix:     1,
@@ -131,15 +140,16 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 			CommissionSending:   commission,
 			ReceivingID:         merchantID + "-R",
 			SendingID:           merchantID + "-S",
+			SignPublicKey:       data.SignPublicKey,
 		}
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.ReceivingID)
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.ReceivingID, data.SignPublicKey)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not create receiving wallet", http.StatusBadRequest)
 			return
 		}
 
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.SendingID)
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.SendingID, data.SignPublicKey)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
@@ -155,6 +165,59 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
 			return
 		}
+
+		// Send a response
+		response := map[string]string{"message": "Updated successfully"}
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			http.Error(w, "Failed to send response", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func CreateClientWallet(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		w = processing.SetHeaders(w)
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		var data struct {
+			Identity   string `json:"identity"`
+			Blockchain string `json:"blockchain"`
+		}
+
+		err = json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "could not parse request data", http.StatusBadRequest)
+			return
+		}
+
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, data.Identity, "")
+
+		//@ToDo figure out what to do with this
+		//merchData, err := processing.GetMerchantData(merchantID)
+		//if err != nil {
+		//	w.WriteHeader(http.StatusInternalServerError)
+		//	w.Write([]byte(`{"message":"` + `can't find merchant data` + `"}`))
+		//	return
+		//}
+		//if merchData.Wallets == nil {
+		//	merchData.Wallets = map[string]service.Wallets{}
+		//}
+		//merchData.Wallets[data.Blockchain] = wallets
+		//_, err = processing.SaveMerchantData(merchantID, merchData)
+		//if err != nil {
+		//	log.Println(err)
+		//	http.Error(w, "could not create sending wallet", http.StatusBadRequest)
+		//	return
+		//}
 
 		// Send a response
 		response := map[string]string{"message": "Updated successfully"}
@@ -264,10 +327,11 @@ func GetWalletById(processing *service.ProcessingService) httprouter.Handle {
 // parseMerchantData parsing a merchant's data for storing it in database
 func parseMerchantData(newMerchant service.NewMerchant) service.MerchantData {
 	merchant := service.MerchantData{
-		PublicKey:    newMerchant.PublicKey,
-		MerchantName: newMerchant.MerchantName,
-		ID:           uuid.New(),
-		CallBackURL:  newMerchant.Callback,
+		PublicKey:       newMerchant.PublicKey,
+		MerchantName:    newMerchant.MerchantName,
+		ID:              uuid.New(),
+		CallBackURL:     newMerchant.Callback,
+		SignCallBackURL: newMerchant.SignCallBack,
 	}
 	return merchant
 }

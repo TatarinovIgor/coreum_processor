@@ -19,11 +19,12 @@ type TokenPayload struct {
 }
 
 type MerchantData struct {
-	ID           uuid.UUID          `json:"id"`
-	PublicKey    string             `json:"public_key"`
-	MerchantName string             `json:"name"`
-	CallBackURL  string             `json:"call_back_url"`
-	Wallets      map[string]Wallets `json:"wallets"`
+	ID              uuid.UUID          `json:"id"`
+	PublicKey       string             `json:"public_key"`
+	MerchantName    string             `json:"name"`
+	CallBackURL     string             `json:"call_back_url"`
+	SignCallBackURL string             `json:"sign_call_back_url"`
+	Wallets         map[string]Wallets `json:"wallets"`
 }
 type Commission struct {
 	Fix     float64 `json:"fix"`
@@ -35,6 +36,7 @@ type Wallets struct {
 	CommissionSending   Commission `json:"commission_sending"`
 	ReceivingID         string     `json:"receiving_id"`
 	SendingID           string     `json:"sending_id"`
+	SignPublicKey       string     `json:"sign_public_key"`
 }
 
 type SmartContract struct {
@@ -105,6 +107,18 @@ type Balance struct {
 	Issuer     string  `json:"issuer"`
 }
 
+type TransferTokenRequest struct {
+	Amount              float64
+	Blockchain          string
+	Subunit             string
+	Issuer              string
+	Type                string
+	SendingExternalId   string
+	ReceivingExternalId string
+	NftClassId          string
+	NftId               string
+}
+
 type TransferRequest struct {
 	Amount     float64
 	Blockchain string
@@ -119,6 +133,7 @@ type NewTokenRequest struct {
 	Issuer        string
 	Description   string `json:"description"`
 	InitialAmount int64  `json:"initial_amount"`
+	Type          string `json:"type"`
 }
 
 type TokenRequest struct {
@@ -128,10 +143,22 @@ type TokenRequest struct {
 	Issuer     string `json:"issuer"`
 }
 
+type MintTokenRequest struct {
+	ClassID           string `json:"class_id"`
+	NftId             string `json:"nft_id"`
+	Code              string `json:"code"`
+	Blockchain        string `json:"blockchain"`
+	Amount            string `json:"amount"`
+	Issuer            string `json:"issuer"`
+	ReceivingWalletID string `json:"receiving_wallet_id"`
+	Type              string `json:"type"`
+}
+
 type NewMerchant struct {
 	PublicKey    string `json:"public_key"`
 	MerchantName string `json:"name"`
 	Callback     string `json:"callback"`
+	SignCallBack string `json:"sign_callback"`
 }
 
 type NewMerchantCommission struct {
@@ -208,7 +235,7 @@ const (
 
 type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet, hash, asset, issuer string, amount float64)
 type CryptoProcessor interface {
-	CreateWallet(blockchain, merchantID, externalId string) (*Wallet, error)
+	CreateWallet(blockchain, merchantID, externalId, signPublicKey string) (*Wallet, error)
 	Deposit(request CredentialDeposit, merchantID, externalId string) (*DepositResponse, error)
 	Withdraw(request CredentialWithdraw, merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
 	TransferToReceiving(request TransferRequest, merchantID, externalId string) (*TransferResponse, error)
@@ -221,7 +248,11 @@ type CryptoProcessor interface {
 	GetTransactionStatus(hash string) (CryptoTransactionStatus, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
 	TransferFromSending(request TransferRequest, merchantID, receivingWallet string) (*TransferResponse, error)
-	IssueToken(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, []byte, error)
-	MintToken(request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
+	IssueFT(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, []byte, error)
+	IssueNFTClass(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, []byte, error)
+	MintFT(request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
+	MintNFT(request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
 	BurnToken(request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
+	TransferFT(request TransferTokenRequest, merchantID string) (string, error)
+	TransferNFT(request TransferTokenRequest, merchantID string) (string, error)
 }

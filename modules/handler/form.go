@@ -10,6 +10,30 @@ import (
 	"strings"
 )
 
+func UrlUpdater(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		url := r.FormValue("url")
+		merchantID, err := internal.GetMerchantID(r.Context())
+		data, err := processing.GetMerchantData(merchantID)
+		if err != nil {
+			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
+			return
+		}
+		merchant := service.NewMerchant{
+			PublicKey:    data.PublicKey,
+			MerchantName: data.MerchantName,
+			Callback:     url,
+		}
+		_, err = processing.UpdateMerchant(merchantID, merchant)
+		if err != nil {
+			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
+			return
+		}
+		http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
+		return
+	}
+}
+
 func PublicKeySaver(processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		publicKey := r.FormValue("public_key")
@@ -58,7 +82,7 @@ func NewTokenSaver(processing *service.ProcessingService, assetService *asset.Se
 			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
 			return
 		}
-		_, features, err := processing.IssueToken(token, merchantID, merchantID+"-R")
+		_, features, err := processing.IssueFT(token, merchantID, merchantID+"-R")
 		if err != nil {
 			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
 			return
