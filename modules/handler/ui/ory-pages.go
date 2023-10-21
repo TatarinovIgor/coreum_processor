@@ -164,6 +164,21 @@ func PageReset(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 }
 
+func PageRecovery(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	t, err := template.ParseFiles("./templates/lite/default/password-reset.html")
+	if err != nil {
+		w.WriteHeader(http.StatusNoContent)
+		w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
+		return
+	}
+	err = t.Execute(w, nil)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
+		return
+	}
+}
+
 func PageError(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	t, err := template.ParseFiles("./templates/lite/default/password-reset.html") //ToDo finish page
 	if err != nil {
@@ -182,6 +197,36 @@ func PageError(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func PasswordReset(ctx context.Context, ory *client.APIClient) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		email := r.FormValue("email")
+
+		// Initialize the flow
+		flow, _, err := ory.FrontendApi.CreateNativeRecoveryFlow(ctx).Execute()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `error creating recovery link` + `"}`))
+			return
+		}
+		// If you want, print the flow here:
+		//
+		//	pkg.PrintJSONPretty(flow)
+
+		// Submit the form
+		_, _, err = ory.FrontendApi.UpdateRecoveryFlow(ctx).Flow(flow.Id).
+			UpdateRecoveryFlowBody(client.UpdateRecoveryFlowWithLinkMethodAsUpdateRecoveryFlowBody(&client.UpdateRecoveryFlowWithLinkMethod{
+				Email:  email,
+				Method: "link",
+			})).Execute()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message":"` + `error sending email` + `"}`))
+			return
+		}
+		return
+	}
+}
+
+func PasswordSet(ctx context.Context, ory *client.APIClient) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		email := r.FormValue("password")
 
 		// Initialize the flow
 		flow, _, err := ory.FrontendApi.CreateNativeRecoveryFlow(ctx).Execute()

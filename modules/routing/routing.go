@@ -26,6 +26,7 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	routerWrap.GET("/register", ui.GetPageSignUp(ctx, ory))
 	routerWrap.GET("/logout", ui.GetPageLogOut(ctx, ory))
 	routerWrap.GET("/reset", ui.PageReset)
+	routerWrap.GET("/recovery", ui.PageRecovery)
 	routerWrap.GET("/error", handler.About)
 
 	// routers for ory
@@ -64,6 +65,7 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	routerWrap.POST("/submit_new_token", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, handler.NewTokenSaver(processing, assetService)))
 	routerWrap.POST("/reset_password", ui.PasswordReset(ctx, ory))
+	routerWrap.POST("/set_password", ui.PasswordSet(ctx, ory))
 
 	routerWrap.POST("/ui/merchant/mint", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, handler.MintTokenMerchant(processing, assetService)))
