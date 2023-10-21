@@ -108,8 +108,7 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 		}
 
 		var data struct {
-			Blockchain    string `json:"blockchain"`
-			SignPublicKey string `json:"sign_public_key"`
+			Blockchain string `json:"blockchain"`
 		}
 		err = json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
@@ -140,16 +139,15 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 			CommissionSending:   commission,
 			ReceivingID:         merchantID + "-R",
 			SendingID:           merchantID + "-S",
-			SignPublicKey:       data.SignPublicKey,
 		}
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.ReceivingID, data.SignPublicKey)
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.ReceivingID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not create receiving wallet", http.StatusBadRequest)
 			return
 		}
 
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.SendingID, data.SignPublicKey)
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.SendingID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
@@ -199,7 +197,7 @@ func CreateClientWallet(processing *service.ProcessingService) httprouter.Handle
 			return
 		}
 
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, data.Identity, "")
+		_, err = processing.CreateWallet(data.Blockchain, merchantID, data.Identity)
 
 		//@ToDo figure out what to do with this
 		//merchData, err := processing.GetMerchantData(merchantID)

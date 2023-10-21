@@ -292,7 +292,7 @@ func (s CoreumProcessing) GetTransactionStatus(hash string) (service.CryptoTrans
 	return service.SuccessfulTransaction, nil
 }
 
-func (s CoreumProcessing) CreateWallet(blockchain, merchantID, externalId, signPublicKey string) (*service.Wallet, error) {
+func (s CoreumProcessing) CreateWallet(blockchain, merchantID, externalId string) (*service.Wallet, error) {
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
 	WalletSeed, WalletAddress, err := s.createCoreumWallet()
 	if err != nil {

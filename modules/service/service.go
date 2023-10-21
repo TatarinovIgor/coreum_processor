@@ -247,13 +247,13 @@ func (s ProcessingService) UpdateMerchantCommission(guid, blockchain string, mer
 	return wallets, nil
 }
 
-func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID, signPublicKey string) (*Wallet, error) {
+func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID string) (*Wallet, error) {
 	processor, ok := s.processors[blockchain]
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found")
 	}
 
-	response, err := processor.CreateWallet(blockchain, merchantID, externalID, signPublicKey)
+	response, err := processor.CreateWallet(blockchain, merchantID, externalID)
 	if err != nil {
 		return nil, fmt.Errorf("could not create wallet for blockchain: %s, err: %s", blockchain, err)
 	}
