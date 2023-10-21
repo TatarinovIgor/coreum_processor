@@ -7,10 +7,10 @@
         "GET",
         "OPTIONS"
       ],
-      "url": "http://<127.0.0.1|localhost>:9000/<.*>"
+      "url": "http://<127.0.0.1|localhost>:4455/<.*>"
     },
     "upstream": {
-      "url": "http://host.docker.internal:5173"
+      "url": "http://coreum-processing:9090"
     },
     "authenticators": [
       {
@@ -38,7 +38,7 @@
         "PUT",
         "OPTIONS"
       ],
-      "url": "http://<127.0.0.1|localhost>:9000/self-service/<.*>"
+      "url": "http://<127.0.0.1|localhost>:9090/self-service/<.*>"
     },
     "upstream": {
       "url": "http://host.docker.internal:4433"

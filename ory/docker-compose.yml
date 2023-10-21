@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: local-postgres0!
       POSTGRES_DB: kratos
     ports:
-      - 5437:5432
+      - 5438:5432
     volumes:
       - ./data-db:/var/lib/postgresql/data
     networks:
@@ -22,7 +22,7 @@ services:
       - DSN=postgres://postgres:local-postgres0!@db-psql:5432/kratos?sslmode=disable
     volumes:
       - type: bind
-        source: ./config-local
+        source: ./config
         target: /config
     command: -c /config/kratos.yaml migrate sql -e --yes
     restart: on-failure
@@ -53,10 +53,9 @@ services:
       - LOG_LEVEL=trace
     volumes:
       - type: bind
-        source: ./config-local
+        source: ./config
         target: /config
     command: serve --dev -c /config/kratos.yaml --watch-courier
-
     networks:
       default:
         aliases:
@@ -65,7 +64,7 @@ services:
     image: oryd/oathkeeper
     volumes:
       - type: bind
-        source: ./config-local
+        source: ./config
         target: /config
     command: credentials generate --alg RS256 > /config/jwks.json
   oauthkeeper:
@@ -80,7 +79,7 @@ services:
       ORY_OATHKEEPER_LOG_LEVEL: debug
     volumes:
       - type: bind
-        source: ./config-local
+        source: ./config
         target: /config
     command: serve -c /config/oathkeeper.yaml
     networks:
@@ -107,9 +106,6 @@ services:
       - type: bind
         source: ../cmd/scripts
         target: /migrations
-    ports:
-      - '5439:5432' # public
-
     command:
       - sh
       - -c
@@ -134,12 +130,27 @@ services:
         source: ./config
         target: /config
     environment:
+      - PORT=9090
+      - TOKEN_TIME_TO_LIVE=3600
+
+      - PRIVATE_KEY=/config/keys/cryptoProcessorKey
+      - PUBLIC_KEY=/config/keys/cryptoProcessorKey.key.pub
+      - KRATOS_URL=http://kratos:4433
+
+      - DATABASE_HOST=db-psql
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=coreum_processor
+      - DATABASE_USER=postgres
+      - DATABASE_PASS=local-postgres0!
+
+      - WALLET_RECEIVER_ADDRESS=testcore1j2ft8tkytmr0znglafh6m4jyux5a2hhuwmpumt
+      - WALLET_RECEIVER_SEED=festival one shoot heavy opera base fix topple recycle trend legal bleak zebra alley math salute under track target since hip differ festival entire
+      - WALLET_SENDER_ADDRESS=testcore1ucqaxsl8ad5v4nttlmsk3ujlpy3exzjfn26twc
+      - WALLET_SENDER_SEED=veteran pepper bleak reject entry fetch rival advice cactus brush castle traffic layer room cream prevent track embrace pen space theme slot puppy champion
       #env here
-      command: serve
+    command: serve
     restart: unless-stopped
     networks:
       default:
         aliases:
           - coreum-processing
-
-

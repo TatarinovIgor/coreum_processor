@@ -6,7 +6,6 @@ serve:
     cors :
       enabled : true
 
-
 access_rules:
   repositories:
     - file:///config/oathkeeper-rules.json

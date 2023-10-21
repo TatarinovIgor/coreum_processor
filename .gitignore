@@ -5,8 +5,4 @@ cmd/cryptoProcessorKey
 cmd/cryptoProcessorKey.pub
 .github
 .idea
-
-
-
-
-{"id":"6c2dc1a2-f039-4401-9078-2978cc643187","public_key":"-----BEGIN PUBLIC KEY-----\r\nMIIBITANBgkqhkiG9w0BAQEFAAOCAQ4AMIIBCQKCAQBg4hPJKQ/F1OYRpZMT6bw2\r\nd6CjijIjTnp4Q2BsdJP/UNnL3S6O7tcbw7yJI5H62Hr5xgJtK3By6Cd6nvaAmn8a\r\nPR2SrY0HEIzaEJ/BwdZ22hu8L46oQHw9a0hcs2TuentSGZ/CdpYlgvpUfARZQLiA\r\nvEsdw+TiPYScCWpsraxYUy59prs1p4bnf23ezoPCaAwq9tB+xkj1CMVF6+sX6FKn\r\noUgYVIdg5YKJmb1PWGwgvHdWj9bVdXDa25sE+xLMcklPenSdmcvvdxkmPj/rNnzS\r\n/BF44fIWUyx5AdScCYI67J0LfHql0ltXx96EXFx+TksH0fqkaw64/T/D97dq9ob1\r\nAgMBAAE=\r\n-----END PUBLIC KEY-----","name":" coreum ","call_back_url":"www.google.com","wallets":{"coreum":{"commission_receiving":{"fix":1,"percent":1},"commission_sending":{"fix":1,"percent":1},"receiving_id":"6c2dc1a2-f039-4401-9078-2978cc643187-R","sending_id":"6c2dc1a2-f039-4401-9078-2978cc643187-S"}}}
+ory/data-db/

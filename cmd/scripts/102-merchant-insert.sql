@@ -7,39 +7,9 @@ INSERT INTO merchants (created_at, updated_at, key, value, ttl)
                 '"name":"Merchant",' ||
                 '"call_back_url":"",' ||
                 '"wallets":{' ||
-                    '"Tron":{' ||
-                        '"commission_receiving":{"fix":0,"percent":1.5},' ||
-                        '"commission_sending":{"fix":0,"percent":1},' ||
-                        '"receiving_id":"",' ||
-                        '"sending_id":""' ||
-                    '},' ||
-                    '"bitcoin":{' ||
-                        '"commission_receiving":{"fix":0,"percent":0},' ||
-                        '"commission_sending":{"fix":0,"percent":0},' ||
-                        '"receiving_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-R",' ||
-                        '"sending_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-S"' ||
-                    '},' ||
                     '"coreum":{' ||
                         '"commission_receiving":{"fix":1,"percent":1},' ||
                         '"commission_sending":{"fix":1,"percent":1},' ||
-                        '"receiving_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-R",' ||
-                        '"sending_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-S"' ||
-                    '},' ||
-                    '"ethereum":{' ||
-                        '"commission_receiving":{"fix":0,"percent":0},' ||
-                        '"commission_sending":{"fix":0,"percent":0},' ||
-                        '"receiving_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-R",' ||
-                        '"sending_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-S"' ||
-                    '},' ||
-                    '"polygon":{' ||
-                        '"commission_receiving":{"fix":0,"percent":0},' ||
-                        '"commission_sending":{"fix":0,"percent":0},' ||
-                        '"receiving_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-R",' ||
-                        '"sending_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-S"' ||
-                    '},' ||
-                    '"tron":{' ||
-                        '"commission_receiving":{"fix":0,"percent":0},' ||
-                        '"commission_sending":{"fix":0,"percent":0},' ||
                         '"receiving_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-R",' ||
                         '"sending_id":"aaef4567-b438-48a4-9a3a-f3a730b0e1ec-S"' ||
                     '}' ||

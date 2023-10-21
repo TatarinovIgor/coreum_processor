@@ -31,8 +31,8 @@ RUN apk update && \
     apk add --no-cache curl bash
 
 HEALTHCHECK --interval=30s --start-period=1m --timeout=30s --retries=3 \
-    CMD curl --silent --fail --fail-early http://127.0.0.1:80/about || exit 1
+    CMD curl --silent --fail --fail-early http://127.0.0.1:$PORT/about || exit 1
 
-EXPOSE 80
+EXPOSE $PORT
 
 ENTRYPOINT ["/app/coreum_processor"]
