@@ -16,12 +16,14 @@ var (
 	addressPrefix = constant.AddressPrefixTest
 )
 
-type trxVerificationFn func(txID string) bool
+// FuncTrxIDVerification definition of a function to verify eligibility of transaction by trxID,
+// if transaction is eligible the function must return true otherwise false
+type FuncTrxIDVerification func(trxID string) bool
 
 type MultiSignService struct {
 	clientCtx         client.Context
 	privateKey        map[string]types.PrivKey
-	trxVerificationFn trxVerificationFn
+	trxVerificationFn FuncTrxIDVerification
 }
 
 // NewMultiSignService create a new service to make a set of transaction signatures for a coreum multi sign accounts
@@ -31,7 +33,7 @@ type MultiSignService struct {
 //   - mnemonics - a set of mnemonics to generate coreum keys for multi sign accounts
 //
 // the function panic in case it is not possible to create private keys from the provided mnemonics
-func NewMultiSignService(clientCtx client.Context, fn trxVerificationFn, mnemonics ...string) *MultiSignService {
+func NewMultiSignService(clientCtx client.Context, fn FuncTrxIDVerification, mnemonics ...string) *MultiSignService {
 	algo := hd.Secp256k1
 	hdPath := sdk.GetConfig().GetFullBIP44Path()
 	privateKey := map[string]types.PrivKey{}
