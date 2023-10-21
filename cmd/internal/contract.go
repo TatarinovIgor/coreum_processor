@@ -12,6 +12,14 @@ const (
 	Coreum = "coreum"
 )
 
+type MultiSignConfig struct {
+	Port            string
+	TokenTimeToLive int64
+	Mnemonics       string
+	PublicKey       *rsa.PublicKey
+	networkType     string
+}
+
 type AppConfig struct {
 	Port            string
 	TokenTimeToLive int64
