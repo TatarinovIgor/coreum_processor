@@ -235,7 +235,7 @@ const (
 
 type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet, hash, asset, issuer string, amount float64)
 type CryptoProcessor interface {
-	CreateWallet(blockchain, merchantID, externalId string) (*Wallet, error)
+	CreateWallet(merchantID, externalId string) (*Wallet, error)
 	Deposit(request CredentialDeposit, merchantID, externalId string) (*DepositResponse, error)
 	Withdraw(request CredentialWithdraw, merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
 	TransferToReceiving(request TransferRequest, merchantID, externalId string) (*TransferResponse, error)

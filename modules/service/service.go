@@ -253,7 +253,7 @@ func (s ProcessingService) CreateWallet(blockchain, merchantID, externalID strin
 		return nil, fmt.Errorf("%s blockchain not found")
 	}
 
-	response, err := processor.CreateWallet(blockchain, merchantID, externalID)
+	response, err := processor.CreateWallet(merchantID, externalID)
 	if err != nil {
 		return nil, fmt.Errorf("could not create wallet for blockchain: %s, err: %s", blockchain, err)
 	}
