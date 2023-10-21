@@ -1,4 +1,4 @@
-create table merchants
+create table if not exists merchants
 (
     id         bigserial primary key unique,
     created_at timestamp with time zone not null,
