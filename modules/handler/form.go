@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"coreum_processor/modules/asset"
 	"coreum_processor/modules/internal"
 	"coreum_processor/modules/service"
@@ -60,7 +61,8 @@ func PublicKeySaver(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
-func NewTokenSaver(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
+func NewTokenSaver(ctx context.Context, processing *service.ProcessingService,
+	assetService *asset.Service) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		code := r.FormValue("code")
 		name := r.FormValue("name")
@@ -82,7 +84,7 @@ func NewTokenSaver(processing *service.ProcessingService, assetService *asset.Se
 			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
 			return
 		}
-		_, features, err := processing.IssueFT(token, merchantID, merchantID+"-R")
+		_, features, err := processing.IssueFT(ctx, token, merchantID, merchantID+"-R")
 		if err != nil {
 			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
 			return

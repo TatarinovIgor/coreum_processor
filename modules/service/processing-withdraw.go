@@ -37,7 +37,7 @@ func (s ProcessingService) processWithdrawProcessed(ctx context.Context, bc stri
 			s.transactionStore.PutProcessedTransaction(tr.MerchantId, tr.ExternalId, tr.GUID.String(),
 				tr.Hash1, commission)
 
-			hash, err := processor.Withdraw(CredentialWithdraw{
+			hash, err := processor.Withdraw(ctx, CredentialWithdraw{
 				Amount:        tr.Amount,
 				Blockchain:    tr.Blockchain,
 				WalletAddress: tr.ExtWallet,
@@ -67,7 +67,7 @@ func (s ProcessingService) processWithdrawSettled(ctx context.Context, bc string
 		log.Println(fmt.Errorf("can't get merchant transactions to done, err: %v", err))
 	} else if err == nil {
 		for _, tr := range trx {
-			hash, err := processor.TransferFromSending(TransferRequest{
+			hash, err := processor.TransferFromSending(ctx, TransferRequest{
 				Amount:     tr.Amount,
 				Blockchain: tr.Blockchain,
 				Asset:      tr.Asset,

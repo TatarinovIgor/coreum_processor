@@ -240,7 +240,7 @@ func PageAssetRequestsAdminUpdate(ctx context.Context, assetService *asset.Servi
 				InitialAmount: 1000000,
 			}
 
-			resp, _, err := processing.IssueFT(requestAsset, raw.Merchant, raw.Merchant)
+			resp, _, err := processing.IssueFT(ctx, requestAsset, raw.Merchant, raw.Merchant)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "could not issue asset", http.StatusInternalServerError)

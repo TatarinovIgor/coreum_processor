@@ -79,7 +79,7 @@ func PageDashboardMerchant(ctx context.Context, processing *service.ProcessingSe
 	}
 }
 
-func PageMerchantTransaction(processing *service.ProcessingService) httprouter.Handle {
+func PageMerchantTransaction(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		t, err := template.ParseFiles("./templates/lite/default/transactions.html", "./templates/lite/sidebar.html", "./templates/lite/wallet_card.html")
 
@@ -136,25 +136,25 @@ func PageMerchantTransaction(processing *service.ProcessingService) httprouter.H
 			"coreum_asset":             "testcore",
 		}
 		for bc, wallets := range merchData.Wallets {
-			balancesReceiving, err := processing.GetAssetsBalance(request, merchantID, wallets.ReceivingID)
+			balancesReceiving, err := processing.GetAssetsBalance(ctx, request, merchantID, wallets.ReceivingID)
 			if err == nil {
 				varmap["balancesReceiving"] = balancesReceiving
 			}
 
-			balancesSending, err := processing.GetAssetsBalance(request, merchantID, wallets.SendingID)
+			balancesSending, err := processing.GetAssetsBalance(ctx, request, merchantID, wallets.SendingID)
 			if err == nil {
 				varmap["balancesSending"] = balancesSending
 			}
 
 			receivingWallet, _ := processing.GetWalletById("coreum", merchantID, wallets.ReceivingID)
-			receivingBalance, err := processing.GetBalance("coreum", merchantID, wallets.ReceivingID)
+			receivingBalance, err := processing.GetBalance(ctx, "coreum", merchantID, wallets.ReceivingID)
 			if err == nil {
 				varmap[bc+"_receiving_wallet"] = receivingWallet
 				varmap[bc+"_receiving_balance"] = receivingBalance.Amount
 				varmap[bc+"_asset"] = receivingBalance.Asset
 			}
 			sendingWallet, _ := processing.GetWalletById("coreum", merchantID, wallets.SendingID)
-			sendingBalance, err := processing.GetBalance("coreum", merchantID, wallets.SendingID)
+			sendingBalance, err := processing.GetBalance(ctx, "coreum", merchantID, wallets.SendingID)
 			if err == nil {
 				varmap[bc+"_sending_wallet"] = sendingWallet
 				varmap[bc+"_sending_balance"] = sendingBalance.Amount
@@ -187,7 +187,8 @@ func generateTransactionTable(res []storage.TransactionStore) template.HTML {
 	return template.HTML(htmlBlock)
 }
 
-func PageMerchantUsers(userService *user.Service, processing *service.ProcessingService) httprouter.Handle {
+func PageMerchantUsers(ctx context.Context, userService *user.Service,
+	processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		t, err := template.ParseFiles("./templates/lite/default/users.html", "./templates/lite/sidebar.html", "./templates/lite/wallet_card.html")
 		if err != nil {
@@ -227,14 +228,14 @@ func PageMerchantUsers(userService *user.Service, processing *service.Processing
 		}
 
 		coreumReceivingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
-		coreumReceivingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-R")
+		coreumReceivingBalance, err := processing.GetBalance(ctx, "coreum", merchantID, merchantID+"-R")
 		if err == nil {
 			varmap["coreum_receiving_wallet"] = coreumReceivingWallet
 			varmap["coreum_receiving_balance"] = coreumReceivingBalance.Amount
 			varmap["coreum_asset"] = coreumReceivingBalance.Asset
 		}
 		coreumSendingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-S")
-		coreumSendingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-S")
+		coreumSendingBalance, err := processing.GetBalance(ctx, "coreum", merchantID, merchantID+"-S")
 		if err == nil {
 			varmap["coreum_sending_wallet"] = coreumSendingWallet
 			varmap["coreum_sending_balance"] = coreumSendingBalance.Amount
@@ -325,7 +326,8 @@ func generateAssetsTable(res []storage.AssetStore) template.HTML {
 	return template.HTML(htmlBlock)
 }
 
-func PageMerchantAssets(assetService *asset.Service, processing *service.ProcessingService) httprouter.Handle {
+func PageMerchantAssets(ctx context.Context, assetService *asset.Service,
+	processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		//Getting MerchantID
 		merchantID, err := internal.GetMerchantID(r.Context())
@@ -364,14 +366,14 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 		}
 
 		coreumReceivingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-R")
-		coreumReceivingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-R")
+		coreumReceivingBalance, err := processing.GetBalance(ctx, "coreum", merchantID, merchantID+"-R")
 		if err == nil {
 			varmap["coreum_receiving_wallet"] = coreumReceivingWallet
 			varmap["coreum_receiving_balance"] = coreumReceivingBalance.Amount
 			varmap["coreum_asset"] = coreumReceivingBalance.Asset
 		}
 		coreumSendingWallet, _ := processing.GetWalletById("coreum", merchantID, merchantID+"-S")
-		coreumSendingBalance, err := processing.GetBalance("coreum", merchantID, merchantID+"-S")
+		coreumSendingBalance, err := processing.GetBalance(ctx, "coreum", merchantID, merchantID+"-S")
 		if err == nil {
 			varmap["coreum_sending_wallet"] = coreumSendingWallet
 			varmap["coreum_sending_balance"] = coreumSendingBalance.Amount
@@ -387,7 +389,7 @@ func PageMerchantAssets(assetService *asset.Service, processing *service.Process
 	}
 }
 
-func AssetRequestMerchant(ctx context.Context, assetService *asset.Service, processing *service.ProcessingService) httprouter.Handle {
+func AssetRequestMerchant(assetService *asset.Service) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		//Getting merchant ID
 		merchantOwnerID, err := internal.GetMerchantID(r.Context())
@@ -426,7 +428,7 @@ func AssetRequestMerchant(ctx context.Context, assetService *asset.Service, proc
 	}
 }
 
-func Deposit(processing *service.ProcessingService) httprouter.Handle {
+func Deposit(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		var raw struct {
@@ -450,7 +452,7 @@ func Deposit(processing *service.ProcessingService) httprouter.Handle {
 		}
 
 		CredentialsDeposit.Blockchain = strings.ToLower(CredentialsDeposit.Blockchain)
-		res, err = processing.Deposit(CredentialsDeposit, merchantID, raw.ExternalID)
+		res, err = processing.Deposit(ctx, CredentialsDeposit, merchantID, raw.ExternalID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not perform deposit", http.StatusBadRequest)
@@ -466,7 +468,7 @@ func Deposit(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
-func TransferMerchantWallets(processing *service.ProcessingService) httprouter.Handle {
+func TransferMerchantWallets(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 
@@ -498,7 +500,7 @@ func TransferMerchantWallets(processing *service.ProcessingService) httprouter.H
 		}
 
 		credentialsWithdraw.Blockchain = strings.ToLower(credentialsWithdraw.Blockchain)
-		res, err := processing.TransferMerchantWallets(credentialsWithdraw, merchantID)
+		res, err := processing.TransferMerchantWallets(ctx, credentialsWithdraw, merchantID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not perform withdraw", http.StatusBadRequest)

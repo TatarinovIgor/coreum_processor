@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"coreum_processor/modules/internal"
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/storage"
@@ -97,7 +98,7 @@ func CreateMerchant(processing *service.ProcessingService) httprouter.Handle {
 }
 
 // CreateWallet method for creating a new wallets
-func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
+func CreateWallet(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		merchantID, err := internal.GetMerchantID(r.Context())
@@ -140,14 +141,14 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 			ReceivingID:         merchantID + "-R",
 			SendingID:           merchantID + "-S",
 		}
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.ReceivingID)
+		_, err = processing.CreateWallet(ctx, data.Blockchain, merchantID, wallets.ReceivingID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not create receiving wallet", http.StatusBadRequest)
 			return
 		}
 
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, wallets.SendingID)
+		_, err = processing.CreateWallet(ctx, data.Blockchain, merchantID, wallets.SendingID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not create sending wallet", http.StatusBadRequest)
@@ -175,7 +176,7 @@ func CreateWallet(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
-func CreateClientWallet(processing *service.ProcessingService) httprouter.Handle {
+func CreateClientWallet(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		merchantID, err := internal.GetMerchantID(r.Context())
@@ -197,7 +198,7 @@ func CreateClientWallet(processing *service.ProcessingService) httprouter.Handle
 			return
 		}
 
-		_, err = processing.CreateWallet(data.Blockchain, merchantID, data.Identity)
+		_, err = processing.CreateWallet(ctx, data.Blockchain, merchantID, data.Identity)
 
 		//@ToDo figure out what to do with this
 		//merchData, err := processing.GetMerchantData(merchantID)
@@ -258,7 +259,7 @@ func UpdateMerchant(processing *service.ProcessingService) httprouter.Handle {
 }
 
 // UpdateMerchantCommission method for setting a individual commission for a merchant
-func UpdateMerchantCommission(processing *service.ProcessingService) httprouter.Handle {
+func UpdateMerchantCommission(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w = processing.SetHeaders(w)
 
@@ -272,7 +273,7 @@ func UpdateMerchantCommission(processing *service.ProcessingService) httprouter.
 			http.Error(w, "could not parse request data", http.StatusBadRequest)
 			return
 		}
-		_, err = processing.UpdateMerchantCommission(merchantID, blockchain, newMerchantCommission)
+		_, err = processing.UpdateMerchantCommission(ctx, merchantID, blockchain, newMerchantCommission)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not update merchants commission", http.StatusBadRequest)

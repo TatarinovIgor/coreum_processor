@@ -19,7 +19,7 @@ func PageDashboard(ctx context.Context, userService *user.Service, processing *s
 		} else if user.IsOnboarding(userStore.Access) {
 			PageWizardMerchant(ctx, userService)(writer, request, params)
 		} else if user.IsOnboarded(userStore.Access) {
-			PageMerchantTransaction(processing)(writer, request, params)
+			PageMerchantTransaction(ctx, processing)(writer, request, params)
 		}
 		return
 	}

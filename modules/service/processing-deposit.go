@@ -26,7 +26,7 @@ func (s ProcessingService) processDeposit(ctx context.Context, bc string, proces
 
 }
 
-func (s ProcessingService) processDepositInitiated(_ context.Context, bc string, processor CryptoProcessor,
+func (s ProcessingService) processDepositInitiated(ctx context.Context, bc string, processor CryptoProcessor,
 	merch MerchantData) {
 	trx, err := s.transactionStore.GetMerchantTrxForProcessingInBlockChain(merch.ID.String(), bc,
 		storage.DepositTransaction, storage.InitTransaction, limitTrxToDepositProcess)
@@ -41,7 +41,7 @@ func (s ProcessingService) processDepositInitiated(_ context.Context, bc string,
 	for _, tr := range trx {
 		if tr.Hash2 == "" {
 			// blockchain transaction is not created for processing
-			res, err := processor.TransferToReceiving(TransferRequest{
+			res, err := processor.TransferToReceiving(ctx, TransferRequest{
 				Amount:     tr.Amount,
 				Blockchain: tr.Blockchain,
 				Asset:      tr.Asset,
@@ -61,7 +61,7 @@ func (s ProcessingService) processDepositInitiated(_ context.Context, bc string,
 				continue
 			}
 		} else {
-			res, err := processor.GetTransactionStatus(tr.Hash2)
+			res, err := processor.GetTransactionStatus(ctx, tr.Hash2)
 			if res == SuccessfulTransaction {
 				err = s.transactionStore.PutProcessedTransaction(tr.MerchantId, tr.ExternalId,
 					tr.GUID.String(), tr.Hash2, 0)
@@ -80,7 +80,7 @@ func (s ProcessingService) processDepositInitiated(_ context.Context, bc string,
 	}
 }
 
-func (s ProcessingService) processDepositProcessed(_ context.Context, bc string, processor CryptoProcessor,
+func (s ProcessingService) processDepositProcessed(ctx context.Context, bc string, processor CryptoProcessor,
 	merch MerchantData, wallet Wallets) {
 
 	trx, err := s.transactionStore.GetMerchantTrxForProcessingInBlockChain(merch.ID.String(), bc,
@@ -108,7 +108,7 @@ func (s ProcessingService) processDepositProcessed(_ context.Context, bc string,
 		issuer = tr.Issuer
 		if amount > 0 {
 			//ToDo group transactions by assets
-			hash, err := processor.TransferFromReceiving(TransferRequest{
+			hash, err := processor.TransferFromReceiving(ctx, TransferRequest{
 				Amount:     amount,
 				Blockchain: bc,
 				Asset:      asset,
@@ -128,7 +128,7 @@ func (s ProcessingService) processDepositProcessed(_ context.Context, bc string,
 
 }
 
-func (s ProcessingService) processDepositSettled(_ context.Context, bc string, processor CryptoProcessor,
+func (s ProcessingService) processDepositSettled(ctx context.Context, bc string, processor CryptoProcessor,
 	merch MerchantData) {
 	trx, err := s.transactionStore.GetMerchantTrxForProcessingInBlockChain(merch.ID.String(), bc,
 		storage.DepositTransaction, storage.SettledTransaction, limitTrxToDepositProcess)
@@ -142,7 +142,7 @@ func (s ProcessingService) processDepositSettled(_ context.Context, bc string, p
 	}
 	for _, tr := range trx {
 		if tr.Hash3 != "" {
-			res, err := processor.GetTransactionStatus(tr.Hash3)
+			res, err := processor.GetTransactionStatus(ctx, tr.Hash3)
 			if res == SuccessfulTransaction {
 				// TODO: gas should be returned to sending wallet
 				s.transactionStore.PutDoneTransaction(tr.MerchantId, tr.ExternalId,

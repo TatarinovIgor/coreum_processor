@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"coreum_processor/modules/internal"
 	"coreum_processor/modules/service"
 	"encoding/json"
@@ -11,7 +12,7 @@ import (
 )
 
 // GetBalance is a method for getting clients balance on given blockchain
-func GetBalance(processing *service.ProcessingService) httprouter.Handle {
+func GetBalance(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 
@@ -30,7 +31,7 @@ func GetBalance(processing *service.ProcessingService) httprouter.Handle {
 			http.Error(w, "could not find merchant", http.StatusBadRequest)
 			return
 		}
-		res, err := processing.GetAssetsBalance(blockchain, merchantID, externalId)
+		res, err := processing.GetAssetsBalance(ctx, blockchain, merchantID, externalId)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not get balance for user", http.StatusBadRequest)

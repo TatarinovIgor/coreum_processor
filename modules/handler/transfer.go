@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"coreum_processor/modules/asset"
 	"coreum_processor/modules/internal"
 	"coreum_processor/modules/service"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-func Deposit(processing *service.ProcessingService) httprouter.Handle {
+func Deposit(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		CredentialsDeposit := service.CredentialDeposit{}
@@ -38,7 +39,7 @@ func Deposit(processing *service.ProcessingService) httprouter.Handle {
 		}
 
 		CredentialsDeposit.Blockchain = strings.ToLower(CredentialsDeposit.Blockchain)
-		res, err = processing.Deposit(CredentialsDeposit, merchantID, externalId)
+		res, err = processing.Deposit(ctx, CredentialsDeposit, merchantID, externalId)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not perform deposit", http.StatusBadRequest)
@@ -165,7 +166,7 @@ func DeleteWithdraw(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
-func GetTokenSupply(processing *service.ProcessingService) httprouter.Handle {
+func GetTokenSupply(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		SupplyRequest := service.BalanceRequest{}
@@ -173,7 +174,7 @@ func GetTokenSupply(processing *service.ProcessingService) httprouter.Handle {
 		SupplyRequest.Asset = strings.TrimSpace(strings.ToLower(r.URL.Query().Get("asset")))
 		SupplyRequest.Issuer = strings.TrimSpace(strings.ToLower(r.URL.Query().Get("issuer")))
 
-		supply, err := processing.GetTokenSupply(SupplyRequest)
+		supply, err := processing.GetTokenSupply(ctx, SupplyRequest)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not get total supply for token", http.StatusBadRequest)
@@ -193,7 +194,8 @@ func GetTokenSupply(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
-func NewToken(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
+func NewToken(ctx context.Context, processing *service.ProcessingService,
+	assetService *asset.Service) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		TokenRequest := service.NewTokenRequest{}
@@ -228,7 +230,7 @@ func NewToken(processing *service.ProcessingService, assetService *asset.Service
 		}
 
 		if TokenRequest.Type == "FT" {
-			res, features, err = processing.IssueFT(TokenRequest, merchantID, externalId)
+			res, features, err = processing.IssueFT(ctx, TokenRequest, merchantID, externalId)
 
 			log.Println(res)
 			if err != nil {
@@ -237,7 +239,7 @@ func NewToken(processing *service.ProcessingService, assetService *asset.Service
 				return
 			}
 		} else {
-			res, features, err = processing.IssueNFT(TokenRequest, merchantID, externalId)
+			res, features, err = processing.IssueNFT(ctx, TokenRequest, merchantID, externalId)
 
 			log.Println(res)
 			if err != nil {
@@ -263,7 +265,8 @@ func NewToken(processing *service.ProcessingService, assetService *asset.Service
 	}
 }
 
-func MintToken(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
+func MintToken(ctx context.Context, processing *service.ProcessingService,
+	assetService *asset.Service) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		TokenRequest := service.MintTokenRequest{}
@@ -284,14 +287,14 @@ func MintToken(processing *service.ProcessingService, assetService *asset.Servic
 		}
 
 		if TokenRequest.Type == "FT" {
-			res, err = processing.MintFT(TokenRequest, merchantID)
+			res, err = processing.MintFT(ctx, TokenRequest, merchantID)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "could not perform token issuing", http.StatusBadRequest)
 				return
 			}
 		} else if TokenRequest.Type == "NFT" {
-			res, err = processing.MintNFT(TokenRequest, merchantID)
+			res, err = processing.MintNFT(ctx, TokenRequest, merchantID)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "could not perform token issuing", http.StatusBadRequest)
@@ -313,7 +316,7 @@ func MintToken(processing *service.ProcessingService, assetService *asset.Servic
 	}
 }
 
-func TransferToken(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
+func TransferToken(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		TransferRequest := service.TransferTokenRequest{}
@@ -332,14 +335,14 @@ func TransferToken(processing *service.ProcessingService, assetService *asset.Se
 			return
 		}
 		if TransferRequest.Type == "FT" {
-			res, err = processing.TransferFungibleToken(TransferRequest, merchantID)
+			res, err = processing.TransferFungibleToken(ctx, TransferRequest, merchantID)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "could not perform token transferring", http.StatusBadRequest)
 				return
 			}
 		} else if TransferRequest.Type == "NFT" {
-			res, err = processing.TransferNonFungibleToken(TransferRequest, merchantID)
+			res, err = processing.TransferNonFungibleToken(ctx, TransferRequest, merchantID)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "could not perform token transferring", http.StatusBadRequest)
@@ -356,7 +359,7 @@ func TransferToken(processing *service.ProcessingService, assetService *asset.Se
 	}
 }
 
-func MintTokenMerchant(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
+func MintTokenMerchant(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		TokenRequest := service.MintTokenRequest{}
@@ -387,7 +390,7 @@ func MintTokenMerchant(processing *service.ProcessingService, assetService *asse
 
 		TokenRequest.ReceivingWalletID = merchantID + "-S"
 
-		res, err = processing.MintFT(TokenRequest, merchantID)
+		res, err = processing.MintFT(ctx, TokenRequest, merchantID)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not perform token issuing", http.StatusBadRequest)
@@ -402,7 +405,7 @@ func MintTokenMerchant(processing *service.ProcessingService, assetService *asse
 	}
 }
 
-func BurnTokenMerchant(processing *service.ProcessingService, assetService *asset.Service) httprouter.Handle {
+func BurnTokenMerchant(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w = processing.SetHeaders(w)
 		TokenRequest := service.TokenRequest{}
@@ -430,7 +433,7 @@ func BurnTokenMerchant(processing *service.ProcessingService, assetService *asse
 			}
 		}
 
-		res, err = processing.BurnToken(TokenRequest, merchantID, merchantID+"-S")
+		res, err = processing.BurnToken(ctx, TokenRequest, merchantID, merchantID+"-S")
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "could not perform token issuing", http.StatusBadRequest)

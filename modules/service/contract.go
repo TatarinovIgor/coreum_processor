@@ -219,11 +219,9 @@ type TransactionMeta struct {
 	At       int `json:"at"`
 	PageSize int `json:"page_size"`
 }
-type TronTransactions struct {
-	Data    []TransactionResponse `json:"data"`
-	Success bool                  `json:"success"`
-	Meta    TransactionMeta       `json:"meta"`
-}
+
+type MultiSignAddress map[string]float64
+
 type CryptoTransactionStatus int
 
 const (
@@ -233,26 +231,57 @@ const (
 	SuccessfulTransaction CryptoTransactionStatus = 3
 )
 
-type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet, hash, asset, issuer string, amount float64)
+// FuncDepositCallback defines a callback function to inform main processing service about received deposit
+type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet, hash, asset, issuer string,
+	amount float64)
+
+// FuncMultiSignAddrCallback defines a callback function to get a list of address to be added to multi sig account
+type FuncMultiSignAddrCallback func(blockChain, merchantID, externalId string) (MultiSignAddress, error)
+
 type CryptoProcessor interface {
-	CreateWallet(merchantID, externalId string) (*Wallet, error)
-	Deposit(request CredentialDeposit, merchantID, externalId string) (*DepositResponse, error)
-	Withdraw(request CredentialWithdraw, merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
-	TransferToReceiving(request TransferRequest, merchantID, externalId string) (*TransferResponse, error)
-	TransferFromReceiving(transfer TransferRequest, merchantID, externalId string) (*TransferResponse, error)
-	TransferBetweenMerchantWallets(request TransferRequest, merchantID string) (*TransferResponse, error)
-	GetTokenSupply(request BalanceRequest) (int64, error)
-	GetBalance(merchantID, externalID string) (Balance, error)
-	GetAssetsBalance(request BalanceRequest, merchantID, externalId string) ([]Balance, error)
+	// CreateWallet create a wallet and put to the store under defined externalID for merchantID
+	//	- merchantID - id of the merchant that request to make a new wallet
+	//	- externalID - id of newly created wallet in an external system
+	//	- multiSignAddresses - a func that provide a list of addresses to generate multi sign wallet,
+	//						   in case of nil newly created wallet will not support multi signature
+	// in case of success create new blockchain wallet and put it to the storage
+	CreateWallet(ctx context.Context, merchantID, externalId string,
+		multiSignAddresses FuncMultiSignAddrCallback) (*Wallet, error)
+
 	GetWalletById(merchantID, externalId string) (string, error)
-	GetTransactionStatus(hash string) (CryptoTransactionStatus, error)
+
+	// Deposit create a
+	Deposit(ctx context.Context, request CredentialDeposit, merchantID, externalId string,
+		multiSignAddresses FuncMultiSignAddrCallback) (*DepositResponse, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
-	TransferFromSending(request TransferRequest, merchantID, receivingWallet string) (*TransferResponse, error)
-	IssueFT(request NewTokenRequest, merchantID, externalID string) (*NewTokenResponse, []byte, error)
-	IssueNFTClass(request NewTokenRequest, merchantID, externalId string) (*NewTokenResponse, []byte, error)
-	MintFT(request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
-	MintNFT(request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
-	BurnToken(request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
-	TransferFT(request TransferTokenRequest, merchantID string) (string, error)
-	TransferNFT(request TransferTokenRequest, merchantID string) (string, error)
+
+	// Withdraw
+	Withdraw(ctx context.Context, request CredentialWithdraw,
+		merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
+
+	IssueFT(ctx context.Context, request NewTokenRequest, merchantID, externalID string,
+		multiSignAddresses FuncMultiSignAddrCallback) (*NewTokenResponse, []byte, error)
+	IssueNFTClass(ctx context.Context, request NewTokenRequest, merchantID, externalId string,
+		multiSignAddresses FuncMultiSignAddrCallback) (*NewTokenResponse, []byte, error)
+	MintFT(ctx context.Context, request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
+	MintNFT(ctx context.Context, request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
+	BurnToken(ctx context.Context, request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
+
+	TransferToReceiving(ctx context.Context, request TransferRequest,
+		merchantID, externalId string) (*TransferResponse, error)
+	TransferFromReceiving(ctx context.Context, transfer TransferRequest,
+		merchantID, externalId string) (*TransferResponse, error)
+	TransferBetweenMerchantWallets(ctx context.Context, request TransferRequest,
+		merchantID string) (*TransferResponse, error)
+	TransferFromSending(ctx context.Context, request TransferRequest,
+		merchantID, receivingWallet string) (*TransferResponse, error)
+	TransferFT(ctx context.Context, request TransferTokenRequest,
+		merchantID string) (string, error)
+	TransferNFT(ctx context.Context, request TransferTokenRequest,
+		merchantID string) (string, error)
+
+	GetTokenSupply(ctx context.Context, request BalanceRequest) (int64, error)
+	GetBalance(ctx context.Context, merchantID, externalID string) (Balance, error)
+	GetAssetsBalance(ctx context.Context, request BalanceRequest, merchantID, externalId string) ([]Balance, error)
+	GetTransactionStatus(ctx context.Context, hash string) (CryptoTransactionStatus, error)
 }
