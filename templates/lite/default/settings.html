@@ -132,22 +132,27 @@
 										<div class="card">
 											<div class="card-body">
 												<h5>Create token</h5>
-												<hr>
-												<form action="/submit_new_token" method="post">
+												<form action="/submit_callback_url" method="post">
 													<div class="form-group">
-														<label>Code (Symbol)</label>
-															<input type="text" class="form-control" name="code" placeholder="USDT">
+														<label for="callback_url">Your callback url</label>
+														<input class="form-control" type="text" id="callback_url" name="callback_url" placeholder="Enter your callback url"/>
 													</div>
-													<div class="form-group">
-														<label>Name (Subunit)</label>
-														<input type="text" class="form-control" name="name" placeholder="USD-Token">
-													</div>
-													<div class="form-group">
-														<label>Description</label>
-														<input type="text" class="form-control" name="description" placeholder="This is token for USD">
-													</div>
-													<button type="submit" class="btn btn-primary">Add</button>
+													<button type="submit" class="btn btn-primary">Submit</button>
 												</form>
+												<div class="card-block">
+													<div>
+														<h5>/addresses <span class="badge badge-primary">GET</span></h5>
+														Get all the addresses needed to sign a transaction
+													</div>
+													<div>
+														<h5>/sign <span class="badge badge-success">POST</span></h5>
+														Sign a transaction using multi-signature
+													</div>
+													<div>
+														<h5>/transactions <span class="badge badge-primary">GET</span></h5>
+														Get all transactions
+													</div>
+												</div>
 											</div>
 										</div>
 										<div class="card">

@@ -258,7 +258,7 @@ func UpdateMerchant(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
-// UpdateMerchantCommission method for setting a individual commission for a merchant
+// UpdateMerchantCommission method for setting an individual commission for a merchant
 func UpdateMerchantCommission(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w = processing.SetHeaders(w)

@@ -35,6 +35,41 @@ func UrlUpdater(processing *service.ProcessingService) httprouter.Handle {
 	}
 }
 
+func UpdateCallbackUrl(processing *service.ProcessingService) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		callbackUrl := r.FormValue("callback_url")
+		merchantID, err := internal.GetMerchantID(r.Context())
+		if err != nil {
+			log.Println(err)
+			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
+			return
+		}
+
+		data, err := processing.GetMerchantData(merchantID)
+		if err != nil {
+			log.Println(err)
+			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
+			return
+		}
+
+		merchant := service.NewMerchant{
+			PublicKey:    data.PublicKey,
+			MerchantName: data.MerchantName,
+			Callback:     callbackUrl,
+		}
+
+		_, err = processing.UpdateMerchant(merchantID, merchant)
+		if err != nil {
+			log.Println(err)
+			http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
+			return
+		}
+
+		http.Redirect(w, r, "/ui/merchant/settings", http.StatusSeeOther)
+		return
+	}
+}
+
 func PublicKeySaver(processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		publicKey := r.FormValue("public_key")

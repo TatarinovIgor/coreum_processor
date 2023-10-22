@@ -36,10 +36,12 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	// routers for UI
 	routerWrap.GET("/ui/dashboard", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageDashboard(ctx, userService, processing)))
+
 	routerWrap.GET("/ui/merchant/onboarding-wizard", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageWizardMerchant(ctx, userService)))
 	routerWrap.POST("/ui/merchant/onboarding-wizard", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageWizardMerchantUpdate(ctx, userService)))
+
 	routerWrap.GET("/ui/merchant/transactions", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, ui.PageMerchantTransaction(ctx, processing)))
 	routerWrap.GET("/ui/merchant/users", middleware.AuthMiddlewareCookie(ctx, ory,
@@ -62,6 +64,8 @@ func InitRouter(ctx context.Context, ory *client.APIClient,
 	//Urls for form submissions from frontend
 	routerWrap.POST("/submit_public_key", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, handler.PublicKeySaver(processing)))
+	routerWrap.POST("/submit_callback_url", middleware.AuthMiddlewareCookie(ctx, ory,
+		userService, handler.UpdateCallbackUrl(processing)))
 	routerWrap.POST("/submit_new_token", middleware.AuthMiddlewareCookie(ctx, ory,
 		userService, handler.NewTokenSaver(ctx, processing, assetService)))
 	routerWrap.POST("/reset_password", ui.PasswordReset(ctx, ory))
