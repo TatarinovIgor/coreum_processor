@@ -294,8 +294,9 @@ func PageMerchantSettings(processing *service.ProcessingService, assetService *a
 			return
 		}
 		varmap := map[string]interface{}{
-			"tokens": generateAssetsTable(res),
-			"key":    merchantData.PublicKey,
+			"tokens":       generateAssetsTable(res),
+			"key":          merchantData.PublicKey,
+			"callback_url": merchantData.CallBackURL,
 		}
 
 		err = t.ExecuteTemplate(w, "settings.html", varmap)

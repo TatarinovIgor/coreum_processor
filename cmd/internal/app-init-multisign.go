@@ -49,6 +49,6 @@ func LoadMultiSignEnv() MultiSignConfig {
 		Threshold:   threshold,
 		Mnemonics:   mnemonics,
 		PublicKey:   public,
-		networkType: networkType,
+		NetworkType: networkType,
 	}
 }

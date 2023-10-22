@@ -18,7 +18,7 @@ type MultiSignConfig struct {
 	TokenTimeToLive int64
 	Mnemonics       string
 	PublicKey       *rsa.PublicKey
-	networkType     string
+	NetworkType     string
 }
 
 type AppConfig struct {

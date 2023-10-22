@@ -10,10 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-)
-
-var (
-	addressPrefix = constant.AddressPrefixTest
+	"strings"
 )
 
 // FuncTrxIDVerification definition of a function to verify eligibility of transaction by trxID,
@@ -24,20 +21,34 @@ type MultiSignService struct {
 	clientCtx         client.Context
 	privateKey        map[string]types.PrivKey
 	trxVerificationFn FuncTrxIDVerification
+	addressPrefix     string
 }
 
 // NewMultiSignService create a new service to make a set of transaction signatures for a coreum multi sign accounts
 //   - clientCtx - is a coreum client that used to extract public keys from  multi sign accounts
 //   - fn - is a transaction verification function, that returns true if transaction verified and should be executed
 //     otherwise return false and signature will not be created for the transaction
+//   - networkType - is a string that defines type of blockchain network can be ['devnet','testnet','mainnet']
 //   - mnemonics - a set of mnemonics to generate coreum keys for multi sign accounts
 //
 // the function panic in case it is not possible to create private keys from the provided mnemonics
-func NewMultiSignService(clientCtx client.Context, fn FuncTrxIDVerification, mnemonics ...string) *MultiSignService {
+func NewMultiSignService(clientCtx client.Context, fn FuncTrxIDVerification,
+	networkType string, mnemonics ...string) *MultiSignService {
 	algo := hd.Secp256k1
 	hdPath := sdk.GetConfig().GetFullBIP44Path()
 	privateKey := map[string]types.PrivKey{}
-
+	addressPrefix := ""
+	networkType = strings.ToLower(networkType)
+	switch networkType {
+	case "devnet":
+		addressPrefix = constant.AddressPrefixDev
+	case "testnet":
+		addressPrefix = constant.AddressPrefixTest
+	case "mainnet":
+		addressPrefix = constant.AddressPrefixMain
+	default:
+		panic("unsupported type of blockchain network type " + networkType)
+	}
 	for _, m := range mnemonics {
 		// create master key and derive first key
 		derivedPrivate, err := algo.Derive()(m, "", hdPath)
@@ -53,7 +64,8 @@ func NewMultiSignService(clientCtx client.Context, fn FuncTrxIDVerification, mne
 		privateKey[address] = pKey
 	}
 
-	return &MultiSignService{clientCtx: clientCtx, privateKey: privateKey, trxVerificationFn: fn}
+	return &MultiSignService{clientCtx: clientCtx, privateKey: privateKey,
+		trxVerificationFn: fn, addressPrefix: addressPrefix}
 }
 
 // GetMultiSignAddresses returns map of addresses and their weight that should be used to create multi sign accounts
@@ -102,7 +114,7 @@ func (s *MultiSignService) MultiSignTransaction(ctx context.Context, address, tr
 	}
 
 	for _, publicKey := range pubKey.GetPubKeys() {
-		addr, err := bech32.ConvertAndEncode(addressPrefix, publicKey.Address())
+		addr, err := bech32.ConvertAndEncode(s.addressPrefix, publicKey.Address())
 		if err != nil {
 			continue
 		}

@@ -131,26 +131,30 @@
 										</div>
 										<div class="card">
 											<div class="card-body">
-												<h5>Create token</h5>
+												<h5>Set CallBack URL</h5>
 												<form action="/submit_callback_url" method="post">
 													<div class="form-group">
 														<label for="callback_url">Your callback url</label>
-														<input class="form-control" type="text" id="callback_url" name="callback_url" placeholder="Enter your callback url"/>
+														<input class="form-control" type="text" id="callback_url" name="callback_url" placeholder="{{ .callback_url }}"/>
 													</div>
 													<button type="submit" class="btn btn-primary">Submit</button>
 												</form>
+												<br/>
+												<h6>Your callback url should support the following entry points:</h6>
 												<div class="card-block">
 													<div>
 														<h5>/addresses <span class="badge badge-primary">GET</span></h5>
-														Get all the addresses needed to sign a transaction
+														Provide all the addresses needed to sign a transaction
 													</div>
+													<br/>
 													<div>
 														<h5>/sign <span class="badge badge-success">POST</span></h5>
 														Sign a transaction using multi-signature
 													</div>
+													<br/>
 													<div>
-														<h5>/transactions <span class="badge badge-primary">GET</span></h5>
-														Get all transactions
+														<h5>/transactions <span class="badge badge-success">POST</span></h5>
+														Receive information about processed transactions
 													</div>
 												</div>
 											</div>

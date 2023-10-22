@@ -23,15 +23,15 @@ func main() {
 		cfg.TokenTimeToLive, nil, service.Merchants{}, nil)
 
 	// @ToDo write transaction check callback function and find client context
-	multiSignService := MultiSignService.NewMultiSignService(client.Context{}, nil, cfg.Mnemonics)
+	multiSignService := MultiSignService.NewMultiSignService(client.Context{}, nil, cfg.NetworkType, cfg.Mnemonics)
 
 	router := httprouter.New()
 	urlPath := ""
 
-	log.Println("Multisignature service has been started")
 	routing.InitRouter(ctx, router, urlPath, processingService, multiSignService)
 
 	server := &http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router}
+	log.Println("Multisignature service has been started at port", cfg.Port)
 	err := server.ListenAndServe()
 	log.Println(err)
 }

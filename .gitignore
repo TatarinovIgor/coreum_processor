@@ -1,4 +1,5 @@
 cmd/.env
+cmd/multisign-service/.env
 cmd/key
 cmd/cryptoProcessorKey.key.pub
 cmd/cryptoProcessorKey
