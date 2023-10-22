@@ -23,18 +23,6 @@ errors:
       config:
         to: https://www.ory.sh/docs
 
-mutators:
-  noop:
-    enabled: true
-  id_token:
-    # Set enabled to true if the authenticator should be enabled and false to disable the authenticator. Defaults to false.
-    enabled: true
-    config:
-      issuer_url: https://my-oathkeeper/
-      jwks_url: file:///config/jwks.json
-      ttl: 60s
-      #claims: '{"aud": ["https://my-backend-service/some/endpoint"],"def": "{{ print .Extra.some.arbitrary.data }}"}'
-      claims: '{"aud": "https://my-backend-service/some/endpoint","payload":{"merchant_id":"73cef4f7-cfa0-4cb0-99f8-5e2cc07f52ae"}}'
 authorizers:
   allow:
     enabled: true

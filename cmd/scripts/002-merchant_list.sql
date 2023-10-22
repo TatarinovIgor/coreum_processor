@@ -12,3 +12,5 @@ create table if not exists merchant_list
     merchant_id  varchar(64)  default null,
     meta_data    json         default '{}'::json                  not null
 );
+CREATE UNIQUE INDEX if not exists merchant_id
+    on merchant_list (merchant_id);

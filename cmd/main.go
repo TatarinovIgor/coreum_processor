@@ -74,9 +74,9 @@ func main() {
 	// Setting up API routing
 	router := httprouter.New()
 	urlPath := ""
-	log.Println("hello i am started")
 	routing.InitRouter(ctx, ory.NewAPIClient(c), router, urlPath, processingService, userService, assetService)
 	server := &http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router}
+	log.Println("hello i am started at port:", cfg.Port)
 
 	// Creating 2 streams one for API and another for blockchain requests
 	var g run.Group

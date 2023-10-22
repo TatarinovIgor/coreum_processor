@@ -3,16 +3,15 @@ package handler
 import (
 	"coreum_processor/modules/user"
 	"encoding/json"
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 )
 
 type KratosIdentity struct {
-	UserID string `json:"userID"`
-	Traits struct {
-		EMail string `json:"email"`
-	}
+	Identity string `json:"identity"`
+	Email    string `json:"email"`
 }
 
 func CreateUser(user *user.Service) httprouter.Handle {
@@ -25,7 +24,10 @@ func CreateUser(user *user.Service) httprouter.Handle {
 			w.Write([]byte(`{"message":"` + `can't parse traits, error:` + err.Error() + `"}`))
 			return
 		}
-		err = user.AddUser(p.UserID, "", "")
+		var body []byte
+		r.Body.Read(body)
+		fmt.Println(string(body))
+		err = user.AddUser(p.Identity, "", "")
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -45,7 +47,7 @@ func LoginUser(userService *user.Service) httprouter.Handle {
 			w.Write([]byte(`{"message":"` + `can't parse traits, error:` + err.Error() + `"}`))
 			return
 		}
-		_, err = userService.GetUser(p.UserID)
+		_, err = userService.GetUser(p.Identity)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)

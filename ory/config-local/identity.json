@@ -22,10 +22,6 @@
               "via": "email"
             }
           }
-        },
-        "merchant-name": {
-          "type": "string",
-          "title": "Merchant name"
         }
       },
       "required": [

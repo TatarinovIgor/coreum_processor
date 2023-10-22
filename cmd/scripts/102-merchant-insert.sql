@@ -18,3 +18,12 @@ INSERT INTO merchants (created_at, updated_at, key, value, ttl)
             9223372036854775807)
     ON CONFLICT (key) do update set updated_at = excluded.updated_at,
                                     value = excluded.value;
+
+INSERT INTO merchant_list (created_at, updated_at, email, company_name, type, is_blocked, merchant_id, meta_data)
+VALUES (now(), now(), 'test@test.test', 'test merchant', 'advertiser', false, 'aaef4567-b438-48a4-9a3a-f3a730b0e1ec', '{}')
+ON CONFLICT (merchant_id) do update set updated_at = excluded.updated_at,
+                                        email = excluded.email,
+                                        company_name = excluded.company_name,
+                                        type = excluded.type,
+                                        is_blocked = excluded.is_blocked,
+                                        meta_data = excluded.meta_data;
