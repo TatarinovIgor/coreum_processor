@@ -6,14 +6,13 @@ identity:
   schemas:
     - id: default
       url: file:///config/identity.json
+
 courier:
   smtp:
-    connection_uri: smtp://AKIAWRBL5L5H26DLA46Z:BKSRtpMDK4jxPTdrkKm78m5gPC6HB%2FTf3JwqWVHJBTFH@email-smtp.us-east-1.amazonaws.com:587/
-    from_address: igor.tatarinov@birdhouse.technology
-    from_name: Birdhouse
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
 
 selfservice:
-  default_browser_return_url: http://127.0.0.1:4455/ui/dashboard
+  default_browser_return_url: http://127.0.0.1:9090/ui/dashboard
   methods:
     password:
       enabled: true
@@ -23,7 +22,7 @@ selfservice:
         lifespan: 15m
   flows:
     login:
-      ui_url: http://127.0.0.1:4439/login
+      ui_url: http://127.0.0.1:9090/login
       after:
         hooks: [ ] # These actions are executed only if no more specific hooks in the `password` or `oidc` sections are defined
         password:
@@ -43,7 +42,7 @@ selfservice:
                     value: "webhook-regi-api_key"
                     in: header
     registration:
-      ui_url: http://127.0.0.1:4439/register
+      ui_url: http://127.0.0.1:9090/register
       after:
         hooks: [] # These actions are executed only if no more specific hooks in the `password` or `oidc` sections are defined
         password:
@@ -65,7 +64,7 @@ selfservice:
 
     verification:
       enabled: true
-      ui_url: http://127.0.0.1:4439/verification
+      ui_url: http://127.0.0.1:9090/verification
       use: link
       notify_unknown_recipients: true
     recovery:
@@ -73,7 +72,7 @@ selfservice:
       lifespan: 15m
       use: link
       notify_unknown_recipients: true
-      ui_url: http://127.0.0.1:4439/recovery
+      ui_url: http://127.0.0.1:9090/recovery
     settings:
       ui_url: http://127.0.0.1:4439/settings
     error:

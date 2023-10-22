@@ -124,7 +124,7 @@ services:
     depends_on:
       - coreum-processor-migrate
     ports:
-      - '9000:9000'
+      - '9090:9090'
     volumes:
       - type: bind
         source: ./config
