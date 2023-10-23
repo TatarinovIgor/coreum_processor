@@ -20,7 +20,7 @@ func main() {
 	cfg := internal.LoadMultiSignEnv()
 
 	processingService := service.NewProcessingService(cfg.PublicKey, nil,
-		cfg.TokenTimeToLive, nil, service.Merchants{}, nil)
+		cfg.TokenTimeToLive, nil, nil, nil, nil)
 
 	// @ToDo write transaction check callback function and find client context
 	multiSignService := MultiSignService.NewMultiSignService(client.Context{}, nil, cfg.NetworkType, cfg.Mnemonics)
