@@ -10,7 +10,7 @@ type Merchants struct {
 	store storage.Storage
 }
 
-func (service Merchants) GetMerchantData(id string) (MerchantData, error) {
+func (service *Merchants) GetMerchantData(id string) (MerchantData, error) {
 	data := MerchantData{}
 	_, dataRaw, err := service.store.Get(id)
 	if err != nil {
@@ -20,7 +20,7 @@ func (service Merchants) GetMerchantData(id string) (MerchantData, error) {
 	return data, err
 }
 
-func (service Merchants) GetMerchant(id string) (storage.Record, error) {
+func (service *Merchants) GetMerchant(id string) (storage.Record, error) {
 	res := storage.Record{}
 	_, data, err := service.store.Get(id)
 	if err != nil {
@@ -33,7 +33,7 @@ func (service Merchants) GetMerchant(id string) (storage.Record, error) {
 	return res, err
 }
 
-func (service Merchants) GetMerchants() ([]storage.Record, error) {
+func (service *Merchants) GetMerchants() ([]storage.Record, error) {
 	data, err := service.store.GetAll()
 	if err != nil {
 		return data, err
@@ -41,7 +41,7 @@ func (service Merchants) GetMerchants() ([]storage.Record, error) {
 	return data, err
 }
 
-func (service Merchants) CreateMerchantData(guid string, data MerchantData) (int64, error) {
+func (service *Merchants) CreateMerchantData(guid string, data MerchantData) (int64, error) {
 	dataByte, err := json.Marshal(data)
 	if err != nil {
 		return 0, err
@@ -53,7 +53,7 @@ func (service Merchants) CreateMerchantData(guid string, data MerchantData) (int
 	return id, err
 }
 
-func (service Merchants) UpdateMerchantData(id string, data NewMerchant) (string, error) {
+func (service *Merchants) UpdateMerchantData(id string, data NewMerchant) (string, error) {
 	_, dataRaw, err := service.store.Get(id)
 	if err != nil {
 		return "", err
@@ -77,7 +77,7 @@ func (service Merchants) UpdateMerchantData(id string, data NewMerchant) (string
 	return id, err
 }
 
-func (service Merchants) UpdateMerchantCommission(id, blockchain string,
+func (service *Merchants) UpdateMerchantCommission(id, blockchain string,
 	data NewMerchantCommission) (Wallets, error) {
 	_, dataRaw, err := service.store.Get(id)
 	if err != nil {
@@ -113,8 +113,8 @@ func (service Merchants) UpdateMerchantCommission(id, blockchain string,
 	}
 	return newData, err
 }
-func NewMerchantService(store storage.Storage) Merchants {
-	return Merchants{
+func NewMerchantService(store storage.Storage) *Merchants {
+	return &Merchants{
 		store: store,
 	}
 }

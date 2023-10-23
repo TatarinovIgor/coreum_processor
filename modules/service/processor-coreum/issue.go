@@ -25,7 +25,7 @@ func (s CoreumProcessing) IssueNFTClass(ctx context.Context, request service.New
 	} else if errors.Is(err, storage.ErrNotFound) {
 		// create issuer
 		wallet.WalletSeed, wallet.WalletAddress, err = s.createCoreumWallet(ctx,
-			merchantID, externalId, multiSignAddresses)
+			externalId, multiSignAddresses)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -73,7 +73,7 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 	} else if errors.Is(err, storage.ErrNotFound) {
 		// create issuer
 		wallet.WalletSeed, wallet.WalletAddress, err = s.createCoreumWallet(ctx,
-			merchantID, externalId, multiSignAddresses)
+			externalId, multiSignAddresses)
 		if err != nil {
 			return nil, nil, err
 		}

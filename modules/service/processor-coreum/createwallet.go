@@ -16,7 +16,7 @@ import (
 func (s CoreumProcessing) CreateWallet(ctx context.Context, merchantID, externalId string,
 	multiSignAddresses service.FuncMultiSignAddrCallback) (*service.Wallet, error) {
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
-	WalletSeed, WalletAddress, err := s.createCoreumWallet(ctx, merchantID, externalId, multiSignAddresses)
+	WalletSeed, WalletAddress, err := s.createCoreumWallet(ctx, externalId, multiSignAddresses)
 	if err != nil {
 		return nil, err
 	}
@@ -37,10 +37,10 @@ func (s CoreumProcessing) CreateWallet(ctx context.Context, merchantID, external
 	return &wallet, nil
 }
 
-func (s CoreumProcessing) createCoreumWallet(ctx context.Context, merchantID, externalId string,
+func (s CoreumProcessing) createCoreumWallet(ctx context.Context, externalId string,
 	multiSignAddresses service.FuncMultiSignAddrCallback) (string, string, error) {
 	if multiSignAddresses != nil {
-		addresses, err := multiSignAddresses(s.blockchain, merchantID, externalId)
+		addresses, err := multiSignAddresses(s.blockchain, externalId)
 		if err != nil {
 			return "", "", fmt.Errorf("can't create Coreum multising Wallet, error: %v", err)
 		} else if addresses != nil && len(addresses) > 0 {

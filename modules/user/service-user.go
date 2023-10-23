@@ -8,7 +8,7 @@ import (
 
 type Service struct {
 	userStorage *storage.UserPSQL
-	merchants   service.Merchants
+	merchants   *service.Merchants
 }
 
 func (s *Service) AddUser(identity, firstName, lastName string) error {
@@ -47,7 +47,7 @@ func (s *Service) RequestMerchantForUser(identity, merchantName, merchantEmail s
 }
 
 // NewService create a service to process operation with users and merchant settings
-func NewService(userStorage *storage.UserPSQL, merchants service.Merchants) *Service {
+func NewService(userStorage *storage.UserPSQL, merchants *service.Merchants) *Service {
 	return &Service{
 		userStorage: userStorage,
 		merchants:   merchants,

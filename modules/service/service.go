@@ -30,24 +30,26 @@ var (
 type ProcessingService struct {
 	publicKey        *rsa.PublicKey
 	privateKey       *rsa.PrivateKey
-	tokenTimeToLive  int64
+	tokenTimeToLive  int
 	processorWallets []Wallet
 	processors       map[string]CryptoProcessor
-	merchants        Merchants
+	merchants        *Merchants
+	callBack         *CallBacks
 	transactionStore *storage.TransactionPSQL
 	userStorage      *storage.UserStore
 }
 
 // NewProcessingService create a service to process transaction by provided crypto processor
 func NewProcessingService(publicKey *rsa.PublicKey, privateKey *rsa.PrivateKey,
-	tokenTimeToLive int64, processors map[string]CryptoProcessor,
-	merchants Merchants, transactionStore *storage.TransactionPSQL) *ProcessingService {
+	tokenTimeToLive int, processors map[string]CryptoProcessor,
+	merchants *Merchants, callBack *CallBacks, transactionStore *storage.TransactionPSQL) *ProcessingService {
 	return &ProcessingService{
 		publicKey:        publicKey,
 		privateKey:       privateKey,
 		tokenTimeToLive:  tokenTimeToLive,
 		processors:       processors,
 		merchants:        merchants,
+		callBack:         callBack,
 		transactionStore: transactionStore,
 	}
 }
@@ -129,7 +131,7 @@ func (s ProcessingService) AdminTokenDecode(token string) (TokenPayload, error) 
 		return tokenData.Payload, fmt.Errorf("can't unmarshal token data, err: %v", err)
 	}
 
-	if time.Now().Unix()-tok.IssuedAt().Unix() > s.tokenTimeToLive {
+	if time.Now().Unix()-tok.IssuedAt().Unix() > int64(s.tokenTimeToLive) {
 		return tokenData.Payload, fmt.Errorf("token expaired")
 	}
 
@@ -155,7 +157,7 @@ func (s ProcessingService) TokenDecode(token string) (TokenPayload, error) {
 	if err != nil {
 		return tokenData.Payload, fmt.Errorf("can't unmarshal token data, err: %v", err)
 	}
-	if time.Now().Unix()-tok.IssuedAt().Unix() > s.tokenTimeToLive {
+	if time.Now().Unix()-tok.IssuedAt().Unix() > int64(s.tokenTimeToLive) {
 		return tokenData.Payload, fmt.Errorf("token expaired")
 	}
 	data, err := s.merchants.GetMerchantData(tokenData.Payload.MerchantID)
@@ -235,14 +237,18 @@ func (s ProcessingService) UpdateMerchantCommission(ctx context.Context, guid, b
 	if !ok {
 		return Wallets{}, fmt.Errorf("%s blockchain not found", blockchain)
 	}
+	callBack, err := s.callBack.GetMultiSignAddressesFn(guid)
+	if err != nil {
+		return Wallets{}, fmt.Errorf("could not extract merchant: %v callback, error: %w", guid, err)
+	}
 	_, err = processor.Deposit(ctx, CredentialDeposit{Blockchain: blockchain, Amount: 0}, guid, wallets.SendingID,
-		nil)
+		callBack)
 	if err != nil {
 		return Wallets{}, err
 	}
 	//wallets.SendingID = res.WalletAddress
 	_, err = processor.Deposit(ctx, CredentialDeposit{Blockchain: blockchain, Amount: 0}, guid, wallets.ReceivingID,
-		nil)
+		callBack)
 	if err != nil {
 		return Wallets{}, err
 	}
@@ -256,8 +262,11 @@ func (s ProcessingService) CreateWallet(ctx context.Context,
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found")
 	}
-
-	response, err := processor.CreateWallet(ctx, merchantID, externalID, nil)
+	callBack, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	if err != nil {
+		return nil, fmt.Errorf("could not extract merchant: %v callback, error: %w", merchantID, err)
+	}
+	response, err := processor.CreateWallet(ctx, merchantID, externalID, callBack)
 	if err != nil {
 		return nil, fmt.Errorf("could not create wallet for blockchain: %s, err: %s", blockchain, err)
 	}
@@ -272,7 +281,11 @@ func (s ProcessingService) Deposit(ctx context.Context,
 		return nil, fmt.Errorf("%s blockchain not found", deposit.Blockchain)
 	}
 
-	response, err := processor.Deposit(ctx, deposit, merchantID, externalId, nil)
+	callBack, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	if err != nil {
+		return nil, fmt.Errorf("could not extract merchant: %v callback, error: %w", merchantID, err)
+	}
+	response, err := processor.Deposit(ctx, deposit, merchantID, externalId, callBack)
 	if err != nil {
 		return nil, fmt.Errorf("could not perform deposit: %s", err)
 	}
@@ -377,7 +390,11 @@ func (s ProcessingService) IssueFT(ctx context.Context, request NewTokenRequest,
 		return nil, nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
 
-	response, features, err := processor.IssueFT(ctx, request, merchantID, externalId, nil)
+	callBack, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not extract merchant: %v callback, error: %w", merchantID, err)
+	}
+	response, features, err := processor.IssueFT(ctx, request, merchantID, externalId, callBack)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -390,8 +407,11 @@ func (s ProcessingService) IssueNFT(ctx context.Context, request NewTokenRequest
 	if !ok {
 		return nil, nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
-
-	response, features, err := processor.IssueNFTClass(ctx, request, merchantID, externalId, nil)
+	callBack, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not extract merchant: %v callback, error: %w", merchantID, err)
+	}
+	response, features, err := processor.IssueNFTClass(ctx, request, merchantID, externalId, callBack)
 	if err != nil {
 		return nil, nil, err
 	}

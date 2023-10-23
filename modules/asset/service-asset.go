@@ -10,7 +10,7 @@ import (
 
 type Service struct {
 	assetStorage *storage.AssetPSQL
-	merchants    service.Merchants
+	merchants    *service.Merchants
 }
 
 func (s *Service) GetBlockChainAssetByCodeAndIssuer(blockchain, code, issuer string) (*storage.AssetStore, error) {
@@ -44,7 +44,7 @@ func (s *Service) IssueAsset(blockchain, code, merchantID string) error {
 }
 
 // NewService create a service to process operation with assets and merchant settings
-func NewService(assetStorage *storage.AssetPSQL, merchants service.Merchants) *Service {
+func NewService(assetStorage *storage.AssetPSQL, merchants *service.Merchants) *Service {
 	return &Service{
 		assetStorage: assetStorage,
 		merchants:    merchants,

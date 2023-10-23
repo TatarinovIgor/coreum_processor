@@ -23,6 +23,10 @@ func MakeConfigFromEnv() AppConfig {
 		publicKeyPath = MustString("PUBLIC_KEY")
 		// Initializing interval of checking transactions
 		interval = GetInt("LISTEN_AND_SERVE_INTERVAL", 15)
+		// Initializing number of retry for callbacks
+		retryCount = GetInt("RETRY_COUNT", 15)
+		// Initializing time waite interval in sec betweend callbacks
+		retryWait = GetInt("RETRY_COUNT", 30)
 		// Initializing ENV variable for kratos url
 		kratosURL = MustString("KRATOS_URL")
 	)
@@ -68,10 +72,12 @@ func MakeConfigFromEnv() AppConfig {
 
 	return AppConfig{
 		Port:            fmt.Sprintf("%v", port),
-		TokenTimeToLive: int64(tokenTimeToLive),
+		TokenTimeToLive: tokenTimeToLive,
 		PrivateKey:      private,
 		PublicKey:       public,
 		Interval:        time.Duration(interval),
+		RetryCount:      retryCount,
+		RetryWait:       retryWait,
 		KratosURL:       kratosURL,
 	}
 }

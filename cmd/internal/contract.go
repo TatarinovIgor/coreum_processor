@@ -23,10 +23,12 @@ type MultiSignConfig struct {
 
 type AppConfig struct {
 	Port            string
-	TokenTimeToLive int64
+	TokenTimeToLive int
 	PrivateKey      *rsa.PrivateKey
 	PublicKey       *rsa.PublicKey
 	Interval        time.Duration
+	RetryCount      int
+	RetryWait       int
 	KratosURL       string
 }
 

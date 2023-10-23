@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	internalApp "coreum_processor/cmd/internal"
-	asset "coreum_processor/modules/asset"
+	"coreum_processor/modules/asset"
 	"coreum_processor/modules/routing"
 	"coreum_processor/modules/service"
 	"coreum_processor/modules/storage"
-	user "coreum_processor/modules/user"
+	"coreum_processor/modules/user"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/oklog/run"
@@ -59,9 +59,13 @@ func main() {
 	// Initializing merchant management service
 	merchants := service.NewMerchantService(merchantsStore)
 
+	// Initializing callback service
+	callBack := service.NewCallBackService(cfg.PrivateKey,
+		cfg.TokenTimeToLive, cfg.RetryCount, cfg.RetryWait, merchants)
+
 	// Initializing processing services
 	processingService := service.NewProcessingService(cfg.PublicKey, cfg.PrivateKey,
-		cfg.TokenTimeToLive, processors, merchants, transactionStore)
+		cfg.TokenTimeToLive, processors, merchants, callBack, transactionStore)
 
 	// Initializing user management service
 	userService := user.NewService(userStore, merchants)

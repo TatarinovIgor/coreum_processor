@@ -236,7 +236,7 @@ type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet
 	amount float64)
 
 // FuncMultiSignAddrCallback defines a callback function to get a list of address to be added to multi sig account
-type FuncMultiSignAddrCallback func(blockChain, merchantID, externalId string) (MultiSignAddress, error)
+type FuncMultiSignAddrCallback func(blockChain, externalId string) (MultiSignAddress, error)
 
 type CryptoProcessor interface {
 	// CreateWallet create a wallet and put to the store under defined externalID for merchantID

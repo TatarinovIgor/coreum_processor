@@ -20,7 +20,7 @@ func (s CoreumProcessing) Deposit(ctx context.Context, request service.Credentia
 
 	if err != nil && errors.Is(err, storage.ErrNotFound) {
 		wallet.WalletSeed, wallet.WalletAddress, err = s.createCoreumWallet(ctx,
-			merchantID, externalId, multiSignAddresses)
+			externalId, multiSignAddresses)
 		if err != nil {
 			return nil, err
 		}
