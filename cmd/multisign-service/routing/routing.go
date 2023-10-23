@@ -10,9 +10,10 @@ import (
 )
 
 func InitRouter(ctx context.Context, router *httprouter.Router, pathName string,
-	processing *service.ProcessingService, multiSignService *multiSignService.MultiSignService) {
+	processing *service.ProcessingService, multiSign *multiSignService.MultiSignService) {
 	routerWrap := NewRouterWrap(pathName, router)
 
-	routerWrap.GET("/addresses", handler.GetAddressesHandler(multiSignService))
-	routerWrap.POST("/sign", middleware.AuthMiddlewareAdmin(processing, handler.SignTransactionHandler(multiSignService)))
+	routerWrap.GET("/addresses", handler.GetAddressesHandler(multiSign))
+	routerWrap.POST("/sign", middleware.AuthMiddlewareAdmin(processing, handler.SignTransactionHandler(multiSign)))
+	routerWrap.POST("/transaction", handler.InitiateTransactionHandler(multiSign))
 }
