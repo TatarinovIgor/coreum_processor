@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"coreum_processor/modules/storage"
 	"fmt"
 	"github.com/google/uuid"
 	"time"
@@ -19,12 +20,11 @@ type TokenPayload struct {
 }
 
 type MerchantData struct {
-	ID              uuid.UUID          `json:"id"`
-	PublicKey       string             `json:"public_key"`
-	MerchantName    string             `json:"name"`
-	CallBackURL     string             `json:"call_back_url"`
-	SignCallBackURL string             `json:"sign_call_back_url"`
-	Wallets         map[string]Wallets `json:"wallets"`
+	ID           uuid.UUID          `json:"id"`
+	PublicKey    string             `json:"public_key"`
+	MerchantName string             `json:"name"`
+	CallBackURL  string             `json:"call_back_url"`
+	Wallets      map[string]Wallets `json:"wallets"`
 }
 type Commission struct {
 	Fix     float64 `json:"fix"`
@@ -158,7 +158,6 @@ type NewMerchant struct {
 	PublicKey    string `json:"public_key"`
 	MerchantName string `json:"name"`
 	Callback     string `json:"callback"`
-	SignCallBack string `json:"sign_callback"`
 }
 
 type NewMerchantCommission struct {
@@ -237,6 +236,13 @@ type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet
 
 // FuncMultiSignAddrCallback defines a callback function to get a list of address to be added to multi sig account
 type FuncMultiSignAddrCallback func(blockChain, externalId string) (MultiSignAddress, error)
+
+// FuncMultiSignSignature defines a callback function to get a list of address to be added to multi sig account
+type FuncMultiSignSignature func(blockChain, externalId, address, trxID string,
+	trxData []byte, threshold int) (map[string][]byte, error)
+
+// FuncTransactionsCallback defines a callback function to post transaction for merchant
+type FuncTransactionsCallback func(trx storage.TransactionStore) error
 
 type CryptoProcessor interface {
 	// CreateWallet create a wallet and put to the store under defined externalID for merchantID

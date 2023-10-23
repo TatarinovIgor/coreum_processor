@@ -31,6 +31,15 @@ func NewCallBackService(privateKey *rsa.PrivateKey, tokenTimeToLive, retryCount,
 		privateKey: privateKey, tokenTimeToLive: tokenTimeToLive, merchantService: merchantService}
 }
 
+func (s *CallBacks) createJWTAuthorization() (string, error) {
+	t := jwt.New(jwt.GetSigningMethod("RS256"))
+
+	t.Claims = &jwt.StandardClaims{
+		ExpiresAt: time.Now().UTC().Add(time.Duration(s.tokenTimeToLive) * time.Second).Unix(),
+	}
+	return t.SignedString(s.privateKey)
+}
+
 func (s *CallBacks) GetMultiSignAddressesFn(merchantID string) (FuncMultiSignAddrCallback, error) {
 	merchant, err := s.merchantService.GetMerchantData(merchantID)
 	if err != nil {
@@ -40,7 +49,7 @@ func (s *CallBacks) GetMultiSignAddressesFn(merchantID string) (FuncMultiSignAdd
 		return nil, nil
 	}
 	return func(blockChain, externalId string) (MultiSignAddress, error) {
-		authorization, err := s.createJWT()
+		authorization, err := s.createJWTAuthorization()
 		query := map[string]string{"blockchain": blockChain, "external_id": externalId}
 		resp, err := s.client.R().SetHeader("Authorization", authorization).SetQueryParams(query).
 			EnableTrace().
@@ -54,7 +63,7 @@ func (s *CallBacks) GetMultiSignAddressesFn(merchantID string) (FuncMultiSignAdd
 	}, nil
 }
 
-func (s *CallBacks) GetMultiSignFn(merchantID string) (FuncMultiSignAddrCallback, error) {
+func (s *CallBacks) GetMultiSignFn(merchantID string) (FuncMultiSignSignature, error) {
 	merchant, err := s.merchantService.GetMerchantData(merchantID)
 	if err != nil {
 		return nil, err
@@ -65,7 +74,7 @@ func (s *CallBacks) GetMultiSignFn(merchantID string) (FuncMultiSignAddrCallback
 	return nil, nil
 }
 
-func (s *CallBacks) GetTransactionFn(merchantID string) (FuncMultiSignAddrCallback, error) {
+func (s *CallBacks) GetTransactionFn(merchantID string) (FuncTransactionsCallback, error) {
 	merchant, err := s.merchantService.GetMerchantData(merchantID)
 	if err != nil {
 		return nil, err
@@ -74,13 +83,4 @@ func (s *CallBacks) GetTransactionFn(merchantID string) (FuncMultiSignAddrCallba
 		return nil, nil
 	}
 	return nil, nil
-}
-
-func (s *CallBacks) createJWT() (string, error) {
-	t := jwt.New(jwt.GetSigningMethod("RS256"))
-
-	t.Claims = &jwt.StandardClaims{
-		ExpiresAt: time.Now().UTC().Add(time.Duration(s.tokenTimeToLive) * time.Second).Unix(),
-	}
-	return t.SignedString(s.privateKey)
 }

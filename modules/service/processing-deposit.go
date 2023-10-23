@@ -118,10 +118,19 @@ func (s ProcessingService) processDepositProcessed(ctx context.Context, bc strin
 				log.Println(fmt.Errorf("can't settle transactions to merchant: %v, err: %v", merch.ID, err))
 				return
 			}
+			callBack, err := s.callBack.GetTransactionFn(tr.MerchantId)
+			if err != nil {
+				log.Println(fmt.Errorf(
+					"can't settle transactions to merchant: %v, due to issue with callback err: %v",
+					merch.ID, err))
+				return
+			}
 			for _, tr := range trx {
 				s.transactionStore.PutSettledTransaction(tr.MerchantId, tr.ExternalId,
 					tr.GUID.String(), hash.TransferHash)
-				s.MakeCallback(tr, merch.CallBackURL)
+				if callBack != nil {
+					callBack(tr)
+				}
 			}
 		}
 	}
@@ -147,7 +156,15 @@ func (s ProcessingService) processDepositSettled(ctx context.Context, bc string,
 				// TODO: gas should be returned to sending wallet
 				s.transactionStore.PutDoneTransaction(tr.MerchantId, tr.ExternalId,
 					tr.GUID.String(), "")
-				s.MakeCallback(tr, merch.CallBackURL)
+				callBack, err := s.callBack.GetTransactionFn(tr.MerchantId)
+				if err != nil {
+					log.Println(fmt.Errorf(
+						"error in process deposit for merchant: %v, due to issue with callback err: %v",
+						merch.ID, err))
+					continue
+				} else if callBack != nil {
+					callBack(tr)
+				}
 			} else if res == FailedTransaction {
 				// reset transaction for settlement
 				s.transactionStore.PutSettledTransaction(tr.MerchantId, tr.ExternalId,

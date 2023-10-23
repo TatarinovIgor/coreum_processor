@@ -51,11 +51,15 @@ func (s ProcessingService) processWithdrawProcessed(ctx context.Context, bc stri
 			}
 			s.transactionStore.PutSettledTransaction(tr.MerchantId, tr.ExternalId, tr.GUID.String(),
 				hash.TransactionHash)
-			if len(merch.CallBackURL) <= 4 {
-				log.Println(fmt.Errorf("callback of merchant %v is not found", merch.ID))
+			callBack, err := s.callBack.GetTransactionFn(tr.MerchantId)
+			if err != nil {
+				log.Println(fmt.Errorf(
+					"error in process withdraw processing for merchant: %v, due to issue with callback err: %v",
+					merch.ID, err))
 				continue
+			} else if callBack != nil {
+				callBack(tr)
 			}
-			s.MakeCallback(tr, merch.CallBackURL)
 		}
 	}
 }
@@ -85,15 +89,14 @@ func (s ProcessingService) processWithdrawSettled(ctx context.Context, bc string
 				return
 			}
 
-			if len(merch.CallBackURL) <= 4 {
-				log.Println(fmt.Errorf("callback of merchant %v is not found", merch.ID))
-				continue
-			}
-
-			err = s.MakeCallback(tr, merch.CallBackURL)
+			callBack, err := s.callBack.GetTransactionFn(tr.MerchantId)
 			if err != nil {
-				log.Println(err)
-				return
+				log.Println(fmt.Errorf(
+					"error in process withdraw settlement for merchant: %v, due to issue with callback err: %v",
+					merch.ID, err))
+				continue
+			} else if callBack != nil {
+				callBack(tr)
 			}
 		}
 	}

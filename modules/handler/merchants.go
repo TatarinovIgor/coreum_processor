@@ -326,11 +326,10 @@ func GetWalletById(processing *service.ProcessingService) httprouter.Handle {
 // parseMerchantData parsing a merchant's data for storing it in database
 func parseMerchantData(newMerchant service.NewMerchant) service.MerchantData {
 	merchant := service.MerchantData{
-		PublicKey:       newMerchant.PublicKey,
-		MerchantName:    newMerchant.MerchantName,
-		ID:              uuid.New(),
-		CallBackURL:     newMerchant.Callback,
-		SignCallBackURL: newMerchant.SignCallBack,
+		PublicKey:    newMerchant.PublicKey,
+		MerchantName: newMerchant.MerchantName,
+		ID:           uuid.New(),
+		CallBackURL:  newMerchant.Callback,
 	}
 	return merchant
 }

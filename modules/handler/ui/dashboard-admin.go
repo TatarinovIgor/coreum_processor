@@ -100,11 +100,10 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 
 		//Creating new merchant
 		merchant := service.MerchantData{
-			PublicKey:       "",
-			MerchantName:    raw.FirstName,
-			ID:              uuid.New(),
-			CallBackURL:     "",
-			SignCallBackURL: "",
+			PublicKey:    "",
+			MerchantName: raw.FirstName,
+			ID:           uuid.New(),
+			CallBackURL:  "",
 		}
 
 		_, err = processing.CreateMerchants(merchant.ID.String(), merchant)
