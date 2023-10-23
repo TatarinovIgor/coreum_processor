@@ -1,6 +1,7 @@
 package service
 
 import (
+	"coreum_processor/modules/storage"
 	"crypto/rsa"
 	"encoding/json"
 	"github.com/go-resty/resty/v2"
@@ -71,7 +72,19 @@ func (s *CallBacks) GetMultiSignFn(merchantID string) (FuncMultiSignSignature, e
 	if len(merchant.CallBackURL) < minLengthCallBackURL {
 		return nil, nil
 	}
-	return nil, nil
+	return func(request SignTransactionRequest) (map[string][]byte, error) {
+		authorization, err := s.createJWTAuthorization()
+
+		resp, err := s.client.R().SetHeader("Authorization", authorization).SetBody(request).
+			EnableTrace().
+			Post(merchant.CallBackURL + callBackSign)
+		if err != nil {
+			return nil, err
+		}
+		res := map[string][]byte{}
+		err = json.Unmarshal(resp.Body(), &res)
+		return res, err
+	}, nil
 }
 
 func (s *CallBacks) GetTransactionFn(merchantID string) (FuncTransactionsCallback, error) {
@@ -82,5 +95,16 @@ func (s *CallBacks) GetTransactionFn(merchantID string) (FuncTransactionsCallbac
 	if len(merchant.CallBackURL) < minLengthCallBackURL {
 		return nil, nil
 	}
-	return nil, nil
+	return func(trx storage.TransactionStore) error {
+		authorization, err := s.createJWTAuthorization()
+		resp, err := s.client.R().SetHeader("Authorization", authorization).SetBody(trx).
+			EnableTrace().
+			Post(merchant.CallBackURL + callBackTransactions)
+		if err != nil {
+			return err
+		}
+		res := MultiSignAddress{}
+		err = json.Unmarshal(resp.Body(), &res)
+		return err
+	}, nil
 }

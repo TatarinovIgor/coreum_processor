@@ -221,6 +221,15 @@ type TransactionMeta struct {
 
 type MultiSignAddress map[string]float64
 
+type SignTransactionRequest struct {
+	ExternalID string `json:"external_id"`
+	Blockchain string `json:"blockchain"`
+	Address    string `json:"address"`
+	TrxID      string `json:"trxID"`
+	TrxData    string `json:"trxData"`
+	Threshold  int    `json:"threshold"`
+}
+
 type CryptoTransactionStatus int
 
 const (
@@ -238,8 +247,7 @@ type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet
 type FuncMultiSignAddrCallback func(blockChain, externalId string) (MultiSignAddress, error)
 
 // FuncMultiSignSignature defines a callback function to get a list of address to be added to multi sig account
-type FuncMultiSignSignature func(blockChain, externalId, address, trxID string,
-	trxData []byte, threshold int) (map[string][]byte, error)
+type FuncMultiSignSignature func(request SignTransactionRequest) (map[string][]byte, error)
 
 // FuncTransactionsCallback defines a callback function to post transaction for merchant
 type FuncTransactionsCallback func(trx storage.TransactionStore) error

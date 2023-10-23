@@ -6,6 +6,7 @@ type MultiSignAddresses struct {
 }
 
 type SignTransactionRequest struct {
+	ExternalID string `json:"external_id"`
 	Blockchain string `json:"blockchain"`
 	Address    string `json:"address"`
 	TrxID      string `json:"trxID"`
