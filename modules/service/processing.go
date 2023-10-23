@@ -85,7 +85,7 @@ func (s ProcessingService) processTransaction(ctx context.Context) {
 			bc = strings.ToLower(bc)
 			processor, ok := s.processors[bc]
 			if !ok {
-				log.Println(fmt.Errorf("processing can't find processor for blockchain: %v", bc))
+				//log.Println(fmt.Errorf("processing can't find processor for blockchain: %v", bc))
 				continue
 			}
 			if processor == nil {

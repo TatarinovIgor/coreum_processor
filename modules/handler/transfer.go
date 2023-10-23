@@ -379,14 +379,14 @@ func MintTokenMerchant(ctx context.Context, processing *service.ProcessingServic
 			return
 		}
 
-		if TokenRequest.Blockchain == "coreum" {
-			TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, merchantID+"-S")
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "could not perform token issuing", http.StatusBadRequest)
-				return
-			}
-		}
+		//if TokenRequest.Blockchain == "coreum" {
+		//	TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, merchantID+"-S")
+		//	if err != nil {
+		//		log.Println(err)
+		//		http.Error(w, "could not perform token issuing", http.StatusBadRequest)
+		//		return
+		//	}
+		//}
 
 		TokenRequest.ReceivingWalletID = merchantID + "-S"
 
