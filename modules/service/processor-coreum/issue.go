@@ -20,23 +20,24 @@ func (s CoreumProcessing) IssueNFTClass(ctx context.Context, request service.New
 	wallet := service.Wallet{}
 
 	_, byteAddress, err := s.store.GetByUser(merchantID, externalId)
+	key := ""
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		return nil, nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
 	} else if errors.Is(err, storage.ErrNotFound) {
 		// create issuer
-		wallet.WalletSeed, wallet.WalletAddress, wallet.Threshold, err = s.createCoreumWallet(ctx,
+		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,
 			externalId, multiSignAddresses)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		wallet.Blockchain = request.Blockchain
-		key, err := json.Marshal(wallet)
+		value, err := json.Marshal(wallet)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		_, err = s.store.Put(merchantID, externalId, wallet.WalletAddress, key)
+		_, err = s.store.Put(merchantID, externalId, key, value)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -68,23 +69,24 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 
 	issuerId := fmt.Sprintf("%s-%s", merchantID, request.Code)
 	_, byteAddress, err := s.store.GetByUser(merchantID, issuerId)
+	key := ""
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		return nil, nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
 	} else if errors.Is(err, storage.ErrNotFound) {
 		// create issuer
-		wallet.WalletSeed, wallet.WalletAddress, wallet.Threshold, err = s.createCoreumWallet(ctx,
+		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,
 			externalId, multiSignAddresses)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		wallet.Blockchain = request.Blockchain
-		key, err := json.Marshal(wallet)
+		value, err := json.Marshal(wallet)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		_, err = s.store.Put(merchantID, issuerId, wallet.WalletAddress, key)
+		_, err = s.store.Put(merchantID, issuerId, key, value)
 		if err != nil {
 			return nil, nil, err
 		}

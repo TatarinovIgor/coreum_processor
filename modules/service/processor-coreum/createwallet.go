@@ -18,7 +18,7 @@ func (s CoreumProcessing) CreateWallet(ctx context.Context, merchantID, external
 
 	wallet := service.Wallet{Blockchain: s.blockchain}
 
-	WalletSeed, WalletAddress, address, threshold, err := s.createCoreumWallet(ctx, externalId, multiSignAddresses)
+	WalletSeed, WalletAddress, key, threshold, err := s.createCoreumWallet(ctx, externalId, multiSignAddresses)
 	if err != nil {
 		return nil, err
 	}
@@ -27,12 +27,12 @@ func (s CoreumProcessing) CreateWallet(ctx context.Context, merchantID, external
 	wallet.WalletSeed = WalletSeed
 	wallet.Threshold = threshold
 
-	key, err := json.Marshal(wallet)
+	value, err := json.Marshal(wallet)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = s.store.Put(merchantID, externalId, address, key)
+	_, err = s.store.Put(merchantID, externalId, key, value)
 	if err != nil {
 		return nil, err
 	}

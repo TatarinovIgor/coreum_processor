@@ -17,21 +17,21 @@ func (s CoreumProcessing) Deposit(ctx context.Context, request service.Credentia
 
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
 	_, walletByte, err := s.store.GetByUser(merchantID, externalId)
-
+	key := ""
 	if err != nil && errors.Is(err, storage.ErrNotFound) {
-		wallet.WalletSeed, wallet.WalletAddress, wallet.Threshold, err = s.createCoreumWallet(ctx,
+		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,
 			externalId, multiSignAddresses)
 		if err != nil {
 			return nil, err
 		}
 
 		wallet.Blockchain = request.Blockchain
-		key, err := json.Marshal(wallet)
+		value, err := json.Marshal(wallet)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = s.store.Put(merchantID, externalId, wallet.WalletAddress, key)
+		_, err = s.store.Put(merchantID, externalId, key, value)
 		if err != nil {
 			return nil, err
 		}
