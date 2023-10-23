@@ -30,13 +30,20 @@ func (s ProcessingService) processWithdrawProcessed(ctx context.Context, bc stri
 	if err != nil && !errors.Is(storage.ErrNotFound, err) {
 		log.Println(fmt.Errorf("can't get merchant transactions to settle, err: %v", err))
 	} else if err == nil {
+
 		for _, tr := range trx {
 
 			commission := wallet.CommissionSending.Fix + tr.Amount*wallet.CommissionSending.Percent/100
 
 			s.transactionStore.PutProcessedTransaction(tr.MerchantId, tr.ExternalId, tr.GUID.String(),
 				tr.Hash1, commission)
-
+			callBackSign, err := s.callBack.GetMultiSignFn(tr.MerchantId)
+			if err != nil {
+				log.Println(fmt.Errorf(
+					"error in process withdraw processing for merchant: %v, due to issue with callback err: %v",
+					merch.ID, err))
+				continue
+			}
 			hash, err := processor.Withdraw(ctx, CredentialWithdraw{
 				Amount:        tr.Amount,
 				Blockchain:    tr.Blockchain,
@@ -44,21 +51,26 @@ func (s ProcessingService) processWithdrawProcessed(ctx context.Context, bc stri
 				Asset:         tr.Asset,
 				Issuer:        tr.Issuer,
 				Memo:          "",
-			}, merch.ID.String(), wallet.SendingID, wallet)
+			}, merch.ID.String(), wallet.SendingID, wallet, callBackSign)
 			if err != nil {
 				log.Println(fmt.Errorf("can't process transactions: %v to settle, err: %v", tr.GUID, err))
 				continue
 			}
 			s.transactionStore.PutSettledTransaction(tr.MerchantId, tr.ExternalId, tr.GUID.String(),
 				hash.TransactionHash)
-			callBack, err := s.callBack.GetTransactionFn(tr.MerchantId)
+			callBackTrx, err := s.callBack.GetTransactionFn(tr.MerchantId)
 			if err != nil {
 				log.Println(fmt.Errorf(
 					"error in process withdraw processing for merchant: %v, due to issue with callback err: %v",
 					merch.ID, err))
 				continue
-			} else if callBack != nil {
-				callBack(tr)
+			} else if callBackTrx != nil {
+				err = callBackTrx(tr)
+				if err != nil {
+					log.Println(fmt.Errorf(
+						"error in process withdraw processing for merchant: %v, callback err: %v",
+						merch.ID, err))
+				}
 			}
 		}
 	}
@@ -89,14 +101,19 @@ func (s ProcessingService) processWithdrawSettled(ctx context.Context, bc string
 				return
 			}
 
-			callBack, err := s.callBack.GetTransactionFn(tr.MerchantId)
+			callBackTrx, err := s.callBack.GetTransactionFn(tr.MerchantId)
 			if err != nil {
 				log.Println(fmt.Errorf(
 					"error in process withdraw settlement for merchant: %v, due to issue with callback err: %v",
 					merch.ID, err))
 				continue
-			} else if callBack != nil {
-				callBack(tr)
+			} else if callBackTrx != nil {
+				err = callBackTrx(tr)
+				if err != nil {
+					log.Println(fmt.Errorf(
+						"error in process withdraw processing for merchant: %v, callback err: %v",
+						merch.ID, err))
+				}
 			}
 		}
 	}

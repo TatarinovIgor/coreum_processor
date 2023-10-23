@@ -12,8 +12,8 @@ import (
 )
 
 func (s CoreumProcessing) Withdraw(ctx context.Context,
-	request service.CredentialWithdraw, merchantID, externalId string,
-	merchantWallets service.Wallets) (*service.WithdrawResponse, error) {
+	request service.CredentialWithdraw, merchantID, externalId string, merchantWallets service.Wallets,
+	multiSignSignature service.FuncMultiSignSignature) (*service.WithdrawResponse, error) {
 	commission := 0.0
 	if externalId != merchantWallets.ReceivingID || externalId != merchantWallets.SendingID {
 		commission = merchantWallets.CommissionSending.Fix

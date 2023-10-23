@@ -187,16 +187,10 @@ type TransactionsResponse struct {
 }
 
 type Wallet struct {
-	WalletAddress string `json:"wallet_address"`
-	WalletSeed    string `json:"wallet_seed"`
-	Blockchain    string `json:"blockchain"`
-}
-
-type UserWalletDB struct {
-	ExternalId    string
-	WalletAddress string
-	WalletSeed    string
-	Blockchain    string
+	WalletAddress string  `json:"wallet_address"`
+	WalletSeed    string  `json:"wallet_seed"`
+	Blockchain    string  `json:"blockchain"`
+	Threshold     float64 `json:"threshold"`
 }
 
 type TransactionResponse struct {
@@ -244,7 +238,7 @@ type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet
 	amount float64)
 
 // FuncMultiSignAddrCallback defines a callback function to get a list of address to be added to multi sig account
-type FuncMultiSignAddrCallback func(blockChain, externalId string) (MultiSignAddress, error)
+type FuncMultiSignAddrCallback func(blockChain, externalId string) (MultiSignAddress, float64, error)
 
 // FuncMultiSignSignature defines a callback function to get a list of address to be added to multi sig account
 type FuncMultiSignSignature func(request SignTransactionRequest) (map[string][]byte, error)
@@ -271,7 +265,8 @@ type CryptoProcessor interface {
 
 	// Withdraw
 	Withdraw(ctx context.Context, request CredentialWithdraw,
-		merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
+		merchantID, externalId string, merchantWallets Wallets,
+		multiSignSignature FuncMultiSignSignature) (*WithdrawResponse, error)
 
 	IssueFT(ctx context.Context, request NewTokenRequest, merchantID, externalID string,
 		multiSignAddresses FuncMultiSignAddrCallback) (*NewTokenResponse, []byte, error)

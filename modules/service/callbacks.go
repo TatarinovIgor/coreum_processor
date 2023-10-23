@@ -49,18 +49,22 @@ func (s *CallBacks) GetMultiSignAddressesFn(merchantID string) (FuncMultiSignAdd
 	if len(merchant.CallBackURL) < minLengthCallBackURL {
 		return nil, nil
 	}
-	return func(blockChain, externalId string) (MultiSignAddress, error) {
+	return func(blockChain, externalId string) (MultiSignAddress, float64, error) {
+		threshold := 0.
 		authorization, err := s.createJWTAuthorization()
 		query := map[string]string{"blockchain": blockChain, "external_id": externalId}
 		resp, err := s.client.R().SetHeader("Authorization", authorization).SetQueryParams(query).
 			EnableTrace().
 			Get(merchant.CallBackURL + callBackAddresses)
 		if err != nil {
-			return MultiSignAddress{}, err
+			return MultiSignAddress{}, threshold, err
 		}
-		res := MultiSignAddress{}
+		res := struct {
+			Addresses MultiSignAddress `json:"addresses"`
+			Threshold float64          `json:"threshold"`
+		}{}
 		err = json.Unmarshal(resp.Body(), &res)
-		return res, err
+		return res.Addresses, res.Threshold, err
 	}, nil
 }
 
@@ -81,8 +85,10 @@ func (s *CallBacks) GetMultiSignFn(merchantID string) (FuncMultiSignSignature, e
 		if err != nil {
 			return nil, err
 		}
+
 		res := map[string][]byte{}
 		err = json.Unmarshal(resp.Body(), &res)
+
 		return res, err
 	}, nil
 }
@@ -97,14 +103,17 @@ func (s *CallBacks) GetTransactionFn(merchantID string) (FuncTransactionsCallbac
 	}
 	return func(trx storage.TransactionStore) error {
 		authorization, err := s.createJWTAuthorization()
+
 		resp, err := s.client.R().SetHeader("Authorization", authorization).SetBody(trx).
 			EnableTrace().
 			Post(merchant.CallBackURL + callBackTransactions)
 		if err != nil {
 			return err
 		}
+
 		res := MultiSignAddress{}
 		err = json.Unmarshal(resp.Body(), &res)
+
 		return err
 	}, nil
 }
