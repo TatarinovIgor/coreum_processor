@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/lib/pq"
 	"time"
@@ -104,13 +105,13 @@ func (s *KeysPSQL) GetRecordByKey(key string) (*KeyRecord, error) {
 }
 
 // GetByUser returns the data associated with the key and it's numeric ID
-func (s *KeysPSQL) GetByUser(merchantID, externalID string) (int64, []byte, error) {
+func (s *KeysPSQL) GetByUser(merchantID, externalID string) (int64, string, []byte, error) {
 	r, err := s.GetRecordByUser(merchantID, externalID)
 	if err != nil {
-		return 0, nil, err
+		return 0, "", nil, err
 	}
 
-	return r.ID, r.Data, nil
+	return r.ID, r.Key, r.Data, nil
 }
 
 // GetRecordByUser returns a record associated with the key
@@ -155,14 +156,14 @@ func (s *KeysPSQL) getByKey(key string, query string) (*KeyRecord, error) {
 				UpdatedAt:  *updatedAt},
 			nil
 	}
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
 
 	return nil, fmt.Errorf("could not select row by key from storage: %w", err)
 }
 
-func (s *KeysPSQL) getByUser(merchantID, externalID string, query string) (*KeyRecord, error) {
+func (s *KeysPSQL) getByUser(merchantID, externalID, query string) (*KeyRecord, error) {
 	row := s.db.QueryRow(query, merchantID, externalID)
 	var (
 		id        int64
@@ -181,7 +182,7 @@ func (s *KeysPSQL) getByUser(merchantID, externalID string, query string) (*KeyR
 				UpdatedAt:  *updatedAt},
 			nil
 	}
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
 

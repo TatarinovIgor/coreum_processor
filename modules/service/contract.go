@@ -216,12 +216,12 @@ type TransactionMeta struct {
 type MultiSignAddress map[string]float64
 
 type SignTransactionRequest struct {
-	ExternalID string `json:"external_id"`
-	Blockchain string `json:"blockchain"`
-	Address    string `json:"address"`
-	TrxID      string `json:"trxID"`
-	TrxData    string `json:"trxData"`
-	Threshold  int    `json:"threshold"`
+	ExternalID string  `json:"external_id"`
+	Blockchain string  `json:"blockchain"`
+	Address    string  `json:"address"`
+	TrxID      string  `json:"trxID"`
+	TrxData    []byte  `json:"trxData"`
+	Threshold  float64 `json:"threshold"`
 }
 
 type CryptoTransactionStatus int

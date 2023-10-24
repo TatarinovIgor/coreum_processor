@@ -7,9 +7,12 @@ import (
 	"github.com/CoreumFoundation/coreum/pkg/config/constant"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	amomultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/dvsekhvalnov/jose2go/base64url"
+	"log"
 	"strings"
 )
 
@@ -69,11 +72,17 @@ func NewMultiSignService(clientCtx client.Context, fn FuncTrxIDVerification,
 }
 
 // GetMultiSignAddresses returns map of addresses and their weight that should be used to create multi sign accounts
-func (s *MultiSignService) GetMultiSignAddresses() map[string]float64 {
-	var res map[string]float64
-	for pubKey := range s.privateKey {
+func (s *MultiSignService) GetMultiSignAddresses(blockchain, externalID string) map[string]float64 {
+	res := map[string]float64{}
+	msg := fmt.Sprintf("On blockchain: %s\n\tfor external id: %s\n\tGiven the following addresses:",
+		blockchain, externalID)
+	for adr, private := range s.privateKey {
+		m, _ := private.PubKey().(*secp256k1.PubKey).Marshal()
+		pubKey := base64url.Encode(m)
 		res[pubKey] = 1.0
+		msg = fmt.Sprintf("%s\n\t %v\n", msg, adr)
 	}
+	log.Println(msg)
 	return res
 }
 

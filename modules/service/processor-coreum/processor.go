@@ -109,7 +109,7 @@ func (s CoreumProcessing) GetTransactionStatus(_ context.Context, hash string) (
 
 func (s CoreumProcessing) TransferToReceiving(ctx context.Context, request service.TransferRequest,
 	merchantID, externalId string) (*service.TransferResponse, error) {
-	_, userWallet, err := s.store.GetByUser(merchantID, externalId)
+	_, _, userWallet, err := s.store.GetByUser(merchantID, externalId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -161,7 +161,7 @@ func (s CoreumProcessing) TransferFromReceiving(ctx context.Context, request ser
 		return nil, fmt.Errorf("transaction amount is to small to be received")
 	}
 
-	_, userWallet, err := s.store.GetByUser(merchantID, externalId)
+	_, _, userWallet, err := s.store.GetByUser(merchantID, externalId)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +211,7 @@ func (s CoreumProcessing) TransferFromReceiving(ctx context.Context, request ser
 func (s CoreumProcessing) TransferBetweenMerchantWallets(ctx context.Context,
 	request service.TransferRequest, merchantID string) (*service.TransferResponse, error) {
 
-	_, userWallet, err := s.store.GetByUser(merchantID, merchantID+"-R")
+	_, _, userWallet, err := s.store.GetByUser(merchantID, merchantID+"-R")
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -219,7 +219,7 @@ func (s CoreumProcessing) TransferBetweenMerchantWallets(ctx context.Context,
 	receivingWallet := service.Wallet{}
 	err = json.Unmarshal(userWallet, &receivingWallet)
 
-	_, userWallet, err = s.store.GetByUser(merchantID, merchantID+"-S")
+	_, _, userWallet, err = s.store.GetByUser(merchantID, merchantID+"-S")
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -321,7 +321,7 @@ func (s CoreumProcessing) GetTokenSupply(ctx context.Context, request service.Ba
 }
 
 func (s CoreumProcessing) GetBalance(ctx context.Context, merchantID, externalID string) (service.Balance, error) {
-	_, byteAddress, err := s.store.GetByUser(merchantID, externalID)
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, externalID)
 	balance := service.Balance{
 		Amount:     0,
 		Blockchain: "coreum",
@@ -362,7 +362,7 @@ func (s CoreumProcessing) GetBalance(ctx context.Context, merchantID, externalID
 
 func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 	request service.BalanceRequest, merchantID, externalId string) ([]service.Balance, error) {
-	_, byteAddress, err := s.store.GetByUser(merchantID, externalId)
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, externalId)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
 	}
@@ -413,7 +413,7 @@ func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 }
 
 func (s CoreumProcessing) GetWalletById(merchantID, externalId string) (string, error) {
-	_, walletByte, err := s.store.GetByUser(merchantID, externalId)
+	_, _, walletByte, err := s.store.GetByUser(merchantID, externalId)
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
 	err = json.Unmarshal(walletByte, &wallet)
 	if err != nil {

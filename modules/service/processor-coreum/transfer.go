@@ -17,7 +17,7 @@ func (s CoreumProcessing) TransferFT(ctx context.Context,
 	SendingExternalId := request.SendingExternalId
 	ReceivingExternalId := request.ReceivingExternalId
 
-	_, byteAddress, err := s.store.GetByUser(merchantID, SendingExternalId)
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, SendingExternalId)
 	if err != nil {
 		return "", fmt.Errorf("can't get sending wallet: %v coreum wallet from store, err: %v",
 			SendingExternalId, err)
@@ -29,7 +29,7 @@ func (s CoreumProcessing) TransferFT(ctx context.Context,
 		return "", err
 	}
 
-	_, byteAddressTo, err := s.store.GetByUser(merchantID, ReceivingExternalId)
+	_, _, byteAddressTo, err := s.store.GetByUser(merchantID, ReceivingExternalId)
 	if err != nil {
 		return "", fmt.Errorf("can't get receiving wallet: %v coreum wallet from store, err: %v",
 			SendingExternalId, err)
@@ -73,7 +73,7 @@ func (s CoreumProcessing) TransferNFT(ctx context.Context,
 	SendingExternalId := request.SendingExternalId
 	ReceivingExternalId := request.ReceivingExternalId
 
-	_, byteAddress, err := s.store.GetByUser(merchantID, SendingExternalId)
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, SendingExternalId)
 	if err != nil {
 		return "", fmt.Errorf("can't get sending wallet: %v coreum wallet from store, err: %v",
 			SendingExternalId, err)
@@ -85,7 +85,7 @@ func (s CoreumProcessing) TransferNFT(ctx context.Context,
 		return "", err
 	}
 
-	_, byteAddressTo, err := s.store.GetByUser(merchantID, ReceivingExternalId)
+	_, _, byteAddressTo, err := s.store.GetByUser(merchantID, ReceivingExternalId)
 	if err != nil {
 		return "", fmt.Errorf("can't get receiving wallet: %v coreum wallet from store, err: %v",
 			SendingExternalId, err)

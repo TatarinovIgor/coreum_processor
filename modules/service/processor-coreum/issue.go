@@ -19,7 +19,7 @@ func (s CoreumProcessing) IssueNFTClass(ctx context.Context, request service.New
 	merchantID, externalId string, multiSignAddresses service.FuncMultiSignAddrCallback) (*service.NewTokenResponse, []byte, error) {
 	wallet := service.Wallet{}
 
-	_, byteAddress, err := s.store.GetByUser(merchantID, externalId)
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, externalId)
 	key := ""
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		return nil, nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
@@ -68,7 +68,7 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 	wallet := service.Wallet{}
 
 	issuerId := fmt.Sprintf("%s-%s", merchantID, request.Code)
-	_, byteAddress, err := s.store.GetByUser(merchantID, issuerId)
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, issuerId)
 	key := ""
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		return nil, nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)

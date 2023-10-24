@@ -5,12 +5,13 @@ import (
 	"coreum_processor/modules/service"
 	"encoding/json"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	amomultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
+	"github.com/dvsekhvalnov/jose2go/base64url"
 )
 
 func (s CoreumProcessing) CreateWallet(ctx context.Context, merchantID, externalId string,
@@ -74,19 +75,17 @@ func (s CoreumProcessing) createCoreumWallet(ctx context.Context, externalId str
 			signKeys := []types.PubKey{Info.GetPubKey()}
 			// create multi sig wallet
 			for key := range addresses {
-				accAddress, err := sdk.AccAddressFromBech32(key)
+				//accAddress, err := sdk.AccAddressFromBech32(key)
+				pubData, _ := base64url.Decode(key)
+				var acc secp256k1.PubKey
+				err = acc.XXX_Unmarshal(pubData)
 				if err != nil {
 					return "", "", "", threshold, fmt.Errorf(
-						"can't create Coreum multising Wallet from provided key: %s, error: %w", key, err)
+						"can't unmarshal public key for Coreum multising Wallet, error: %v", err)
 				}
-				info, err := client.GetAccountInfo(ctx, s.clientCtx, accAddress)
-				if err != nil {
-					return "", "", "", threshold, fmt.Errorf(
-						"can't create Coreum multising Wallet from info key: %s, error: %w", key, err)
-				}
-				signKeys = append(signKeys, info.GetPubKey())
+				signKeys = append(signKeys, &acc)
 			}
-			pubKey := amomultisig.NewLegacyAminoPubKey(2, signKeys)
+			pubKey := amomultisig.NewLegacyAminoPubKey(int(threshold+1), signKeys)
 			Info, err := s.clientCtx.Keyring().SaveMultisig("multi-sign", pubKey)
 			if err != nil {
 				return "", "", "", threshold, fmt.Errorf("can't save Coreum multising Wallet, error: %v", err)
@@ -97,7 +96,7 @@ func (s CoreumProcessing) createCoreumWallet(ctx context.Context, externalId str
 			if err != nil {
 				return "", "", "", threshold, fmt.Errorf("can't validate Coreum multising Wallet, error: %v", err)
 			}
-			return "", walletAddress, Info.GetAddress().String(), threshold, nil
+			return mnemonic, walletAddress, Info.GetAddress().String(), threshold, nil
 		}
 	}
 

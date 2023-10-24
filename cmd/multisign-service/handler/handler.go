@@ -18,14 +18,11 @@ func GetAddressesHandler(multiSignService *service.MultiSignService) httprouter.
 
 		blockchain := query.Get("blockchain")
 		externalID := query.Get("external_id")
-		addresses := multiSignService.GetMultiSignAddresses()
+		addresses := multiSignService.GetMultiSignAddresses(blockchain, externalID)
 		res := contract.MultiSignAddresses{
 			Addresses: addresses,
 			Threshold: len(addresses),
 		}
-
-		log.Println(fmt.Sprintf("On blockchain: %s \n for external id: %s \n Given the following addresses: \n %T",
-			blockchain, externalID, addresses))
 
 		err := json.NewEncoder(writer).Encode(res)
 		if err != nil {

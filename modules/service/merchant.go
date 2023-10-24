@@ -46,7 +46,7 @@ func (service *Merchants) CreateMerchantData(guid string, data MerchantData) (in
 	if err != nil {
 		return 0, err
 	}
-	id, _, err := service.store.Set(guid, dataByte, storage.DefaultTTL)
+	id, err := service.store.Put(guid, dataByte, storage.DefaultTTL)
 	if err != nil {
 		return 0, err
 	}

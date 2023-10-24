@@ -28,7 +28,7 @@ func PageMerchantsAdmin(ctx context.Context, processing *service.ProcessingServi
 		t, err := template.ParseFiles("./templates/lite/dashboard/dashboard.html", "./templates/lite/admin_sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
-			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
+			w.Write([]byte(`{"message":"` + `template parsing error: ` + err.Error() + `"}`))
 			return
 		}
 		userStore = userStore

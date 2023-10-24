@@ -5,8 +5,6 @@ import (
 	"coreum_processor/modules/service"
 	"encoding/json"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
@@ -32,7 +30,7 @@ func (s CoreumProcessing) Withdraw(ctx context.Context,
 			merchantID, request.Amount, request.Asset, commission)
 	}
 
-	_, sendingWalletRaw, err := s.store.GetByUser(merchantID, merchantWallets.SendingID)
+	_, key, sendingWalletRaw, err := s.store.GetByUser(merchantID, merchantWallets.SendingID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,36 +45,25 @@ func (s CoreumProcessing) Withdraw(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	senderInfo, err := s.clientCtx.Keyring().NewAccount(
-		sendingWallet.WalletAddress,
-		string(sendingWallet.WalletSeed),
-		"",
-		sdk.GetConfig().GetFullBIP44Path(),
-		hd.Secp256k1,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
 
 	msg := &banktypes.MsgSend{
-		FromAddress: sendingWallet.WalletAddress,
+		FromAddress: key,
 		ToAddress:   s.sendingWallet.WalletAddress,
 		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
 			int64(request.Amount))),
 	}
-	bech32, err := sdk.AccAddressFromBech32(sendingWallet.WalletAddress)
+	signRequest := service.SignTransactionRequest{
+		ExternalID: externalId,
+		Blockchain: s.blockchain,
+		Address:    key,
+		TrxID:      "",
+		TrxData:    nil,
+		Threshold:  sendingWallet.Threshold,
+	}
+	result, err := s.broadcastTrx(ctx, sendingWallet, signRequest, multiSignSignature, msg)
 	if err != nil {
 		return nil, err
 	}
-	result, err := client.BroadcastTx(
-		ctx,
-		s.clientCtx.WithFromAddress(bech32),
-		s.factory,
-		msg,
-	)
-	if err != nil {
-		return nil, err
-	}
+
 	return &service.WithdrawResponse{TransactionHash: result.TxHash}, nil
 }

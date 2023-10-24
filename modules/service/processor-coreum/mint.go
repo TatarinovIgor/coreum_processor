@@ -17,7 +17,7 @@ func (s CoreumProcessing) MintFT(ctx context.Context,
 	request service.MintTokenRequest, merchantID string) (*service.NewTokenResponse, error) {
 	externalID := request.ReceivingWalletID
 
-	_, byteAddress, err := s.store.GetByUser(merchantID, fmt.Sprintf("%s-%s", merchantID, request.Code))
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, fmt.Sprintf("%s-%s", merchantID, request.Code))
 	if err != nil {
 		return nil, fmt.Errorf("can't get issuer: %v-%v coreum wallet from store, err: %v",
 			request.Code, merchantID, err)
@@ -54,7 +54,7 @@ func (s CoreumProcessing) MintFT(ctx context.Context,
 		return nil, err
 	}
 
-	_, byteAddress, err = s.store.GetByUser(merchantID, externalID)
+	_, _, byteAddress, err = s.store.GetByUser(merchantID, externalID)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalID, err)
 	}
@@ -75,7 +75,7 @@ func (s CoreumProcessing) MintFT(ctx context.Context,
 
 func (s CoreumProcessing) MintNFT(ctx context.Context,
 	request service.MintTokenRequest, merchantID string) (*service.NewTokenResponse, error) {
-	_, byteAddress, err := s.store.GetByUser(merchantID, request.ReceivingWalletID)
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, request.ReceivingWalletID)
 	if err != nil {
 		return nil, fmt.Errorf("can't get issuer: %v coreum wallet from store, err: %v",
 			request.ReceivingWalletID, err)

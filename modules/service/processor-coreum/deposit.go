@@ -16,7 +16,7 @@ func (s CoreumProcessing) Deposit(ctx context.Context, request service.Credentia
 	depositData := service.DepositResponse{}
 
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
-	_, walletByte, err := s.store.GetByUser(merchantID, externalId)
+	_, _, walletByte, err := s.store.GetByUser(merchantID, externalId)
 	key := ""
 	if err != nil && errors.Is(err, storage.ErrNotFound) {
 		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,

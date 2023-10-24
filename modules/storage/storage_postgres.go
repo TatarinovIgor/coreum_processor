@@ -37,8 +37,8 @@ func NewStorage(namespace string, db *sql.DB) (Storage, error) {
 // numeric ID, true of the created record. If key has already exists and ttl is not expired,
 // then (0, false, nil) returned.
 func (s *StoragePSQL) Set(key string, data []byte, ttl time.Duration) (int64, bool, error) {
-	row := s.db.QueryRow(fmt.Sprintf(`INSERT INTO %s(key, value, ttl)
-VALUES ($1, $2, $3)
+	row := s.db.QueryRow(fmt.Sprintf(`INSERT INTO %s(created_at, updated_at, key, value, ttl)
+VALUES (now(), now(), $1, $2, $3)
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
 WHERE now() > %s.updated_at + %s.ttl * interval '1 second'
 RETURNING id`, s.namespace, s.namespace, s.namespace), key, data, ttl.Seconds())
@@ -179,10 +179,10 @@ func (s *StoragePSQL) getAll(query string) ([]Record, error) {
 		value     []byte
 		updatedAt *time.Time
 	)
-	defer func() { _ = rows.Close() }()
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = rows.Close() }()
 	var records []Record
 	for rows.Next() {
 		err := rows.Scan(&id, &value, &updatedAt)

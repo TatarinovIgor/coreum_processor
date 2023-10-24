@@ -15,7 +15,7 @@ import (
 
 func (s CoreumProcessing) BurnToken(ctx context.Context, request service.TokenRequest,
 	merchantID, externalID string) (*service.NewTokenResponse, error) {
-	_, byteAddress, err := s.store.GetByUser(merchantID, fmt.Sprintf("%s-%s", merchantID, request.Code))
+	_, _, byteAddress, err := s.store.GetByUser(merchantID, fmt.Sprintf("%s-%s", merchantID, request.Code))
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalID, err)
 	}
