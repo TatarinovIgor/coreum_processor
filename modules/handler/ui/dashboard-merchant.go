@@ -17,68 +17,6 @@ import (
 	"time"
 )
 
-func PageDashboardMerchant(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		userStore, err := internal.GetUserStore(r.Context())
-		if err != nil {
-			log.Println(`can't find user store`)
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
-			return
-		}
-		userStore = userStore
-		t, err := template.ParseFiles("./templates/lite/default/index.html")
-		if err != nil {
-			w.WriteHeader(http.StatusNoContent)
-			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
-			return
-		}
-
-		transactionRequest := service.TransactionRequest{}
-		fromUnix := 0
-		toUnix := time.Now().Unix()
-		transactionRequest.FromUnix = uint(fromUnix)
-		transactionRequest.ToUnix = uint(toUnix)
-		transactionRequest.Blockchain = ""
-		merchantID, err := internal.GetMerchantID(r.Context())
-
-		var emptyReq []string
-		// Multi-chain
-		res, err := processing.GetTransactions(transactionRequest, merchantID,
-			emptyReq, emptyReq)
-		_, err = processing.GetMerchantData(merchantID)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
-			return
-		}
-
-		tronWallet, _ := processing.GetWalletById("tron", merchantID, merchantID+"-R")
-		ethereumWallet, _ := processing.GetWalletById("ethereum", merchantID, merchantID+"-R")
-		polygonWallet, _ := processing.GetWalletById("polygon", merchantID, merchantID+"-R")
-		bitcoinWallet, err := processing.GetWalletById("bitcoin", merchantID, merchantID+"-R")
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
-			return
-		}
-
-		templateVarMap := map[string]interface{}{
-			"transactions":    res,
-			"wallet_tron":     tronWallet,
-			"wallet_ethereum": ethereumWallet,
-			"wallet_polygon":  polygonWallet,
-			"wallet_bitcoin":  bitcoinWallet,
-		}
-		err = t.ExecuteTemplate(w, "index.html", templateVarMap)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
-			return
-		}
-	}
-}
-
 func PageMerchantTransaction(ctx context.Context, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		t, err := template.ParseFiles("./templates/lite/default/transactions.html", "./templates/lite/sidebar.html", "./templates/lite/wallet_card.html")

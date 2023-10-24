@@ -19,6 +19,10 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, sendingWallet servic
 	msg sdk.Msg) (*sdk.TxResponse, error) {
 
 	if multiSignSignature != nil {
+		signatures, err := multiSignSignature(request)
+		if err != nil {
+			return nil, fmt.Errorf("can't get multisign signature, error: %w", err)
+		}
 		signMode := signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON
 		unsignedTx, err := s.factory.BuildUnsignedTx(msg)
 		if err != nil {
@@ -47,10 +51,7 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, sendingWallet servic
 		if err != nil {
 			return nil, fmt.Errorf("can't make multisign transaction bytes, error: %w", err)
 		}
-		signatures, err := multiSignSignature(request)
-		if err != nil {
-			return nil, fmt.Errorf("can't get multisign signature, error: %w", err)
-		}
+
 		ms := multisig.NewMultisig(int(sendingWallet.Threshold + 1))
 		sigV2 := signing.SignatureV2{
 			Sequence: info.GetSequence(),

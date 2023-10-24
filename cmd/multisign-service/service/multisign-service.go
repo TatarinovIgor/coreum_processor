@@ -2,16 +2,23 @@ package service
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/CoreumFoundation/coreum/pkg/client"
 	"github.com/CoreumFoundation/coreum/pkg/config/constant"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	amomultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/dvsekhvalnov/jose2go/base64url"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"strings"
 )
@@ -35,23 +42,51 @@ type MultiSignService struct {
 //   - mnemonics - a set of mnemonics to generate coreum keys for multi sign accounts
 //
 // the function panic in case it is not possible to create private keys from the provided mnemonics
-func NewMultiSignService(clientCtx client.Context, fn FuncTrxIDVerification,
+func NewMultiSignService(ctx context.Context, fn FuncTrxIDVerification,
 	networkType string, mnemonics ...string) *MultiSignService {
 	algo := hd.Secp256k1
 	hdPath := sdk.GetConfig().GetFullBIP44Path()
 	privateKey := map[string]types.PrivKey{}
 	addressPrefix := ""
+	var chainID constant.ChainID
+	nodeAddress := "full-node.testnet-1.coreum.dev:9090"
 	networkType = strings.ToLower(networkType)
 	switch networkType {
 	case "devnet":
 		addressPrefix = constant.AddressPrefixDev
+		chainID = constant.ChainIDDev
 	case "testnet":
 		addressPrefix = constant.AddressPrefixTest
+		chainID = constant.ChainIDTest
 	case "mainnet":
 		addressPrefix = constant.AddressPrefixMain
+		chainID = constant.ChainIDMain
 	default:
 		panic("unsupported type of blockchain network type " + networkType)
 	}
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount(addressPrefix, addressPrefix+"pub")
+	config.SetCoinType(constant.CoinType)
+	config.Seal()
+	// List required modules.
+	// If you need types from any other module import them and add here.
+	modules := module.NewBasicManager(
+		auth.AppModuleBasic{},
+	)
+
+	// Configure client context and tx factory
+	// If you don't use TLS then replace `grpc.WithTransportCredentials()` with `grpc.WithInsecure()`
+	grpcClient, err := grpc.Dial(nodeAddress, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{})))
+	if err != nil {
+		panic(err)
+	}
+
+	clientCtx := client.NewContext(client.DefaultContextConfig(), modules).
+		WithChainID(string(chainID)).
+		WithGRPCClient(grpcClient).
+		WithKeyring(keyring.NewInMemory()).
+		WithBroadcastMode(flags.BroadcastBlock)
+
 	for _, m := range mnemonics {
 		// create master key and derive first key
 		derivedPrivate, err := algo.Derive()(m, "", hdPath)

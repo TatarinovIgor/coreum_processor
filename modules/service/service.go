@@ -131,10 +131,6 @@ func (s ProcessingService) AdminTokenDecode(token string) (TokenPayload, error) 
 		return tokenData.Payload, fmt.Errorf("can't unmarshal token data, err: %v", err)
 	}
 
-	if time.Now().Unix()-tok.IssuedAt().Unix() > int64(s.tokenTimeToLive) {
-		return tokenData.Payload, fmt.Errorf("token expaired")
-	}
-
 	_, err = jwt.Parse([]byte(token), jwt.WithVerify(jwa.RS256, s.publicKey), jwt.WithValidate(true))
 	if err != nil {
 		return tokenData.Payload, fmt.Errorf("can't parse token: %s, err: %v", token, err)

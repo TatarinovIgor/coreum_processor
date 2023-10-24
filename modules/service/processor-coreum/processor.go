@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"google.golang.org/grpc"
@@ -84,6 +85,7 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 		WithKeybase(clientCtx.Keyring()).
 		WithChainID(clientCtx.ChainID()).
 		WithTxConfig(clientCtx.TxConfig()).
+		WithSignMode(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON).
 		WithSimulateAndExecute(true)
 
 	return &CoreumProcessing{
@@ -362,7 +364,7 @@ func (s CoreumProcessing) GetBalance(ctx context.Context, merchantID, externalID
 
 func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 	request service.BalanceRequest, merchantID, externalId string) ([]service.Balance, error) {
-	_, _, byteAddress, err := s.store.GetByUser(merchantID, externalId)
+	_, address, byteAddress, err := s.store.GetByUser(merchantID, externalId)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
 	}
@@ -378,7 +380,7 @@ func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 	//Check whether request wants specific token or all of them
 	if request.Asset == "" {
 		resp, err := bankClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
-			Address: userWallet.WalletAddress,
+			Address: address,
 		})
 		if err != nil {
 			return []service.Balance{}, err
@@ -413,13 +415,13 @@ func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 }
 
 func (s CoreumProcessing) GetWalletById(merchantID, externalId string) (string, error) {
-	_, _, walletByte, err := s.store.GetByUser(merchantID, externalId)
+	_, address, walletByte, err := s.store.GetByUser(merchantID, externalId)
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
 	err = json.Unmarshal(walletByte, &wallet)
 	if err != nil {
 		return "", err
 	}
-	return wallet.WalletAddress, nil
+	return address, nil
 }
 
 func (s CoreumProcessing) updateGas(ctx context.Context, address string, txGasPrice int64) (string, error) {

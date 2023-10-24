@@ -86,17 +86,17 @@ func (s CoreumProcessing) createCoreumWallet(ctx context.Context, externalId str
 				signKeys = append(signKeys, &acc)
 			}
 			pubKey := amomultisig.NewLegacyAminoPubKey(int(threshold+1), signKeys)
-			Info, err := s.clientCtx.Keyring().SaveMultisig("multi-sign", pubKey)
+			info, err := s.clientCtx.Keyring().SaveMultisig("multi-sign", pubKey)
 			if err != nil {
 				return "", "", "", threshold, fmt.Errorf("can't save Coreum multising Wallet, error: %v", err)
 			}
-			defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(Info.GetAddress()) }()
+			defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(info.GetAddress()) }()
 			// Validate address
-			_, err = sdk.AccAddressFromBech32(Info.GetAddress().String())
+			_, err = sdk.AccAddressFromBech32(info.GetAddress().String())
 			if err != nil {
 				return "", "", "", threshold, fmt.Errorf("can't validate Coreum multising Wallet, error: %v", err)
 			}
-			return mnemonic, walletAddress, Info.GetAddress().String(), threshold, nil
+			return mnemonic, walletAddress, info.GetAddress().String(), threshold, nil
 		}
 	}
 

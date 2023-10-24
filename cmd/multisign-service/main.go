@@ -7,7 +7,6 @@ import (
 	MultiSignService "coreum_processor/cmd/multisign-service/service"
 	"coreum_processor/modules/service"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
@@ -20,10 +19,10 @@ func main() {
 	cfg := internal.LoadMultiSignEnv()
 
 	processingService := service.NewProcessingService(cfg.PublicKey, nil,
-		cfg.TokenTimeToLive, nil, nil, nil, nil)
+		3600, nil, nil, nil, nil)
 
 	// @ToDo write transaction check callback function and find client context
-	multiSignService := MultiSignService.NewMultiSignService(client.Context{}, nil, cfg.NetworkType, cfg.Mnemonics)
+	multiSignService := MultiSignService.NewMultiSignService(ctx, nil, cfg.NetworkType, cfg.Mnemonics)
 
 	router := httprouter.New()
 	urlPath := ""
