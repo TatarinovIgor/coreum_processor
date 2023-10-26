@@ -12,16 +12,24 @@ import (
 	amomultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"log"
 	"strings"
 )
+
+const amount = 102400
+
+const signMode = signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON
 
 // FuncTrxIDVerification definition of a function to verify eligibility of transaction by trxID,
 // if transaction is eligible the function must return true otherwise false
@@ -32,6 +40,7 @@ type MultiSignService struct {
 	privateKey        map[string]types.PrivKey
 	trxVerificationFn FuncTrxIDVerification
 	addressPrefix     string
+	txFactory         client.Factory
 }
 
 // NewMultiSignService create a new service to make a set of transaction signatures for a coreum multi sign accounts
@@ -102,8 +111,16 @@ func NewMultiSignService(ctx context.Context, fn FuncTrxIDVerification,
 		privateKey[address] = pKey
 	}
 
+	txFactory := client.Factory{}.
+		WithKeybase(clientCtx.Keyring()).
+		WithChainID(clientCtx.ChainID()).
+		WithTxConfig(clientCtx.TxConfig()).
+		WithSignMode(signMode).
+		WithGas(amount).
+		WithSimulateAndExecute(true)
+
 	return &MultiSignService{clientCtx: clientCtx, privateKey: privateKey,
-		trxVerificationFn: fn, addressPrefix: addressPrefix}
+		trxVerificationFn: fn, addressPrefix: addressPrefix, txFactory: txFactory}
 }
 
 // GetMultiSignAddresses returns map of addresses and their weight that should be used to create multi sign accounts
@@ -196,4 +213,92 @@ func (s *MultiSignService) findPrivateKeyByAddress(address string) (types.PrivKe
 		return privateKey, nil
 	}
 	return nil, fmt.Errorf("can't find private key for address: %s", address)
+}
+
+func (s *MultiSignService) signTransaction(ctx context.Context, address string, msg banktypes.MsgSend) error {
+	unsignedTx, err := s.txFactory.BuildUnsignedTx(&msg)
+	accAddress, err := sdk.AccAddressFromBech32(address)
+	if err != nil {
+		return err
+	}
+
+	info, err := client.GetAccountInfo(ctx, s.clientCtx, accAddress)
+
+	signerData := xauthsigning.SignerData{
+		ChainID:       s.txFactory.ChainID(),
+		AccountNumber: info.GetAccountNumber(),
+		Sequence:      info.GetSequence(),
+	}
+
+	trxData, err := s.clientCtx.TxConfig().SignModeHandler().GetSignBytes(signMode, signerData, unsignedTx.GetTx())
+	if err != nil {
+		fmt.Println("can't make transaction data for signature, error:", err)
+		return err
+	}
+
+	pubKey, ok := info.GetPubKey().(*amomultisig.LegacyAminoPubKey)
+	if !ok {
+		return fmt.Errorf("unacceptable key format for address: %s", address)
+	}
+
+	ms := multisig.NewMultisig(int(pubKey.Threshold))
+
+	pubKeys := pubKey.GetPubKeys()
+
+	for _, p := range pubKeys {
+		addr, err := bech32.ConvertAndEncode(s.addressPrefix, p.Address())
+		if err != nil {
+			continue
+		}
+
+		privateKey, err := s.findPrivateKeyByAddress(addr)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		signature, err := privateKey.Sign(trxData)
+		if err != nil {
+			fmt.Println("can't get sign transaction by second account, error:", err)
+			return err
+		}
+		sigData := signing.SingleSignatureData{
+			SignMode:  signMode,
+			Signature: signature,
+		}
+		sigV2 := signing.SignatureV2{
+			PubKey:   pubKey,
+			Data:     &sigData,
+			Sequence: info.GetSequence(),
+		}
+		err = multisig.AddSignatureV2(ms, sigV2, pubKeys)
+		if err != nil {
+			fmt.Println("can't add signature of second account, error:", err)
+			return err
+		}
+	}
+
+	err = unsignedTx.SetSignatures([]signing.SignatureV2{{
+		PubKey:   pubKey,
+		Data:     &signing.MultiSignatureData{Signatures: ms.Signatures, BitArray: ms.BitArray},
+		Sequence: info.GetSequence(),
+	}}...)
+
+	if err != nil {
+		fmt.Println("can't set signatures for transaction, error:", err)
+		return err
+	}
+
+	txBytes, err := s.clientCtx.TxConfig().TxEncoder()(unsignedTx.GetTx())
+	if err != nil {
+		fmt.Println("can't get transaction bytes for broadcast, error:", err)
+		return err
+	}
+
+	_, err = client.BroadcastRawTx(ctx, s.clientCtx, txBytes)
+	if err != nil {
+		fmt.Println("can't broadcast transaction, error:", err)
+		return err
+	}
+
+	return nil
 }
