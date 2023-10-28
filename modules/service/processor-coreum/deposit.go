@@ -11,17 +11,17 @@ import (
 	"time"
 )
 
-func (s CoreumProcessing) Deposit(ctx context.Context, request service.CredentialDeposit, merchantID, externalId string,
-	multiSignAddresses service.FuncMultiSignAddrCallback,
-	multiSignature service.FuncMultiSignSignature) (*service.DepositResponse, error) {
+func (s CoreumProcessing) Deposit(ctx context.Context, request service.CredentialDeposit,
+	merchantID, externalId string) (*service.DepositResponse, error) {
 	depositData := service.DepositResponse{}
 
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
 	_, _, walletByte, err := s.store.GetByUser(merchantID, externalId)
 	key := ""
 	if err != nil && errors.Is(err, storage.ErrNotFound) {
+
 		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,
-			externalId, multiSignAddresses, multiSignature)
+			merchantID, externalId)
 		if err != nil {
 			return nil, err
 		}

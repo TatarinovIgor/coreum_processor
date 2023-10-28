@@ -15,11 +15,14 @@ import (
 	"github.com/dvsekhvalnov/jose2go/base64url"
 )
 
-func (s CoreumProcessing) broadcastTrx(ctx context.Context, sendingWallet service.Wallet,
-	request service.SignTransactionRequest, multiSignSignature service.FuncMultiSignSignature,
-	msg sdk.Msg) (*sdk.TxResponse, error) {
-
-	if multiSignSignature != nil {
+func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID string, sendingWallet service.Wallet,
+	request service.SignTransactionRequest, msg sdk.Msg) (*sdk.TxResponse, error) {
+	callBackSignFn, err := s.callBack.GetMultiSignFn(merchantID)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"could not extract merchant: %v callback for multisign signature, error: %w", merchantID, err)
+	}
+	if callBackSignFn != nil {
 		mRequest := service.MultiSignTransactionRequest{
 			ExternalID: request.ExternalID,
 			Blockchain: request.Blockchain,
@@ -28,7 +31,7 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, sendingWallet servic
 			TrxData:    request.TrxData,
 			Threshold:  0,
 		}
-		signatures, err := multiSignSignature(mRequest)
+		signatures, err := callBackSignFn(mRequest)
 		if err != nil {
 			return nil, fmt.Errorf("can't get multisign signature, error: %w", err)
 		}

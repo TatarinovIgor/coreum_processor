@@ -259,34 +259,23 @@ type CryptoProcessor interface {
 	// CreateWallet create a wallet and put to the store under defined externalID for merchantID
 	//	- merchantID - id of the merchant that request to make a new wallet
 	//	- externalID - id of newly created wallet in an external system
-	//	- multiSignAddresses - a func that provide a list of addresses to generate multi sign wallet,
-	//						   in case of nil newly created wallet will not support multi signature
-	//	- multiSignature - a func that provide a functionality to create multi signature for each public key,
-	//						   in case of nil newly created wallet will not support multi signature
 	// in case of success create new blockchain wallet and put it to the storage
-	CreateWallet(ctx context.Context, merchantID, externalId string,
-		multiSignAddresses FuncMultiSignAddrCallback,
-		multiSignature FuncMultiSignSignature) (*Wallet, error)
+	CreateWallet(ctx context.Context, merchantID, externalId string) (*Wallet, error)
 
 	GetWalletById(merchantID, externalId string) (string, error)
 
 	// Deposit create a
-	Deposit(ctx context.Context, request CredentialDeposit, merchantID, externalId string,
-		multiSignAddresses FuncMultiSignAddrCallback,
-		multiSignature FuncMultiSignSignature) (*DepositResponse, error)
+	Deposit(ctx context.Context, request CredentialDeposit, merchantID, externalId string) (*DepositResponse, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
 
 	// Withdraw
 	Withdraw(ctx context.Context, request CredentialWithdraw,
-		merchantID, externalId string, merchantWallets Wallets,
-		multiSignSignature FuncMultiSignSignature) (*WithdrawResponse, error)
+		merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
 
-	IssueFT(ctx context.Context, request NewTokenRequest, merchantID, externalID string,
-		multiSignAddresses FuncMultiSignAddrCallback,
-		multiSignature FuncMultiSignSignature) (*NewTokenResponse, []byte, error)
-	IssueNFTClass(ctx context.Context, request NewTokenRequest, merchantID, externalId string,
-		multiSignAddresses FuncMultiSignAddrCallback,
-		multiSignature FuncMultiSignSignature) (*NewTokenResponse, []byte, error)
+	IssueFT(ctx context.Context, request NewTokenRequest,
+		merchantID, externalID string) (*NewTokenResponse, []byte, error)
+	IssueNFTClass(ctx context.Context, request NewTokenRequest,
+		merchantID, externalId string) (*NewTokenResponse, []byte, error)
 	MintFT(ctx context.Context, request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
 	MintNFT(ctx context.Context, request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
 	BurnToken(ctx context.Context, request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)

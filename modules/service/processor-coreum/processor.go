@@ -46,6 +46,7 @@ type CoreumProcessing struct {
 	sendingWallet   service.Wallet
 	receivingWallet service.Wallet
 	store           *storage.KeysPSQL
+	callBack        *service.CallBacks
 	apiURL          string
 	minimumValue    float64
 	senderMnemonic  string
@@ -54,7 +55,8 @@ type CoreumProcessing struct {
 
 func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 	blockchain string, store *storage.KeysPSQL, minValue float64,
-	chainID constant.ChainID, nodeAddress, addressPrefix, senderMnemonic string) service.CryptoProcessor {
+	chainID constant.ChainID, nodeAddress, addressPrefix, denom string, mode signing.SignMode,
+	callBack *service.CallBacks) service.CryptoProcessor {
 
 	// Configure Cosmos SDK
 	config := sdk.GetConfig()
@@ -85,7 +87,7 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 		WithKeybase(clientCtx.Keyring()).
 		WithChainID(clientCtx.ChainID()).
 		WithTxConfig(clientCtx.TxConfig()).
-		WithSignMode(signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON).
+		WithSignMode(mode).
 		WithSimulateAndExecute(true)
 
 	return &CoreumProcessing{
@@ -98,8 +100,8 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 		receivingWallet: receivingWallet,
 		store:           store,
 		minimumValue:    minValue,
-		senderMnemonic:  senderMnemonic,
-		denom:           constant.DenomTest, // todo change depending on env
+		denom:           denom,
+		callBack:        callBack,
 	}
 }
 

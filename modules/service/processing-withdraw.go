@@ -37,13 +37,6 @@ func (s ProcessingService) processWithdrawProcessed(ctx context.Context, bc stri
 
 			s.transactionStore.PutProcessedTransaction(tr.MerchantId, tr.ExternalId, tr.GUID.String(),
 				tr.Hash1, commission)
-			callBackSign, err := s.callBack.GetMultiSignFn(tr.MerchantId)
-			if err != nil {
-				log.Println(fmt.Errorf(
-					"error in process withdraw processing for merchant: %v, due to issue with callback err: %v",
-					merch.ID, err))
-				continue
-			}
 			hash, err := processor.Withdraw(ctx, CredentialWithdraw{
 				Amount:        tr.Amount,
 				Blockchain:    tr.Blockchain,
@@ -51,7 +44,7 @@ func (s ProcessingService) processWithdrawProcessed(ctx context.Context, bc stri
 				Asset:         tr.Asset,
 				Issuer:        tr.Issuer,
 				Memo:          "",
-			}, merch.ID.String(), wallet.SendingID, wallet, callBackSign)
+			}, merch.ID.String(), wallet.SendingID, wallet)
 			if err != nil {
 				log.Println(fmt.Errorf("can't process transactions: %v to settle, err: %v", tr.GUID, err))
 				continue

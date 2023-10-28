@@ -10,8 +10,8 @@ import (
 )
 
 func (s CoreumProcessing) Withdraw(ctx context.Context,
-	request service.CredentialWithdraw, merchantID, externalId string, merchantWallets service.Wallets,
-	multiSignSignature service.FuncMultiSignSignature) (*service.WithdrawResponse, error) {
+	request service.CredentialWithdraw, merchantID, externalId string,
+	merchantWallets service.Wallets) (*service.WithdrawResponse, error) {
 	commission := 0.0
 	if externalId != merchantWallets.ReceivingID || externalId != merchantWallets.SendingID {
 		commission = merchantWallets.CommissionSending.Fix
@@ -60,7 +60,7 @@ func (s CoreumProcessing) Withdraw(ctx context.Context,
 		TrxData:    "",
 		Threshold:  sendingWallet.Threshold,
 	}
-	result, err := s.broadcastTrx(ctx, sendingWallet, signRequest, multiSignSignature, msg)
+	result, err := s.broadcastTrx(ctx, merchantID, sendingWallet, signRequest, msg)
 	if err != nil {
 		return nil, err
 	}

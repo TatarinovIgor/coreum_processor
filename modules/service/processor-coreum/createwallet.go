@@ -19,14 +19,11 @@ import (
 	"github.com/dvsekhvalnov/jose2go/base64url"
 )
 
-func (s CoreumProcessing) CreateWallet(ctx context.Context, merchantID, externalId string,
-	multiSignAddresses service.FuncMultiSignAddrCallback,
-	multiSignature service.FuncMultiSignSignature) (*service.Wallet, error) {
+func (s CoreumProcessing) CreateWallet(ctx context.Context, merchantID, externalId string) (*service.Wallet, error) {
 
 	wallet := service.Wallet{Blockchain: s.blockchain}
 
-	walletSeed, walletAddress, key, threshold, err := s.createCoreumWallet(ctx, externalId, multiSignAddresses,
-		multiSignature)
+	walletSeed, walletAddress, key, threshold, err := s.createCoreumWallet(ctx, merchantID, externalId)
 	if err != nil {
 		return nil, err
 	}
@@ -48,34 +45,51 @@ func (s CoreumProcessing) CreateWallet(ctx context.Context, merchantID, external
 	return &wallet, nil
 }
 
-func (s CoreumProcessing) createCoreumWallet(ctx context.Context, externalId string,
-	multiSignAddresses service.FuncMultiSignAddrCallback,
-	multiSignature service.FuncMultiSignSignature) (string, string, string, float64, error) {
+func (s CoreumProcessing) createCoreumWallet(ctx context.Context,
+	merchantID, externalId string) (string, string, string, float64, error) {
 	threshold := 0.
 	algo := hd.Secp256k1
 	hdPath := sdk.GetConfig().GetFullBIP44Path()
 
 	entropy, err := bip39.NewEntropy(256)
 	if err != nil {
-		return "", "", "", threshold, err
+		return "", "", "", threshold, fmt.Errorf(
+			"could not create new entropy for externalid: %v, error: %w", externalId, err)
 	}
 	mnemonic, err := bip39.NewMnemonic(entropy)
 	if err != nil {
-		return "", "", "", threshold, err
+		return "", "", "", threshold, fmt.Errorf(
+			"could not create new mnemonic for externalid: %v, error: %w", externalId, err)
 	}
 
 	// create master key and derive first key
 	derivedPrivate, err := algo.Derive()(mnemonic, "", hdPath)
 	if err != nil {
-		panic(err)
+		return "", "", "", threshold, fmt.Errorf(
+			"could not create master key and derive first key for externalid: %v, error: %w", externalId, err)
 	}
 
 	pKey := algo.Generate()(derivedPrivate)
 
 	walletAddress := sdk.AccAddress(pKey.PubKey().Address()).String()
 	signAddress := walletAddress
-	if multiSignAddresses != nil && multiSignature != nil {
-		addresses, threshold, err := multiSignAddresses(s.blockchain, externalId)
+	callBackAdrFn, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	if err != nil {
+		return "", "", "", threshold, fmt.Errorf(
+			"could not extract merchant: %v callback for multisign adresses, error: %w", merchantID, err)
+	}
+	callBackSignFn, err := s.callBack.GetMultiSignFn(merchantID)
+	if err != nil {
+		return "", "", "", threshold, fmt.Errorf(
+			"could not extract merchant: %v callback for multisign signature, error: %w", merchantID, err)
+	}
+	callBackTrxFn, err := s.callBack.GetTransactionFn(merchantID)
+	if err != nil {
+		return "", "", "", threshold, fmt.Errorf(
+			"could not extract merchant: %v callback for multisign signature, error: %w", merchantID, err)
+	}
+	if callBackAdrFn != nil && callBackSignFn != nil && callBackTrxFn != nil {
+		addresses, threshold, err := callBackAdrFn(s.blockchain, externalId)
 		if err != nil {
 			return "", "", "", threshold, fmt.Errorf("can't create Coreum multising Wallet, error: %v", err)
 		} else if addresses != nil && len(addresses) > 0 && threshold > 0 {
@@ -189,9 +203,10 @@ func (s CoreumProcessing) createCoreumWallet(ctx context.Context, externalId str
 			}
 
 			// get signature from callback
-			signatures, err := multiSignature(request)
+			signatures, err := callBackSignFn(request)
 			if err != nil {
-				return "", "", "", 0, err
+				return "", "", "", 0, fmt.Errorf(
+					"can't get signatures from signing account, error: %w", err)
 			}
 
 			for key, sign := range signatures {

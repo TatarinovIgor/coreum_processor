@@ -51,17 +51,17 @@ func main() {
 		panic(fmt.Errorf("cant open assets storage: %v", err))
 	}
 
-	// Adding processors to the unified structure
-	processors := map[string]service.CryptoProcessor{
-		internalApp.Coreum: internalApp.InitProcessorCoreum(internalApp.Coreum, db),
-	}
-
 	// Initializing merchant management service
 	merchants := service.NewMerchantService(merchantsStore)
 
 	// Initializing callback service
 	callBack := service.NewCallBackService(cfg.PrivateKey,
 		cfg.TokenTimeToLive, cfg.RetryCount, cfg.RetryWait, merchants)
+
+	// Adding processors to the unified structure
+	processors := map[string]service.CryptoProcessor{
+		internalApp.Coreum: internalApp.InitProcessorCoreum(internalApp.Coreum, db, callBack),
+	}
 
 	// Initializing processing services
 	processingService := service.NewProcessingService(cfg.PublicKey, cfg.PrivateKey,
