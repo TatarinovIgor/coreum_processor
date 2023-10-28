@@ -16,7 +16,8 @@ import (
 )
 
 func (s CoreumProcessing) IssueNFTClass(ctx context.Context, request service.NewTokenRequest,
-	merchantID, externalId string, multiSignAddresses service.FuncMultiSignAddrCallback) (*service.NewTokenResponse, []byte, error) {
+	merchantID, externalId string, multiSignAddresses service.FuncMultiSignAddrCallback,
+	multiSignature service.FuncMultiSignSignature) (*service.NewTokenResponse, []byte, error) {
 	wallet := service.Wallet{}
 
 	_, _, byteAddress, err := s.store.GetByUser(merchantID, externalId)
@@ -26,7 +27,7 @@ func (s CoreumProcessing) IssueNFTClass(ctx context.Context, request service.New
 	} else if errors.Is(err, storage.ErrNotFound) {
 		// create issuer
 		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,
-			externalId, multiSignAddresses)
+			externalId, multiSignAddresses, multiSignature)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -64,7 +65,8 @@ func (s CoreumProcessing) IssueNFTClass(ctx context.Context, request service.New
 }
 
 func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenRequest,
-	merchantID, externalId string, multiSignAddresses service.FuncMultiSignAddrCallback) (*service.NewTokenResponse, []byte, error) {
+	merchantID, externalId string, multiSignAddresses service.FuncMultiSignAddrCallback,
+	multiSignature service.FuncMultiSignSignature) (*service.NewTokenResponse, []byte, error) {
 	wallet := service.Wallet{}
 
 	issuerId := fmt.Sprintf("%s-%s", merchantID, request.Code)
@@ -75,7 +77,7 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 	} else if errors.Is(err, storage.ErrNotFound) {
 		// create issuer
 		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,
-			externalId, multiSignAddresses)
+			externalId, multiSignAddresses, multiSignature)
 		if err != nil {
 			return nil, nil, err
 		}

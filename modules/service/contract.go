@@ -215,12 +215,21 @@ type TransactionMeta struct {
 
 type MultiSignAddress map[string]float64
 
+type MultiSignTransactionRequest struct {
+	ExternalID string   `json:"external_id"`
+	Blockchain string   `json:"blockchain"`
+	Addresses  []string `json:"addresses"`
+	TrxID      string   `json:"trxID"`
+	TrxData    string   `json:"trxData"`
+	Threshold  float64  `json:"threshold"`
+}
+
 type SignTransactionRequest struct {
 	ExternalID string  `json:"external_id"`
 	Blockchain string  `json:"blockchain"`
 	Address    string  `json:"address"`
 	TrxID      string  `json:"trxID"`
-	TrxData    []byte  `json:"trxData"`
+	TrxData    string  `json:"trxData"`
 	Threshold  float64 `json:"threshold"`
 }
 
@@ -241,7 +250,7 @@ type FuncDepositCallback func(blockChain, merchantID, externalId, externalWallet
 type FuncMultiSignAddrCallback func(blockChain, externalId string) (MultiSignAddress, float64, error)
 
 // FuncMultiSignSignature defines a callback function to get a list of address to be added to multi sig account
-type FuncMultiSignSignature func(request SignTransactionRequest) (map[string][]byte, error)
+type FuncMultiSignSignature func(request MultiSignTransactionRequest) (map[string][]byte, error)
 
 // FuncTransactionsCallback defines a callback function to post transaction for merchant
 type FuncTransactionsCallback func(trx storage.TransactionStore) error
@@ -252,15 +261,19 @@ type CryptoProcessor interface {
 	//	- externalID - id of newly created wallet in an external system
 	//	- multiSignAddresses - a func that provide a list of addresses to generate multi sign wallet,
 	//						   in case of nil newly created wallet will not support multi signature
+	//	- multiSignature - a func that provide a functionality to create multi signature for each public key,
+	//						   in case of nil newly created wallet will not support multi signature
 	// in case of success create new blockchain wallet and put it to the storage
 	CreateWallet(ctx context.Context, merchantID, externalId string,
-		multiSignAddresses FuncMultiSignAddrCallback) (*Wallet, error)
+		multiSignAddresses FuncMultiSignAddrCallback,
+		multiSignature FuncMultiSignSignature) (*Wallet, error)
 
 	GetWalletById(merchantID, externalId string) (string, error)
 
 	// Deposit create a
 	Deposit(ctx context.Context, request CredentialDeposit, merchantID, externalId string,
-		multiSignAddresses FuncMultiSignAddrCallback) (*DepositResponse, error)
+		multiSignAddresses FuncMultiSignAddrCallback,
+		multiSignature FuncMultiSignSignature) (*DepositResponse, error)
 	StreamDeposit(ctx context.Context, callback FuncDepositCallback, interval time.Duration)
 
 	// Withdraw
@@ -269,9 +282,11 @@ type CryptoProcessor interface {
 		multiSignSignature FuncMultiSignSignature) (*WithdrawResponse, error)
 
 	IssueFT(ctx context.Context, request NewTokenRequest, merchantID, externalID string,
-		multiSignAddresses FuncMultiSignAddrCallback) (*NewTokenResponse, []byte, error)
+		multiSignAddresses FuncMultiSignAddrCallback,
+		multiSignature FuncMultiSignSignature) (*NewTokenResponse, []byte, error)
 	IssueNFTClass(ctx context.Context, request NewTokenRequest, merchantID, externalId string,
-		multiSignAddresses FuncMultiSignAddrCallback) (*NewTokenResponse, []byte, error)
+		multiSignAddresses FuncMultiSignAddrCallback,
+		multiSignature FuncMultiSignSignature) (*NewTokenResponse, []byte, error)
 	MintFT(ctx context.Context, request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
 	MintNFT(ctx context.Context, request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
 	BurnToken(ctx context.Context, request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)

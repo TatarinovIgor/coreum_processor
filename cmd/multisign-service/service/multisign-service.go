@@ -9,17 +9,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	amomultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -140,13 +136,13 @@ func (s *MultiSignService) GetMultiSignAddresses(blockchain, externalID string) 
 
 // MultiSignTransaction generate a map of signatures for each account used for multi sign account generation
 //   - ctx - is a context for execution
-//   - address - a multi sign account that request transaction signatures
 //   - trxID - a transaction id that should be signed for execution
+//   - addresses - a multi sign addresses that requested for transaction signatures
 //   - trxData - byte serialise transaction that should be signed
 //   - threshold - a minimum number of signatures required for transaction execution
 //
 // in case of success the result has a map of address used to generate signature and transaction signatures
-func (s *MultiSignService) MultiSignTransaction(ctx context.Context, address, trxID string,
+func (s *MultiSignService) MultiSignTransaction(ctx context.Context, trxID string, addresses []string,
 	trxData []byte, threshold int) (map[string][]byte, error) {
 
 	// transaction verification if applicable
@@ -159,26 +155,7 @@ func (s *MultiSignService) MultiSignTransaction(ctx context.Context, address, tr
 	res := map[string][]byte{}
 	numSign := 0
 
-	accAddress, err := sdk.AccAddressFromBech32(address)
-	if err != nil {
-		return nil, err
-	}
-
-	info, err := client.GetAccountInfo(ctx, s.clientCtx, accAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	pubKey, ok := info.GetPubKey().(*amomultisig.LegacyAminoPubKey)
-	if !ok {
-		return nil, fmt.Errorf("unacceptable key format for address: %s", address)
-	}
-
-	for _, publicKey := range pubKey.GetPubKeys() {
-		addr, err := bech32.ConvertAndEncode(s.addressPrefix, publicKey.Address())
-		if err != nil {
-			continue
-		}
+	for _, addr := range addresses {
 
 		privateKey, err := s.findPrivateKeyByAddress(addr)
 		if err != nil {
@@ -191,8 +168,10 @@ func (s *MultiSignService) MultiSignTransaction(ctx context.Context, address, tr
 		if err != nil {
 			continue
 		}
+		m, _ := privateKey.PubKey().(*secp256k1.PubKey).Marshal()
+		pubKey := base64url.Encode(m)
 
-		res[addr] = signature
+		res[pubKey] = signature
 		numSign++
 		if numSign >= threshold {
 			// got enough signatures
@@ -201,7 +180,7 @@ func (s *MultiSignService) MultiSignTransaction(ctx context.Context, address, tr
 	}
 
 	if numSign < threshold {
-		return nil, fmt.Errorf("can't get enough signer for address: %s", address)
+		return nil, fmt.Errorf("can't get enough signer for trxID: %s", trxID)
 	}
 
 	return res, nil
@@ -213,92 +192,4 @@ func (s *MultiSignService) findPrivateKeyByAddress(address string) (types.PrivKe
 		return privateKey, nil
 	}
 	return nil, fmt.Errorf("can't find private key for address: %s", address)
-}
-
-func (s *MultiSignService) signTransaction(ctx context.Context, address string, msg banktypes.MsgSend) error {
-	unsignedTx, err := s.txFactory.BuildUnsignedTx(&msg)
-	accAddress, err := sdk.AccAddressFromBech32(address)
-	if err != nil {
-		return err
-	}
-
-	info, err := client.GetAccountInfo(ctx, s.clientCtx, accAddress)
-
-	signerData := xauthsigning.SignerData{
-		ChainID:       s.txFactory.ChainID(),
-		AccountNumber: info.GetAccountNumber(),
-		Sequence:      info.GetSequence(),
-	}
-
-	trxData, err := s.clientCtx.TxConfig().SignModeHandler().GetSignBytes(signMode, signerData, unsignedTx.GetTx())
-	if err != nil {
-		fmt.Println("can't make transaction data for signature, error:", err)
-		return err
-	}
-
-	pubKey, ok := info.GetPubKey().(*amomultisig.LegacyAminoPubKey)
-	if !ok {
-		return fmt.Errorf("unacceptable key format for address: %s", address)
-	}
-
-	ms := multisig.NewMultisig(int(pubKey.Threshold))
-
-	pubKeys := pubKey.GetPubKeys()
-
-	for _, p := range pubKeys {
-		addr, err := bech32.ConvertAndEncode(s.addressPrefix, p.Address())
-		if err != nil {
-			continue
-		}
-
-		privateKey, err := s.findPrivateKeyByAddress(addr)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-		signature, err := privateKey.Sign(trxData)
-		if err != nil {
-			fmt.Println("can't get sign transaction by second account, error:", err)
-			return err
-		}
-		sigData := signing.SingleSignatureData{
-			SignMode:  signMode,
-			Signature: signature,
-		}
-		sigV2 := signing.SignatureV2{
-			PubKey:   pubKey,
-			Data:     &sigData,
-			Sequence: info.GetSequence(),
-		}
-		err = multisig.AddSignatureV2(ms, sigV2, pubKeys)
-		if err != nil {
-			fmt.Println("can't add signature of second account, error:", err)
-			return err
-		}
-	}
-
-	err = unsignedTx.SetSignatures([]signing.SignatureV2{{
-		PubKey:   pubKey,
-		Data:     &signing.MultiSignatureData{Signatures: ms.Signatures, BitArray: ms.BitArray},
-		Sequence: info.GetSequence(),
-	}}...)
-
-	if err != nil {
-		fmt.Println("can't set signatures for transaction, error:", err)
-		return err
-	}
-
-	txBytes, err := s.clientCtx.TxConfig().TxEncoder()(unsignedTx.GetTx())
-	if err != nil {
-		fmt.Println("can't get transaction bytes for broadcast, error:", err)
-		return err
-	}
-
-	_, err = client.BroadcastRawTx(ctx, s.clientCtx, txBytes)
-	if err != nil {
-		fmt.Println("can't broadcast transaction, error:", err)
-		return err
-	}
-
-	return nil
 }

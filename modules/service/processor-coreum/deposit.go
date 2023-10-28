@@ -12,7 +12,8 @@ import (
 )
 
 func (s CoreumProcessing) Deposit(ctx context.Context, request service.CredentialDeposit, merchantID, externalId string,
-	multiSignAddresses service.FuncMultiSignAddrCallback) (*service.DepositResponse, error) {
+	multiSignAddresses service.FuncMultiSignAddrCallback,
+	multiSignature service.FuncMultiSignSignature) (*service.DepositResponse, error) {
 	depositData := service.DepositResponse{}
 
 	wallet := service.Wallet{Blockchain: s.receivingWallet.Blockchain}
@@ -20,7 +21,7 @@ func (s CoreumProcessing) Deposit(ctx context.Context, request service.Credentia
 	key := ""
 	if err != nil && errors.Is(err, storage.ErrNotFound) {
 		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,
-			externalId, multiSignAddresses)
+			externalId, multiSignAddresses, multiSignature)
 		if err != nil {
 			return nil, err
 		}

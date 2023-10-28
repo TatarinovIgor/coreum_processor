@@ -233,18 +233,24 @@ func (s ProcessingService) UpdateMerchantCommission(ctx context.Context, guid, b
 	if !ok {
 		return Wallets{}, fmt.Errorf("%s blockchain not found", blockchain)
 	}
-	callBack, err := s.callBack.GetMultiSignAddressesFn(guid)
+	callBackAdrFn, err := s.callBack.GetMultiSignAddressesFn(guid)
 	if err != nil {
-		return Wallets{}, fmt.Errorf("could not extract merchant: %v callback, error: %w", guid, err)
+		return Wallets{}, fmt.Errorf("could not extract merchant: %v callback for multisign adresses, error: %w",
+			guid, err)
+	}
+	callBackSignFn, err := s.callBack.GetMultiSignFn(guid)
+	if err != nil {
+		return Wallets{}, fmt.Errorf("could not extract merchant: %v callback for multisign signature, error: %w",
+			guid, err)
 	}
 	_, err = processor.Deposit(ctx, CredentialDeposit{Blockchain: blockchain, Amount: 0}, guid, wallets.SendingID,
-		callBack)
+		callBackAdrFn, callBackSignFn)
 	if err != nil {
 		return Wallets{}, err
 	}
 	//wallets.SendingID = res.WalletAddress
 	_, err = processor.Deposit(ctx, CredentialDeposit{Blockchain: blockchain, Amount: 0}, guid, wallets.ReceivingID,
-		callBack)
+		callBackAdrFn, callBackSignFn)
 	if err != nil {
 		return Wallets{}, err
 	}
@@ -258,11 +264,17 @@ func (s ProcessingService) CreateWallet(ctx context.Context,
 	if !ok {
 		return nil, fmt.Errorf("%s blockchain not found")
 	}
-	callBack, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	callBackAdrFn, err := s.callBack.GetMultiSignAddressesFn(merchantID)
 	if err != nil {
-		return nil, fmt.Errorf("could not extract merchant: %v callback, error: %w", merchantID, err)
+		return nil, fmt.Errorf("could not extract merchant: %v callback for multisign adresses, error: %w",
+			merchantID, err)
 	}
-	response, err := processor.CreateWallet(ctx, merchantID, externalID, callBack)
+	callBackSignFn, err := s.callBack.GetMultiSignFn(merchantID)
+	if err != nil {
+		return nil, fmt.Errorf("could not extract merchant: %v callback for multisign signature, error: %w",
+			merchantID, err)
+	}
+	response, err := processor.CreateWallet(ctx, merchantID, externalID, callBackAdrFn, callBackSignFn)
 	if err != nil {
 		return nil, fmt.Errorf("could not create wallet for blockchain: %s, err: %s", blockchain, err)
 	}
@@ -277,25 +289,21 @@ func (s ProcessingService) Deposit(ctx context.Context,
 		return nil, fmt.Errorf("%s blockchain not found", deposit.Blockchain)
 	}
 
-	callBack, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	callBackAdrFn, err := s.callBack.GetMultiSignAddressesFn(merchantID)
 	if err != nil {
-		return nil, fmt.Errorf("could not extract merchant: %v callback, error: %w", merchantID, err)
+		return nil, fmt.Errorf("could not extract merchant: %v callback for multisign adresses, error: %w",
+			merchantID, err)
 	}
-	response, err := processor.Deposit(ctx, deposit, merchantID, externalId, callBack)
+	callBackSignFn, err := s.callBack.GetMultiSignFn(merchantID)
+	if err != nil {
+		return nil, fmt.Errorf("could not extract merchant: %v callback for multisign signature, error: %w",
+			merchantID, err)
+	}
+	response, err := processor.Deposit(ctx, deposit, merchantID, externalId, callBackAdrFn, callBackSignFn)
 	if err != nil {
 		return nil, fmt.Errorf("could not perform deposit: %s", err)
 	}
-	/*
-		id, err := s.transactionStore.CreateTransaction(merchantID, externalId, deposit.Blockchain, "deposit", "", "", deposit.Blockchain, deposit.Issuer, deposit.Amount, 0)
-		if err != nil {
-			return nil, fmt.Errorf("could not create transaction: %s", err)
-		}
-		response.Id = id
-		err = s.transactionStore.UpdateWallet(response.WalletAddress, merchantID, externalId, id)
-		if err != nil {
-			return nil, fmt.Errorf("could not save external wallet: %s", err)
-		}
-	*/
+
 	return response, nil
 }
 
@@ -329,7 +337,8 @@ func (s ProcessingService) InitWithdraw(withdraw CredentialWithdraw,
 		return nil, fmt.Errorf("%s blockchain not found for mercchant: %s", withdraw.Blockchain, merchantID)
 	}
 	guid, err := s.transactionStore.CreateTransaction(merchantID, externalId, withdraw.Blockchain,
-		storage.WithdrawTransaction, withdraw.WalletAddress, "", withdraw.Asset, withdraw.Issuer, withdraw.Amount, 0)
+		storage.WithdrawTransaction,
+		withdraw.WalletAddress, "", withdraw.Asset, withdraw.Issuer, withdraw.Amount, 0)
 	return &WithdrawResponse{TransactionHash: guid}, err
 }
 
@@ -386,11 +395,17 @@ func (s ProcessingService) IssueFT(ctx context.Context, request NewTokenRequest,
 		return nil, nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
 
-	callBack, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	callBackAdrFn, err := s.callBack.GetMultiSignAddressesFn(merchantID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not extract merchant: %v callback, error: %w", merchantID, err)
+		return nil, nil, fmt.Errorf("could not extract merchant: %v callback for multisign adresses, error: %w",
+			merchantID, err)
 	}
-	response, features, err := processor.IssueFT(ctx, request, merchantID, externalId, callBack)
+	callBackSignFn, err := s.callBack.GetMultiSignFn(merchantID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not extract merchant: %v callback for multisign signature, error: %w",
+			merchantID, err)
+	}
+	response, features, err := processor.IssueFT(ctx, request, merchantID, externalId, callBackAdrFn, callBackSignFn)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -403,11 +418,18 @@ func (s ProcessingService) IssueNFT(ctx context.Context, request NewTokenRequest
 	if !ok {
 		return nil, nil, fmt.Errorf("%s blockchain not found", request.Blockchain)
 	}
-	callBack, err := s.callBack.GetMultiSignAddressesFn(merchantID)
+	callBackAdrFn, err := s.callBack.GetMultiSignAddressesFn(merchantID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not extract merchant: %v callback, error: %w", merchantID, err)
+		return nil, nil, fmt.Errorf("could not extract merchant: %v callback for multisign adresses, error: %w",
+			merchantID, err)
 	}
-	response, features, err := processor.IssueNFTClass(ctx, request, merchantID, externalId, callBack)
+	callBackSignFn, err := s.callBack.GetMultiSignFn(merchantID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not extract merchant: %v callback for multisign signature, error: %w",
+			merchantID, err)
+	}
+	response, features, err := processor.IssueNFTClass(ctx, request, merchantID, externalId,
+		callBackAdrFn, callBackSignFn)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -547,6 +569,7 @@ func (s ProcessingService) SetHeaders(w http.ResponseWriter) http.ResponseWriter
 	w.Header().Set("Content-Type", "application/json") // normal header
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Authorization, origin, x-requested-with, content-type")
+	w.Header().Set("Access-Control-Allow-Headers",
+		"Content-Type, Authorization, X-Authorization, origin, x-requested-with, content-type")
 	return w
 }

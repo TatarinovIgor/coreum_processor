@@ -55,9 +55,9 @@ func (s CoreumProcessing) Withdraw(ctx context.Context,
 	signRequest := service.SignTransactionRequest{
 		ExternalID: externalId,
 		Blockchain: s.blockchain,
-		Address:    key,
+		Address:    request.WalletAddress,
 		TrxID:      "",
-		TrxData:    nil,
+		TrxData:    "",
 		Threshold:  sendingWallet.Threshold,
 	}
 	result, err := s.broadcastTrx(ctx, sendingWallet, signRequest, multiSignSignature, msg)

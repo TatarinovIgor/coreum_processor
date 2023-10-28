@@ -6,6 +6,7 @@ import (
 	"coreum_processor/cmd/multisign-service/service"
 	"encoding/json"
 	"fmt"
+	"github.com/dvsekhvalnov/jose2go/base64url"
 	"github.com/julienschmidt/httprouter"
 	"io"
 	"log"
@@ -33,7 +34,7 @@ func GetAddressesHandler(multiSignService *service.MultiSignService) httprouter.
 	}
 }
 
-func SignTransactionHandler(multiSignService *service.MultiSignService) httprouter.Handle {
+func SignTransactionHandler(ctx context.Context, multiSignService *service.MultiSignService) httprouter.Handle {
 	return func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		signRequest := contract.SignTransactionRequest{}
 		err := json.NewDecoder(request.Body).Decode(&signRequest)
@@ -43,10 +44,19 @@ func SignTransactionHandler(multiSignService *service.MultiSignService) httprout
 			return
 		}
 
-		ctx := context.Background()
-		res, err := multiSignService.MultiSignTransaction(ctx, signRequest.Address, signRequest.TrxID, []byte(signRequest.TrxData),
-			signRequest.Threshold)
-
+		trxData, err := base64url.Decode(signRequest.TrxData)
+		if err != nil {
+			log.Println(err)
+			http.Error(writer, "could not decode transaction data", http.StatusBadRequest)
+			return
+		}
+		res, err := multiSignService.MultiSignTransaction(ctx, signRequest.TrxID, signRequest.Addresses,
+			trxData, signRequest.Threshold)
+		if err != nil {
+			log.Println(err)
+			http.Error(writer, "could not sign transaction data", http.StatusBadRequest)
+			return
+		}
 		log.Println(fmt.Sprintf("On blockchain: %s \n for external id: %s \n Sign the following transaction: %s",
 			signRequest.Blockchain, signRequest.ExternalID, signRequest.TrxID))
 

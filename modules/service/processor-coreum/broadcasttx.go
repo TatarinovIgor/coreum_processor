@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"github.com/dvsekhvalnov/jose2go/base64url"
 )
 
 func (s CoreumProcessing) broadcastTrx(ctx context.Context, sendingWallet service.Wallet,
@@ -19,7 +20,15 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, sendingWallet servic
 	msg sdk.Msg) (*sdk.TxResponse, error) {
 
 	if multiSignSignature != nil {
-		signatures, err := multiSignSignature(request)
+		mRequest := service.MultiSignTransactionRequest{
+			ExternalID: request.ExternalID,
+			Blockchain: request.Blockchain,
+			Addresses:  nil,
+			TrxID:      request.TrxID,
+			TrxData:    request.TrxData,
+			Threshold:  0,
+		}
+		signatures, err := multiSignSignature(mRequest)
 		if err != nil {
 			return nil, fmt.Errorf("can't get multisign signature, error: %w", err)
 		}
@@ -46,12 +55,12 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, sendingWallet servic
 			AccountNumber: info.GetAccountNumber(),
 			Sequence:      info.GetSequence(),
 		}
-		request.TrxData, err = s.clientCtx.TxConfig().SignModeHandler().GetSignBytes(signMode, signerData,
+		data, err := s.clientCtx.TxConfig().SignModeHandler().GetSignBytes(signMode, signerData,
 			unsignedTx.GetTx())
 		if err != nil {
 			return nil, fmt.Errorf("can't make multisign transaction bytes, error: %w", err)
 		}
-
+		request.TrxData = base64url.Encode(data)
 		ms := multisig.NewMultisig(int(sendingWallet.Threshold + 1))
 		sigV2 := signing.SignatureV2{
 			Sequence: info.GetSequence(),
@@ -107,8 +116,8 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, sendingWallet servic
 					sign, adr, err)
 			}
 		}
-		data := signing.MultiSignatureData{Signatures: ms.Signatures, BitArray: ms.BitArray}
-		sigV2.Data = &data
+		signData := signing.MultiSignatureData{Signatures: ms.Signatures, BitArray: ms.BitArray}
+		sigV2.Data = &signData
 		sigV2.PubKey = pubKey
 		err = unsignedTx.SetSignatures(sigV2)
 		if err != nil {

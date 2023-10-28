@@ -76,7 +76,7 @@ func (s *CallBacks) GetMultiSignFn(merchantID string) (FuncMultiSignSignature, e
 	if len(merchant.CallBackURL) < minLengthCallBackURL {
 		return nil, nil
 	}
-	return func(request SignTransactionRequest) (map[string][]byte, error) {
+	return func(request MultiSignTransactionRequest) (map[string][]byte, error) {
 		authorization, err := s.createJWTAuthorization()
 
 		resp, err := s.client.R().SetHeader("Authorization", authorization).SetBody(request).

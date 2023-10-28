@@ -14,6 +14,6 @@ func InitRouter(ctx context.Context, router *httprouter.Router, pathName string,
 	routerWrap := NewRouterWrap(pathName, router)
 
 	routerWrap.GET("/addresses", handler.GetAddressesHandler(multiSign))
-	routerWrap.POST("/sign", middleware.AuthMiddlewareAdmin(processing, handler.SignTransactionHandler(multiSign)))
+	routerWrap.POST("/sign", middleware.AuthMiddlewareAdmin(processing, handler.SignTransactionHandler(ctx, multiSign)))
 	routerWrap.POST("/transaction", handler.InitiateTransactionHandler(multiSign))
 }
