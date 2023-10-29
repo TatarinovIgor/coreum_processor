@@ -288,11 +288,16 @@ func (s CoreumProcessing) TransferFromSending(ctx context.Context, request servi
 		return nil, err
 	}
 	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
-
+	denom := s.denom
+	if request.Asset == "" {
+		request.Asset = s.denom
+	} else {
+		denom = request.Asset + "-" + request.Issuer
+	}
 	msg := &banktypes.MsgSend{
 		FromAddress: s.sendingWallet.WalletAddress,
 		ToAddress:   receivingWallet,
-		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
+		Amount: sdk.NewCoins(sdk.NewInt64Coin(denom,
 			int64(request.Amount))),
 	}
 	bech32, err := sdk.AccAddressFromBech32(s.sendingWallet.WalletAddress)
@@ -327,7 +332,7 @@ func (s CoreumProcessing) GetTokenSupply(ctx context.Context, request service.Ba
 }
 
 func (s CoreumProcessing) GetBalance(ctx context.Context, merchantID, externalID string) (service.Balance, error) {
-	_, _, byteAddress, err := s.store.GetByUser(merchantID, externalID)
+	_, key, byteAddress, err := s.store.GetByUser(merchantID, externalID)
 	balance := service.Balance{
 		Amount:     0,
 		Blockchain: "coreum",
@@ -344,19 +349,7 @@ func (s CoreumProcessing) GetBalance(ctx context.Context, merchantID, externalID
 		return balance, err
 	}
 
-	senderInfo, err := s.clientCtx.Keyring().NewAccount(
-		userWallet.WalletAddress,
-		userWallet.WalletSeed,
-		"",
-		sdk.GetConfig().GetFullBIP44Path(),
-		hd.Secp256k1,
-	)
-	if err != nil {
-		return balance, err
-	}
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
-
-	amount, _, err := s.balanceCoreum(ctx, userWallet.WalletAddress, constant.DenomTest)
+	amount, _, err := s.balanceCoreum(ctx, key, constant.DenomTest)
 	balance.Amount = float64(amount) / coreumDecimals
 
 	if err != nil {
@@ -390,14 +383,19 @@ func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 			return []service.Balance{}, err
 		}
 		for i := 0; i < resp.Balances.Len(); i++ {
+			asset := ""
+			issuer := ""
 			balanceDenom := resp.Balances[i].Denom
 			if balanceDenom == s.denom {
-				continue
+				asset = s.denom
+			} else {
+				assetInfo := strings.Split(balanceDenom, "-")
+				asset = assetInfo[0]
+				issuer = assetInfo[1]
 			}
-			asset := strings.Split(balanceDenom, "-")
 			balances = append(balances, service.Balance{Blockchain: request.Blockchain,
 				Amount: float64(resp.Balances[i].Amount.Int64()),
-				Asset:  asset[0], Issuer: asset[1]})
+				Asset:  asset, Issuer: issuer})
 		}
 		return balances, nil
 	} else if request.Asset != denom {
@@ -454,15 +452,11 @@ func (s CoreumProcessing) balanceCoreum(ctx context.Context, userAddress, denom 
 	if err != nil {
 		return 0, "", err
 	}
-	Info, err := s.clientCtx.Keyring().KeyByAddress(address)
-	if err != nil {
-		return 0, "", err
-	}
 
 	bankClient := banktypes.NewQueryClient(s.clientCtx)
 	// Query the balance of the recipient
 	response, err := bankClient.Balance(ctx, &banktypes.QueryBalanceRequest{
-		Address: Info.GetAddress().String(),
+		Address: address.String(),
 		Denom:   denom,
 	})
 	if err != nil {

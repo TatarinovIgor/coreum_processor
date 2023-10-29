@@ -25,7 +25,7 @@ func PageMerchantsAdmin(ctx context.Context, processing *service.ProcessingServi
 			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
 			return
 		}
-		t, err := template.ParseFiles("./templates/lite/dashboard/dashboard.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/dashboard/dashboard.html", "./templates/lite/admin-sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error: ` + err.Error() + `"}`))
@@ -59,7 +59,7 @@ func PageRequestsAdmin(ctx context.Context, userService *user.Service, processin
 			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
 			return
 		}
-		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/admin-sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -113,6 +113,7 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 			http.Error(w, "could not create new merchant", http.StatusBadRequest)
 			return
 		}
+
 		//Creating userStore
 		userStore, err := userService.GetUser(strings.Trim(raw.Identity, " "))
 		if err != nil || userStore == nil {
@@ -156,7 +157,7 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 
 func PageAssetRequestsAdmin(ctx context.Context, assetService *asset.Service, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		t, err := template.ParseFiles("./templates/lite/assets/asset-requests.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/assets/asset-requests.html", "./templates/lite/admin-sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -167,6 +168,7 @@ func PageAssetRequestsAdmin(ctx context.Context, assetService *asset.Service, pr
 			time.Unix(0, 0), time.Now().UTC())
 
 		if err != nil {
+
 			log.Println(err)
 			http.Error(w, "could not parse request data", http.StatusBadRequest)
 			return

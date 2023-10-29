@@ -5,9 +5,9 @@ import (
 	"coreum_processor/modules/service"
 	"fmt"
 	"github.com/CoreumFoundation/coreum/pkg/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	amomultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
@@ -16,7 +16,7 @@ import (
 	"github.com/dvsekhvalnov/jose2go/base64url"
 )
 
-func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID, externalID, fromAddr, trxID string,
+func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID, externalID, trxID, fromAddr string,
 	sendingWallet service.Wallet, msg sdk.Msg) (*sdk.TxResponse, error) {
 
 	// define sending address type
@@ -62,56 +62,37 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID, external
 			"could not extract merchant: %v callback for multisign signature, error: %w", merchantID, err)
 	}
 	if callBackSignFn != nil {
-		var addresses []string
+		var signAddresses []string
 		for _, key := range pubKey.GetPubKeys() {
 			addr, _ := bech32.ConvertAndEncode(s.addressPrefix, key.Address())
-			addresses = append(addresses, addr)
-		}
-		mRequest := service.MultiSignTransactionRequest{
-			ExternalID: externalID,
-			Blockchain: s.blockchain,
-			Addresses:  addresses,
-			TrxID:      trxID,
-			Threshold:  0,
-		}
-		signatures, err := callBackSignFn(mRequest)
-		if err != nil {
-			return nil, fmt.Errorf("can't get multisign signature, error: %w", err)
+			signAddresses = append(signAddresses, addr)
 		}
 
-		unsignedTx, err := s.factory.BuildUnsignedTx(msg)
+		sequence := info.GetSequence()
+		accountNumber := info.GetAccountNumber()
+		signerData := xauthsigning.SignerData{
+			ChainID:       s.factory.ChainID(),
+			AccountNumber: accountNumber,
+			Sequence:      sequence,
+		}
+
+		signMode := s.factory.SignMode()
+		gasPrice, err := client.GetGasPrice(ctx, s.clientCtx)
+		if err != nil {
+			return nil, fmt.Errorf("can't define gas price for multisign transaction, error: %w", err)
+		}
+
+		// TODO: gas -???
+		unsignedTx, err := s.factory.WithGas(uint64(102400)).WithGasPrices(gasPrice.String()).BuildUnsignedTx(msg)
 		if err != nil {
 			return nil, fmt.Errorf("can't buiild multisign transaction, error: %w", err)
 		}
-		adr, err := sdk.AccAddressFromBech32(fromAddr)
+		trxData, err := s.clientCtx.TxConfig().SignModeHandler().GetSignBytes(signMode,
+			signerData, unsignedTx.GetTx())
 		if err != nil {
-			return nil, fmt.Errorf("can't make multisign address, error: %w", err)
+			return nil, fmt.Errorf("can't make transaction data for signature, error: %w", err)
 		}
-		info, err := client.GetAccountInfo(ctx, s.clientCtx, adr)
-		if err != nil {
-			return nil, fmt.Errorf("unacceptable key format to get info for address: %s, error: %w", adr, err)
-		}
-		pubKey, ok := info.GetPubKey().(*amomultisig.LegacyAminoPubKey)
-		if !ok {
-			return nil, fmt.Errorf("unacceptable key format for address: %s", adr)
-		}
-
-		signerData := xauthsigning.SignerData{
-			ChainID:       s.factory.ChainID(),
-			AccountNumber: info.GetAccountNumber(),
-			Sequence:      info.GetSequence(),
-		}
-		signMode := s.factory.SignMode()
-		data, err := s.clientCtx.TxConfig().SignModeHandler().GetSignBytes(signMode, signerData,
-			unsignedTx.GetTx())
-		if err != nil {
-			return nil, fmt.Errorf("can't make multisign transaction bytes, error: %w", err)
-		}
-		mRequest.TrxData = base64url.Encode(data)
-		ms := multisig.NewMultisig(int(sendingWallet.Threshold + 1))
-		sigV2 := signing.SignatureV2{
-			Sequence: info.GetSequence(),
-		}
+		ms := multisig.NewMultisig(int(pubKey.Threshold))
 		// set sign from internal wallet
 		derivedPriv, err := hd.Secp256k1.Derive()(sendingWallet.WalletSeed, "",
 			sdk.GetConfig().GetFullBIP44Path())
@@ -120,47 +101,61 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID, external
 				fromAddr, err)
 		}
 		privKey := hd.Secp256k1.Generate()(derivedPriv)
-		sigV2, err = tx.SignWithPrivKey(
-			signMode, signerData,
-			unsignedTx, privKey, s.clientCtx.TxConfig(), signerData.Sequence)
+		sign, err := privKey.Sign(trxData)
 		if err != nil {
-			return nil, fmt.Errorf("can't make multisign signature for wallet: %v, error: %w",
-				fromAddr, err)
+			return nil, fmt.Errorf("can't sing transaction data by processing, error: %w", err)
 		}
-		sendingAdr, err := sdk.AccAddressFromBech32(sendingWallet.WalletAddress)
-		if err != nil {
-			return nil, fmt.Errorf("can't make multisign sending address, error: %w", err)
+		sigData1 := signing.SingleSignatureData{
+			SignMode:  signMode,
+			Signature: sign,
 		}
-		sendingInfo, err := client.GetAccountInfo(ctx, s.clientCtx, sendingAdr)
-		if err != nil {
-			return nil, fmt.Errorf("unacceptable key format to get info for sending address: %s, error: %w",
-				adr, err)
+		sigV2 := signing.SignatureV2{
+			PubKey:   privKey.PubKey(),
+			Data:     &sigData1,
+			Sequence: sequence,
 		}
-		sigV2.PubKey = sendingInfo.GetPubKey()
 		err = multisig.AddSignatureV2(ms, sigV2, pubKey.GetPubKeys())
 		if err != nil {
-			return nil, fmt.Errorf("can't added signature of: %s for wallet: %s, error: %w",
-				sendingWallet.WalletAddress, adr, err)
+			return nil, fmt.Errorf("can't add signature from processing signing account, error: %w", err)
 		}
+
+		mRequest := service.MultiSignTransactionRequest{
+			ExternalID: externalID,
+			Blockchain: s.blockchain,
+			Addresses:  signAddresses,
+			TrxID:      trxID,
+			TrxData:    base64url.Encode(trxData),
+			Threshold:  float64(pubKey.Threshold - 1),
+		}
+		signatures, err := callBackSignFn(mRequest)
+		if err != nil {
+			return nil, fmt.Errorf("can't get multisign signature, error: %w", err)
+		}
+
 		// set signs from external wallets
-		for sign, data := range signatures {
-			adr, err := sdk.AccAddressFromBech32(sign)
+		for key, sign := range signatures {
+			pubData, err := base64url.Decode(key)
 			if err != nil {
-				return nil, fmt.Errorf("can't make multisign address, error: %w", err)
+				return nil, fmt.Errorf(
+					"can't decode public key for Coreum multising signing, error: %v", err)
 			}
-			info, err := client.GetAccountInfo(ctx, s.clientCtx, adr)
+			var acc secp256k1.PubKey
+			err = acc.XXX_Unmarshal(pubData)
 			if err != nil {
-				return nil, fmt.Errorf("unacceptable key format to get info for address: %s", adr)
+				return nil, fmt.Errorf("can't unmarshal public key for Coreum multising signing, error: %v", err)
 			}
-			sigV2.Data = &signing.SingleSignatureData{
+			sigData1 := signing.SingleSignatureData{
 				SignMode:  signMode,
-				Signature: data,
+				Signature: sign,
 			}
-			sigV2.PubKey = info.GetPubKey()
+			sigV2 := signing.SignatureV2{
+				PubKey:   &acc,
+				Data:     &sigData1,
+				Sequence: sequence,
+			}
 			err = multisig.AddSignatureV2(ms, sigV2, pubKey.GetPubKeys())
 			if err != nil {
-				return nil, fmt.Errorf("can't added signature of: %s for wallet: %s, error: %w",
-					sign, adr, err)
+				return nil, fmt.Errorf("can't add signature from multi signing account, error: %w", err)
 			}
 		}
 		signData := signing.MultiSignatureData{Signatures: ms.Signatures, BitArray: ms.BitArray}
@@ -169,10 +164,17 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID, external
 		err = unsignedTx.SetSignatures(sigV2)
 		if err != nil {
 			return nil, fmt.Errorf("can't set signature for wallet: %s, error: %w",
-				adr, err)
+				fromAddr, err)
 		}
 		txBytes, err := s.clientCtx.TxConfig().TxEncoder()(unsignedTx.GetTx())
-		return client.BroadcastRawTx(ctx, s.clientCtx, txBytes)
+		if err != nil {
+			return nil, fmt.Errorf("can't get transaction bytes for broadcast, error: %w", err)
+		}
+		txHash, err := client.BroadcastRawTx(ctx, s.clientCtx, txBytes)
+		if err != nil {
+			return nil, fmt.Errorf("can't broadcast transaction, error: %w", err)
+		}
+		return txHash, err
 	}
 	return nil, fmt.Errorf("multisign callback is not defined for merhcant: %v", merchantID)
 }

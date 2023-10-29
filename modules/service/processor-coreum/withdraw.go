@@ -17,11 +17,16 @@ func (s CoreumProcessing) Withdraw(ctx context.Context,
 		commission = merchantWallets.CommissionSending.Fix
 		commission += merchantWallets.CommissionSending.Percent / 100. * (request.Amount - commission)
 	}
-
+	denom := s.denom
+	if request.Asset == "" {
+		request.Asset = s.denom
+	} else {
+		denom = request.Asset + "-" + request.Issuer
+	}
 	balance, err := s.GetAssetsBalance(ctx,
 		service.BalanceRequest{Blockchain: request.Blockchain, Asset: request.Asset, Issuer: request.Issuer},
 		merchantID, merchantWallets.SendingID)
-	if err != nil {
+	if err != nil || balance == nil {
 		return nil, fmt.Errorf("can't get merchant: %v, sending wallet: %v, err: %w",
 			merchantID, merchantWallets.SendingID, err)
 	}
@@ -41,7 +46,7 @@ func (s CoreumProcessing) Withdraw(ctx context.Context,
 		return nil, err
 	}
 	//check gas
-	_, err = s.updateGas(ctx, sendingWallet.WalletAddress, coreumFeeSendFT)
+	_, err = s.updateGas(ctx, key, coreumFeeSendFT)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +54,7 @@ func (s CoreumProcessing) Withdraw(ctx context.Context,
 	msg := &banktypes.MsgSend{
 		FromAddress: key,
 		ToAddress:   s.sendingWallet.WalletAddress,
-		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
-			int64(request.Amount))),
+		Amount:      sdk.NewCoins(sdk.NewInt64Coin(denom, int64(request.Amount))),
 	}
 	result, err := s.broadcastTrx(ctx, merchantID, externalId, trxID, msg.FromAddress, sendingWallet, msg)
 	if err != nil {
