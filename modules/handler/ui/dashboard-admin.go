@@ -58,7 +58,7 @@ func PageRequestsAdmin(ctx context.Context, userService *user.Service, processin
 			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
 			return
 		}
-		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/admin_sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/admin-sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -165,7 +165,7 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 
 func PageAssetRequestsAdmin(ctx context.Context, assetService *asset.Service, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		t, err := template.ParseFiles("./templates/lite/assets/asset-requests.html", "./templates/lite/sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/assets/asset-requests.html", "./templates/lite/admin-sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -176,6 +176,7 @@ func PageAssetRequestsAdmin(ctx context.Context, assetService *asset.Service, pr
 			time.Unix(0, 0), time.Now().UTC())
 
 		if err != nil {
+
 			log.Println(err)
 			http.Error(w, "could not parse request data", http.StatusBadRequest)
 			return
