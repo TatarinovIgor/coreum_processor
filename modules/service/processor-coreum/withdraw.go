@@ -10,7 +10,7 @@ import (
 )
 
 func (s CoreumProcessing) Withdraw(ctx context.Context,
-	request service.CredentialWithdraw, merchantID, externalId string,
+	request service.CredentialWithdraw, merchantID, externalId, trxID string,
 	merchantWallets service.Wallets) (*service.WithdrawResponse, error) {
 	commission := 0.0
 	if externalId != merchantWallets.ReceivingID || externalId != merchantWallets.SendingID {
@@ -52,15 +52,7 @@ func (s CoreumProcessing) Withdraw(ctx context.Context,
 		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
 			int64(request.Amount))),
 	}
-	signRequest := service.SignTransactionRequest{
-		ExternalID: externalId,
-		Blockchain: s.blockchain,
-		Address:    request.WalletAddress,
-		TrxID:      "",
-		TrxData:    "",
-		Threshold:  sendingWallet.Threshold,
-	}
-	result, err := s.broadcastTrx(ctx, merchantID, sendingWallet, signRequest, msg)
+	result, err := s.broadcastTrx(ctx, merchantID, externalId, trxID, msg.FromAddress, sendingWallet, msg)
 	if err != nil {
 		return nil, err
 	}

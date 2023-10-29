@@ -25,7 +25,7 @@ func PageMerchantsAdmin(ctx context.Context, processing *service.ProcessingServi
 			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
 			return
 		}
-		t, err := template.ParseFiles("./templates/lite/dashboard/dashboard.html")
+		t, err := template.ParseFiles("./templates/lite/dashboard/dashboard.html", "./templates/lite/sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error: ` + err.Error() + `"}`))
@@ -51,6 +51,7 @@ func PageMerchantsAdmin(ctx context.Context, processing *service.ProcessingServi
 
 func PageRequestsAdmin(ctx context.Context, userService *user.Service, processing *service.ProcessingService) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+
 		userStore, err := internal.GetUserStore(r.Context())
 		if err != nil {
 			log.Println(`can't find user store`)
@@ -58,7 +59,7 @@ func PageRequestsAdmin(ctx context.Context, userService *user.Service, processin
 			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
 			return
 		}
-		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/admin_sidebar.html")
+		t, err := template.ParseFiles("./templates/lite/merchants/merchants.html", "./templates/lite/sidebar.html")
 		if err != nil {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(`{"message":"` + `template parsing error` + `"}`))
@@ -112,25 +113,12 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 			http.Error(w, "could not create new merchant", http.StatusBadRequest)
 			return
 		}
-
 		//Creating userStore
-		userStore, err := internal.GetUserStore(r.Context())
-		if err != nil {
-			log.Println(`can't find user store`)
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(`{"message":"` + `can't find user store` + `"}`))
+		userStore, err := userService.GetUser(strings.Trim(raw.Identity, " "))
+		if err != nil || userStore == nil {
+			log.Println("Failed to get user: ", err)
+			http.Error(w, "Failed to get user", http.StatusBadRequest)
 			return
-		}
-
-		userStore.Identity = strings.Trim(raw.Identity, " ")
-		userStore.FirstName = raw.FirstName
-		userStore.LastName = raw.LastName
-
-		//Updating user
-		err = userService.UpdateUser(*userStore)
-		if err != nil {
-			log.Println("Failed to update user: ", err)
-			http.Error(w, "Failed to update user", http.StatusBadRequest)
 		}
 
 		//Adding merchant ID to merchant_list
@@ -138,6 +126,7 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 		if err != nil {
 			log.Println("Failed to add merchant ID to merchant_list: ", err)
 			http.Error(w, "Failed to add merchant ID to merchant_list", http.StatusBadRequest)
+			return
 		}
 
 		//Linking user to merchant
@@ -145,11 +134,13 @@ func PageRequestsAdminUpdate(ctx context.Context, userService *user.Service, pro
 		if err != nil {
 			log.Println("Failed to link user to merchant: ", err)
 			http.Error(w, "Failed to link user to merchant", http.StatusBadRequest)
+			return
 		}
 
 		_, err = userService.SetUserAccess(userStore.Identity, user.SetOnboarded(userStore.Access))
 		if err != nil {
 			log.Println(err)
+			return
 		}
 
 		// Send a response

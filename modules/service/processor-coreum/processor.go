@@ -51,6 +51,7 @@ type CoreumProcessing struct {
 	minimumValue    float64
 	senderMnemonic  string
 	denom           string
+	addressPrefix   string
 }
 
 func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
@@ -102,6 +103,7 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 		minimumValue:    minValue,
 		denom:           denom,
 		callBack:        callBack,
+		addressPrefix:   addressPrefix,
 	}
 }
 

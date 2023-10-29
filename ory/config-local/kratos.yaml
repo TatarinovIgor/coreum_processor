@@ -10,7 +10,7 @@ serve:
     base_url: http://kratos:4434/
 
 selfservice:
-  default_browser_return_url: http://127.0.0.1:9090/
+  default_browser_return_url: http://127.0.0.1:9090/ui/dashboard
   allowed_return_urls:
     - http://127.0.0.1:4455
 

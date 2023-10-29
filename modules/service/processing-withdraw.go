@@ -44,7 +44,7 @@ func (s ProcessingService) processWithdrawProcessed(ctx context.Context, bc stri
 				Asset:         tr.Asset,
 				Issuer:        tr.Issuer,
 				Memo:          "",
-			}, merch.ID.String(), wallet.SendingID, wallet)
+			}, merch.ID.String(), tr.ExternalId, tr.GUID.String(), wallet)
 			if err != nil {
 				log.Println(fmt.Errorf("can't process transactions: %v to settle, err: %v", tr.GUID, err))
 				continue

@@ -270,7 +270,7 @@ type CryptoProcessor interface {
 
 	// Withdraw
 	Withdraw(ctx context.Context, request CredentialWithdraw,
-		merchantID, externalId string, merchantWallets Wallets) (*WithdrawResponse, error)
+		merchantID, externalId, trxID string, merchantWallets Wallets) (*WithdrawResponse, error)
 
 	IssueFT(ctx context.Context, request NewTokenRequest,
 		merchantID, externalID string) (*NewTokenResponse, []byte, error)

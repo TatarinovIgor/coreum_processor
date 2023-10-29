@@ -68,8 +68,7 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 	wallet := service.Wallet{}
 
 	issuerId := fmt.Sprintf("%s-%s", merchantID, request.Code)
-	_, _, byteAddress, err := s.store.GetByUser(merchantID, issuerId)
-	key := ""
+	_, key, byteAddress, err := s.store.GetByUser(merchantID, issuerId)
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		return nil, nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
 	} else if errors.Is(err, storage.ErrNotFound) {
@@ -99,12 +98,13 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 			return nil, nil, fmt.Errorf("empty wallet address")
 		}
 	}
-	_, err = s.updateGas(ctx, wallet.WalletAddress, coreumFeeIssueFT)
+	_, err = s.updateGas(ctx, key, coreumFeeIssueFT)
 	if err != nil {
 		return nil, nil, err
 	}
-	token, features, err := s.createCoreumFT(ctx, request.Symbol, request.Code, request.Issuer, request.Description,
-		wallet.WalletSeed, request.InitialAmount)
+	token, features, err := s.createCoreumFT(ctx, merchantID, externalId,
+		request.Symbol, request.Code, key, request.Description,
+		wallet, request.InitialAmount)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -112,28 +112,14 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 	return &service.NewTokenResponse{TxHash: token, Issuer: wallet.WalletAddress}, features, nil
 }
 
-func (s CoreumProcessing) createCoreumFT(ctx context.Context,
-	symbol, subunit, issuerAddress, description, mnemonic string,
+func (s CoreumProcessing) createCoreumFT(ctx context.Context, merchantID, externalID,
+	symbol, subunit, issuerAddress, description string, sendingWallet service.Wallet,
 	initialAmount int64) (string, []byte, error) {
-
-	senderInfo, err := s.clientCtx.Keyring().NewAccount(
-		issuerAddress,
-		mnemonic,
-		"",
-		sdk.GetConfig().GetFullBIP44Path(),
-		hd.Secp256k1,
-	)
-
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
-
-	if err != nil {
-		return "", nil, err
-	}
 
 	features := []assetfttypes.Feature{assetfttypes.Feature_minting, assetfttypes.Feature_burning}
 
 	msgIssue := &assetfttypes.MsgIssue{
-		Issuer:        senderInfo.GetAddress().String(),
+		Issuer:        issuerAddress,
 		Symbol:        symbol,
 		Subunit:       strings.ToLower(subunit),
 		Precision:     6,
@@ -141,13 +127,17 @@ func (s CoreumProcessing) createCoreumFT(ctx context.Context,
 		Description:   description,
 		Features:      features,
 	}
+	trx, err := s.broadcastTrx(ctx, merchantID, externalID, issuerAddress,
+		"issue-"+symbol+"-"+subunit, sendingWallet, msgIssue)
+	/*
+		trx, err := client.BroadcastTx(
+			ctx,
+			s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
+			s.factory,
+			msgIssue,
+		)
 
-	trx, err := client.BroadcastTx(
-		ctx,
-		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
-		s.factory,
-		msgIssue,
-	)
+	*/
 	if err != nil {
 		return "", nil, err
 	}
