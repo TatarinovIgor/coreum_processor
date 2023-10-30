@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
-	assetfttypes "github.com/CoreumFoundation/coreum/x/asset/ft/types"
-	assetnfttypes "github.com/CoreumFoundation/coreum/x/asset/nft/types"
+	"github.com/CoreumFoundation/coreum/v2/pkg/client"
+	assetfttypes "github.com/CoreumFoundation/coreum/v2/x/asset/ft/types"
+	assetnfttypes "github.com/CoreumFoundation/coreum/v2/x/asset/nft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
@@ -54,8 +54,8 @@ func (s CoreumProcessing) IssueNFTClass(ctx context.Context, request service.New
 	if err != nil {
 		return nil, nil, err
 	}
-	token, features, err := s.createCoreumNFTClass(request.Symbol, request.Code, request.Issuer, request.Description,
-		wallet.WalletSeed)
+	token, features, err := s.createCoreumNFTClass(ctx,
+		request.Symbol, request.Code, request.Issuer, request.Description, wallet.WalletSeed)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -109,7 +109,7 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 		return nil, nil, err
 	}
 
-	return &service.NewTokenResponse{TxHash: token, Issuer: wallet.WalletAddress}, features, nil
+	return &service.NewTokenResponse{TxHash: token, Issuer: key}, features, nil
 }
 
 func (s CoreumProcessing) createCoreumFT(ctx context.Context, merchantID, externalID,
@@ -127,17 +127,10 @@ func (s CoreumProcessing) createCoreumFT(ctx context.Context, merchantID, extern
 		Description:   description,
 		Features:      features,
 	}
-	trx, err := s.broadcastTrx(ctx, merchantID, externalID, issuerAddress,
-		"issue-"+symbol+"-"+subunit, sendingWallet, msgIssue)
-	/*
-		trx, err := client.BroadcastTx(
-			ctx,
-			s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
-			s.factory,
-			msgIssue,
-		)
 
-	*/
+	trx, err := s.broadcastTrx(ctx, merchantID, externalID, "issue-"+symbol+"-"+subunit, issuerAddress,
+		sendingWallet, msgIssue)
+
 	if err != nil {
 		return "", nil, err
 	}
@@ -150,7 +143,8 @@ func (s CoreumProcessing) createCoreumFT(ctx context.Context, merchantID, extern
 	return trx.TxHash, featuresJson, err
 }
 
-func (s CoreumProcessing) createCoreumNFTClass(symbol, name, issuerAddress, description, mnemonic string) (string, []byte, error) {
+func (s CoreumProcessing) createCoreumNFTClass(ctx context.Context,
+	symbol, name, issuerAddress, description, mnemonic string) (string, []byte, error) {
 
 	senderInfo, err := s.clientCtx.Keyring().NewAccount(
 		issuerAddress,
@@ -175,8 +169,6 @@ func (s CoreumProcessing) createCoreumNFTClass(symbol, name, issuerAddress, desc
 		Description: description,
 		Features:    features,
 	}
-
-	ctx := context.Background()
 	trx, err := client.BroadcastTx(
 		ctx,
 		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),

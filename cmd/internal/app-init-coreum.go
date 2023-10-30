@@ -5,7 +5,7 @@ import (
 	"coreum_processor/modules/service/processor-coreum"
 	"coreum_processor/modules/storage"
 	"database/sql"
-	"github.com/CoreumFoundation/coreum/pkg/config/constant"
+	"github.com/CoreumFoundation/coreum/v2/pkg/config/constant"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"log"
 )

@@ -15,7 +15,7 @@ func PageDashboard(ctx context.Context, userService *user.Service, processing *s
 		if err != nil {
 			PageLanding(writer, request, params)
 		} else if user.IsSysAdmin(userStore.Access) {
-			PageMerchantsAdmin(ctx, processing)(writer, request, params)
+			PageRequestsAdmin(ctx, userService, processing)(writer, request, params)
 		} else if user.IsOnboarding(userStore.Access) {
 			PageWizardMerchant(ctx, userService)(writer, request, params)
 		} else if user.IsOnboarded(userStore.Access) {

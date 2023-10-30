@@ -5,8 +5,8 @@ import (
 	"coreum_processor/modules/service"
 	"encoding/json"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
-	"github.com/CoreumFoundation/coreum/x/nft"
+	"github.com/CoreumFoundation/coreum/v2/pkg/client"
+	"github.com/CoreumFoundation/coreum/v2/x/nft"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -17,7 +17,7 @@ func (s CoreumProcessing) TransferFT(ctx context.Context,
 	SendingExternalId := request.SendingExternalId
 	ReceivingExternalId := request.ReceivingExternalId
 
-	_, _, byteAddress, err := s.store.GetByUser(merchantID, SendingExternalId)
+	_, key, byteAddress, err := s.store.GetByUser(merchantID, SendingExternalId)
 	if err != nil {
 		return "", fmt.Errorf("can't get sending wallet: %v coreum wallet from store, err: %v",
 			SendingExternalId, err)
@@ -58,9 +58,10 @@ func (s CoreumProcessing) TransferFT(ctx context.Context,
 		return "", nil
 	}
 
+	denom := fmt.Sprintf("%s-%s", request.Subunit, request.Issuer)
 	//@ToDo multiply request.amount by the amount of decimals
-	res, err := s.transferCoreumFT(ctx, sendingWallet.WalletAddress, receivingWallet.WalletAddress,
-		fmt.Sprintf("%s-%s", request.Subunit, request.Issuer), int64(request.Amount))
+	res, err := s.transferCoreumFT(ctx, merchantID, SendingExternalId, "transfer-"+denom, key,
+		receivingWallet.WalletAddress, denom, sendingWallet, int64(request.Amount))
 
 	if err != nil {
 		return "", err
@@ -155,32 +156,20 @@ func (s CoreumProcessing) transferCoreumNFT(ctx context.Context,
 	return response.TxHash, nil
 }
 
-func (s CoreumProcessing) transferCoreumFT(ctx context.Context, senderAddress, recipientAddress, denom string,
+func (s CoreumProcessing) transferCoreumFT(ctx context.Context, merchantID, externalID, trxID,
+	senderAddress, recipientAddress, denom string, sendingWallet service.Wallet,
 	amount int64) (string, error) {
-
-	address, err := sdk.AccAddressFromBech32(senderAddress)
-	if err != nil {
-		return "", err
-	}
-	senderInfo, err := s.clientCtx.Keyring().KeyByAddress(address)
-	if err != nil {
-		return "", err
-	}
 
 	msgSend := &banktypes.MsgSend{
 		FromAddress: senderAddress,
 		ToAddress:   recipientAddress,
 		Amount:      sdk.NewCoins(sdk.NewInt64Coin(denom, amount)),
 	}
-	response, err := client.BroadcastTx(
-		ctx,
-		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
-		s.factory,
-		msgSend,
-	)
+	trx, err := s.broadcastTrx(ctx, merchantID, externalID, trxID, senderAddress, sendingWallet, msgSend)
+
 	if err != nil {
 		fmt.Println(err)
 		return "", err
 	}
-	return response.TxHash, nil
+	return trx.TxHash, nil
 }

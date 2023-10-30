@@ -4,7 +4,7 @@ import (
 	"context"
 	"coreum_processor/modules/service"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
+	"github.com/CoreumFoundation/coreum/v2/pkg/client"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	amomultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -83,7 +83,7 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID, external
 		}
 
 		// TODO: gas -???
-		unsignedTx, err := s.factory.WithGas(uint64(102400)).WithGasPrices(gasPrice.String()).BuildUnsignedTx(msg)
+		unsignedTx, err := s.factory.WithGas(uint64(124000)).WithGasPrices(gasPrice.String()).BuildUnsignedTx(msg)
 		if err != nil {
 			return nil, fmt.Errorf("can't buiild multisign transaction, error: %w", err)
 		}

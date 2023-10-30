@@ -7,8 +7,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
-	"github.com/CoreumFoundation/coreum/pkg/config/constant"
+	"github.com/CoreumFoundation/coreum/v2/pkg/client"
+	"github.com/CoreumFoundation/coreum/v2/pkg/config/constant"
+	"github.com/CoreumFoundation/coreum/v2/x/asset/ft"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -64,11 +65,11 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 	config.SetBech32PrefixForAccount(addressPrefix, addressPrefix+"pub")
 	config.SetCoinType(constant.CoinType)
 	config.Seal()
-
 	// List required modules.
 	// If you need types from any other module import them and add here.
 	modules := module.NewBasicManager(
 		auth.AppModuleBasic{},
+		ft.AppModuleBasic{},
 	)
 
 	// Configure client context and tx factory
@@ -77,6 +78,11 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 	if err != nil {
 		panic(err)
 	}
+
+	// TODO: create amino codec
+	// 	cdc.RegisterConcrete(&MsgSend{}, "cosmos-sdk/MsgSend", nil)
+	//	cdc.RegisterConcrete(&MsgIssue{}, "cosmos-sdk/MsgMultiSend", nil)
+	//	cdc.RegisterConcrete(&MsgMultiSend{}, "cosmos-sdk/MsgMultiSend", nil)
 
 	clientCtx := client.NewContext(client.DefaultContextConfig(), modules).
 		WithChainID(string(chainID)).
@@ -402,7 +408,7 @@ func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 		denom = request.Asset + "-" + request.Issuer
 	}
 	resp, err := bankClient.Balance(ctx, &banktypes.QueryBalanceRequest{
-		Address: userWallet.WalletAddress,
+		Address: address,
 		Denom:   denom,
 	})
 	if err != nil {
@@ -428,20 +434,8 @@ func (s CoreumProcessing) GetWalletById(merchantID, externalId string) (string, 
 
 func (s CoreumProcessing) updateGas(ctx context.Context, address string, txGasPrice int64) (string, error) {
 
-	senderInfo, err := s.clientCtx.Keyring().NewAccount(
-		s.sendingWallet.WalletAddress,
-		string(s.sendingWallet.WalletSeed),
-		"",
-		sdk.GetConfig().GetFullBIP44Path(),
-		hd.Secp256k1,
-	)
-
-	if err != nil {
-		return "", err
-	}
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
-
-	trx, err := s.transferCoreumFT(ctx, senderInfo.GetAddress().String(), address, s.denom, txGasPrice)
+	trx, err := s.transferCoreumFT(ctx, "", "", "",
+		s.sendingWallet.WalletAddress, address, s.denom, s.sendingWallet, txGasPrice)
 
 	return trx, err
 }

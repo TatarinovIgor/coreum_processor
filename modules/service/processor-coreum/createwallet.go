@@ -5,7 +5,7 @@ import (
 	"coreum_processor/modules/service"
 	"encoding/json"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
+	"github.com/CoreumFoundation/coreum/v2/pkg/client"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	amomultisig "github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"

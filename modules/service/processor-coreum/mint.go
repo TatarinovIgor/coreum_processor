@@ -5,9 +5,9 @@ import (
 	"coreum_processor/modules/service"
 	"encoding/json"
 	"fmt"
-	"github.com/CoreumFoundation/coreum/pkg/client"
-	assetfttypes "github.com/CoreumFoundation/coreum/x/asset/ft/types"
-	assetnfttypes "github.com/CoreumFoundation/coreum/x/asset/nft/types"
+	"github.com/CoreumFoundation/coreum/v2/pkg/client"
+	assetfttypes "github.com/CoreumFoundation/coreum/v2/x/asset/ft/types"
+	assetnfttypes "github.com/CoreumFoundation/coreum/v2/x/asset/nft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strconv"
@@ -28,7 +28,7 @@ func (s CoreumProcessing) MintFT(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	if addr == "" || wallet.WalletAddress == "" || wallet.WalletAddress != request.Issuer {
+	if addr == "" || wallet.WalletAddress == "" || addr != request.Issuer {
 		return nil, fmt.Errorf("empty or incorrect issuer wallet address")
 	}
 
@@ -36,38 +36,24 @@ func (s CoreumProcessing) MintFT(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	denom := fmt.Sprintf("%s-%s", request.Code, request.Issuer)
 
-	senderInfo, err := s.clientCtx.Keyring().NewAccount(
-		wallet.WalletAddress,
-		wallet.WalletSeed,
-		"",
-		sdk.GetConfig().GetFullBIP44Path(),
-		hd.Secp256k1,
-	)
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
+	token, err := s.mintCoreumFT(ctx, merchantID, externalID, request.Code, "mint-send-"+denom,
+		request.Issuer, wallet, int64(amount))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't mint asset: %v, error: %w", denom, err)
 	}
 
-	token, err := s.mintCoreumFT(ctx, request.Code, request.Issuer, int64(amount))
-	if err != nil {
-		return nil, err
-	}
-
-	_, addr, byteAddress, err = s.store.GetByUser(merchantID, externalID)
+	_, addr, _, err = s.store.GetByUser(merchantID, externalID)
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalID, err)
 	}
 
-	err = json.Unmarshal(byteAddress, &wallet)
-	if err != nil {
-		return nil, err
-	}
+	token, err = s.transferCoreumFT(ctx, merchantID, externalID, "mint-send-"+denom, request.Issuer, addr,
+		denom, wallet, int64(amount))
 
-	token, err = s.transferCoreumFT(ctx, request.Issuer, addr,
-		fmt.Sprintf("%s-%s", request.Code, request.Issuer), int64(amount))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't transfer minted asset: %v, error: %w", denom, err)
 	}
 
 	return &service.NewTokenResponse{TxHash: token}, nil
@@ -110,36 +96,28 @@ func (s CoreumProcessing) MintNFT(ctx context.Context,
 	return &service.NewTokenResponse{TxHash: token}, nil
 }
 
-func (s CoreumProcessing) mintCoreumFT(ctx context.Context, subunit, issuerAddress string, amount int64) (string, error) {
+func (s CoreumProcessing) mintCoreumFT(ctx context.Context,
+	merchantID, externalID, subunit, trxID, issuerAddress string,
+	sendingWallet service.Wallet, amount int64) (string, error) {
 	msgMint := &assetfttypes.MsgMint{
 		Sender: issuerAddress,
 		Coin:   sdk.Coin{Denom: subunit + "-" + issuerAddress, Amount: sdk.NewInt(amount)},
 	}
-	address, err := sdk.AccAddressFromBech32(issuerAddress)
-	if err != nil {
-		return "", err
-	}
-	senderInfo, err := s.clientCtx.Keyring().KeyByAddress(address)
-	if err != nil {
-		return "", err
-	}
+
 	// update gas
-	_, err = s.updateGas(ctx, issuerAddress, coerumFeeMintFT)
+	_, err := s.updateGas(ctx, issuerAddress, coerumFeeMintFT)
 	if err != nil {
 		return "", err
 	}
 
-	response, err := client.BroadcastTx(
-		ctx,
-		s.clientCtx.WithFromAddress(senderInfo.GetAddress()),
-		s.factory,
-		msgMint,
-	)
+	trx, err := s.broadcastTrx(ctx, merchantID, externalID, trxID, issuerAddress,
+		sendingWallet, msgMint)
+
 	if err != nil {
 		return "", err
 	}
 
-	return response.TxHash, err
+	return trx.TxHash, err
 }
 
 func (s CoreumProcessing) mintCoreumNFT(ctx context.Context, classId, issuerAddress, nftId string) (string, error) {
