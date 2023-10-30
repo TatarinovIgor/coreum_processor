@@ -67,7 +67,7 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 	merchantID, externalId string) (*service.NewTokenResponse, []byte, error) {
 	wallet := service.Wallet{}
 
-	issuerId := fmt.Sprintf("%s-%s", merchantID, request.Code)
+	issuerId := fmt.Sprintf("%s-%s", merchantID, "R")
 	_, key, byteAddress, err := s.store.GetByUser(merchantID, issuerId)
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		return nil, nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
