@@ -28,12 +28,11 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID, external
 	if err != nil {
 		return nil, fmt.Errorf("can't get info for account: %v, error: %w", fromAddr, err)
 	}
-	if info.GetPubKey() == nil {
-		return nil, fmt.Errorf("can't get public key for account: %v", fromAddr)
-
+	var pubKey *amomultisig.LegacyAminoPubKey
+	ok := false
+	if info.GetPubKey() != nil {
+		pubKey, ok = info.GetPubKey().(*amomultisig.LegacyAminoPubKey)
 	}
-
-	pubKey, ok := info.GetPubKey().(*amomultisig.LegacyAminoPubKey)
 	if !ok {
 		// not multisign account
 		senderInfo, err := s.clientCtx.Keyring().NewAccount(
