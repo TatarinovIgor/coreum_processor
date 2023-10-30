@@ -43,7 +43,8 @@ func (s CoreumProcessing) broadcastTrx(ctx context.Context, merchantID, external
 			hd.Secp256k1,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("can't add account: %v to keyring for broadcast, error: %w",
+				sendingWallet.WalletAddress, err)
 		}
 		defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
 		bech32, err := sdk.AccAddressFromBech32(sendingWallet.WalletAddress)
