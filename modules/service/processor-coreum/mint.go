@@ -38,7 +38,7 @@ func (s CoreumProcessing) MintFT(ctx context.Context,
 	}
 	denom := fmt.Sprintf("%s-%s", request.Code, request.Issuer)
 
-	token, err := s.mintCoreumFT(ctx, merchantID, externalID, request.Code, "mint-send-"+denom,
+	token, err := s.mintCoreumFT(ctx, merchantID, externalID, request.Code, "mint-"+denom,
 		request.Issuer, wallet, int64(amount))
 	if err != nil {
 		return nil, fmt.Errorf("can't mint asset: %v, error: %w", denom, err)
