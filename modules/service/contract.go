@@ -278,7 +278,7 @@ type CryptoProcessor interface {
 		merchantID, externalId string) (*NewTokenResponse, []byte, error)
 	MintFT(ctx context.Context, request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
 	MintNFT(ctx context.Context, request MintTokenRequest, merchantID string) (*NewTokenResponse, error)
-	BurnToken(ctx context.Context, request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
+	BurnFT(ctx context.Context, request TokenRequest, merchantID, externalID string) (*NewTokenResponse, error)
 
 	TransferToReceiving(ctx context.Context, request TransferRequest,
 		merchantID, externalId string) (*TransferResponse, error)

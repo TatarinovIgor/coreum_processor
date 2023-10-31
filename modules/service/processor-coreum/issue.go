@@ -67,27 +67,28 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 	merchantID, externalId string) (*service.NewTokenResponse, []byte, error) {
 	wallet := service.Wallet{}
 
-	issuerId := fmt.Sprintf("%s-%s", merchantID, "R")
+	issuerId := fmt.Sprintf("%s-%s", merchantID, request.Code)
 	_, key, byteAddress, err := s.store.GetByUser(merchantID, issuerId)
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
-		return nil, nil, fmt.Errorf("can't get user: %v coreum wallet from store, err: %v", externalId, err)
+		return nil, nil, fmt.Errorf("can't get user: %v coreum wallet from store to issue FT: %v, err: %v",
+			externalId, request.Code, err)
 	} else if errors.Is(err, storage.ErrNotFound) {
 		// create issuer
 		wallet.WalletSeed, wallet.WalletAddress, key, wallet.Threshold, err = s.createCoreumWallet(ctx,
 			merchantID, externalId)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("can't create issuer wallet to issue: %v, error: %w", request.Code, err)
 		}
 
-		wallet.Blockchain = request.Blockchain
+		wallet.Blockchain = s.blockchain
 		value, err := json.Marshal(wallet)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("can't marshal issuer wallet to issue: %v, error: %w", request.Code, err)
 		}
 
 		_, err = s.store.Put(merchantID, issuerId, key, value)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("can't store issuer wallet to issue: %v, error: %w", request.Code, err)
 		}
 	} else {
 		err = json.Unmarshal(byteAddress, &wallet)
@@ -98,7 +99,7 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 			return nil, nil, fmt.Errorf("empty wallet address")
 		}
 	}
-	_, err = s.updateGas(ctx, key, coreumFeeIssueFT)
+	_, err = s.updateGas(ctx, key, coreumFeeIssueFT+coreumFeeSendFT)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -106,10 +107,27 @@ func (s CoreumProcessing) IssueFT(ctx context.Context, request service.NewTokenR
 		request.Symbol, request.Code, key, request.Description,
 		wallet, request.InitialAmount)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("can't issue coreum FT, error: %w", err)
+	}
+	request.Issuer = key
+	denom := fmt.Sprintf("%s-%s", request.Code, request.Issuer)
+
+	externalID := fmt.Sprintf("%s-%s", merchantID, "R")
+	_, addr, _, err := s.store.GetByUser(merchantID, externalID)
+	if err != nil {
+		return nil, nil, fmt.Errorf(
+			"can't get user: %v coreum wallet from store to transfer issued FT: %v, err: %v",
+			externalID, denom, err)
 	}
 
-	return &service.NewTokenResponse{TxHash: token, Issuer: key}, features, nil
+	token, err = s.transferCoreumFT(ctx, merchantID, externalID, "issue-send-"+denom, request.Issuer, addr,
+		denom, wallet, request.InitialAmount)
+	if err != nil {
+		return &service.NewTokenResponse{TxHash: token}, features, fmt.Errorf(
+			"can't transfer issued FT: %v, error: %w", denom, err)
+	}
+
+	return &service.NewTokenResponse{TxHash: token, Issuer: request.Issuer}, features, nil
 }
 
 func (s CoreumProcessing) createCoreumFT(ctx context.Context, merchantID, externalID,
@@ -130,14 +148,13 @@ func (s CoreumProcessing) createCoreumFT(ctx context.Context, merchantID, extern
 
 	trx, err := s.broadcastTrx(ctx, merchantID, externalID, "issue-"+symbol+"-"+subunit, issuerAddress,
 		sendingWallet, msgIssue)
-
 	if err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf("can't broadcast trx to create FT, error: %w", err)
 	}
 
 	featuresJson, err := json.Marshal(features)
 	if err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf("can't unmarshal features for ft: %v, error: %w", symbol, err)
 	}
 
 	return trx.TxHash, featuresJson, err

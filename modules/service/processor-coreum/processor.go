@@ -79,11 +79,6 @@ func NewCoreumCryptoProcessor(sendingWallet, receivingWallet service.Wallet,
 		panic(err)
 	}
 
-	// TODO: create amino codec
-	// 	cdc.RegisterConcrete(&MsgSend{}, "cosmos-sdk/MsgSend", nil)
-	//	cdc.RegisterConcrete(&MsgIssue{}, "cosmos-sdk/MsgMultiSend", nil)
-	//	cdc.RegisterConcrete(&MsgMultiSend{}, "cosmos-sdk/MsgMultiSend", nil)
-
 	clientCtx := client.NewContext(client.DefaultContextConfig(), modules).
 		WithChainID(string(chainID)).
 		WithGRPCClient(grpcClient).
@@ -223,58 +218,41 @@ func (s CoreumProcessing) TransferFromReceiving(ctx context.Context, request ser
 func (s CoreumProcessing) TransferBetweenMerchantWallets(ctx context.Context,
 	request service.TransferRequest, merchantID string) (*service.TransferResponse, error) {
 
-	_, _, userWallet, err := s.store.GetByUser(merchantID, merchantID+"-R")
+	_, keyR, userWallet, err := s.store.GetByUser(merchantID, merchantID+"-R")
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
+
 	receivingWallet := service.Wallet{}
 	err = json.Unmarshal(userWallet, &receivingWallet)
-
-	_, _, userWallet, err = s.store.GetByUser(merchantID, merchantID+"-S")
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	sendingWallet := service.Wallet{}
-	err = json.Unmarshal(userWallet, &sendingWallet)
-	//check gas
 
+	_, keyS, _, err := s.store.GetByUser(merchantID, merchantID+"-S")
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	//check gas
 	_, err = s.updateGas(ctx, receivingWallet.WalletAddress, coreumFeeSendFT)
 	if err != nil {
 		return nil, err
 	}
 
-	senderInfo, err := s.clientCtx.Keyring().NewAccount(
-		receivingWallet.WalletAddress,
-		string(receivingWallet.WalletSeed),
-		"",
-		sdk.GetConfig().GetFullBIP44Path(),
-		hd.Secp256k1,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
 	msg := &banktypes.MsgSend{
-		FromAddress: receivingWallet.WalletAddress,
-		ToAddress:   sendingWallet.WalletAddress,
+		FromAddress: keyR,
+		ToAddress:   keyS,
 		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
 			int64(request.Amount))),
 	}
 
-	bech32, err := sdk.AccAddressFromBech32(receivingWallet.WalletAddress)
+	result, err := s.broadcastTrx(ctx, merchantID, merchantID+"-R", "transfer-R-to-S", keyR, receivingWallet, msg)
 	if err != nil {
-		return nil, err
-	}
-	result, err := client.BroadcastTx(
-		ctx,
-		s.clientCtx.WithFromAddress(bech32),
-		s.factory,
-		msg,
-	)
-	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -374,19 +352,22 @@ func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 	userWallet := service.Wallet{}
 	err = json.Unmarshal(byteAddress, &userWallet)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't unmarsahle user wallet to get asset bakance for address: %v, error: %w",
+			address, err)
 	}
 	// Query initial balance hold by the issuer
 	denom := s.denom
 	bankClient := banktypes.NewQueryClient(s.clientCtx)
 	var balances []service.Balance
+
 	//Check whether request wants specific token or all of them
 	if request.Asset == "" {
 		resp, err := bankClient.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
 			Address: address,
 		})
 		if err != nil {
-			return []service.Balance{}, err
+			return []service.Balance{}, fmt.Errorf("can't receive all balances for address: %v, error: %w",
+				address, err)
 		}
 		for i := 0; i < resp.Balances.Len(); i++ {
 			asset := ""
@@ -412,7 +393,7 @@ func (s CoreumProcessing) GetAssetsBalance(ctx context.Context,
 		Denom:   denom,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't get balance for denom: %v, error: %w", denom, err)
 	}
 	balances = append(balances, service.Balance{Blockchain: request.Blockchain,
 		Amount: float64(resp.Balance.Amount.Int64()),
@@ -433,9 +414,15 @@ func (s CoreumProcessing) GetWalletById(merchantID, externalId string) (string, 
 }
 
 func (s CoreumProcessing) updateGas(ctx context.Context, address string, txGasPrice int64) (string, error) {
-
+	core, _, err := s.balanceCoreum(ctx, address, s.denom)
+	if err != nil {
+		return "", err
+	}
+	if int64(core) > txGasPrice {
+		return "", nil
+	}
 	trx, err := s.transferCoreumFT(ctx, "", "", "",
-		s.sendingWallet.WalletAddress, address, s.denom, s.sendingWallet, txGasPrice)
+		s.sendingWallet.WalletAddress, address, s.denom, s.sendingWallet, txGasPrice-int64(core))
 
 	return trx, err
 }
@@ -469,6 +456,7 @@ func (s CoreumProcessing) balanceCoreumTokens(ctx context.Context, userAddress, 
 	if err != nil {
 		return 0, "", err
 	}
+	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(Info.GetAddress()) }()
 
 	denom := subunit + "-" + Info.GetAddress().String()
 

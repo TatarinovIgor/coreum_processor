@@ -422,7 +422,7 @@ func (s ProcessingService) BurnToken(ctx context.Context, request TokenRequest,
 
 	request.Code = strings.ToLower(request.Code)
 
-	response, err := processor.BurnToken(ctx, request, merchantID, externalId)
+	response, err := processor.BurnFT(ctx, request, merchantID, externalId)
 	if err != nil {
 		return nil, err
 	}

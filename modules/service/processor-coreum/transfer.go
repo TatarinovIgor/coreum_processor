@@ -41,18 +41,6 @@ func (s CoreumProcessing) TransferFT(ctx context.Context,
 		return "", err
 	}
 
-	senderInfo, err := s.clientCtx.Keyring().NewAccount(
-		sendingWallet.WalletAddress,
-		sendingWallet.WalletSeed,
-		"",
-		sdk.GetConfig().GetFullBIP44Path(),
-		hd.Secp256k1,
-	)
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
-	if err != nil {
-		return "", nil
-	}
-
 	_, err = s.updateGas(ctx, sendingWallet.WalletAddress, coreumFeeSendFT)
 	if err != nil {
 		return "", nil

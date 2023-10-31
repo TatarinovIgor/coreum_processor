@@ -197,7 +197,7 @@ func (s CoreumProcessing) createCoreumWallet(ctx context.Context,
 				ExternalID: externalId,
 				Blockchain: s.blockchain,
 				Addresses:  signAddresses,
-				TrxID:      "",
+				TrxID:      "activate-ms-" + signAddress,
 				TrxData:    base64url.Encode(trxData),
 				Threshold:  threshold,
 			}

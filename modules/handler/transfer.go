@@ -415,15 +415,6 @@ func BurnTokenMerchant(ctx context.Context, processing *service.ProcessingServic
 			http.Error(w, "could not find merchant", http.StatusBadRequest)
 			return
 		}
-		if TokenRequest.Blockchain == "coreum" {
-			TokenRequest.Issuer, err = processing.GetWalletById(TokenRequest.Blockchain, merchantID, merchantID+"-R")
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "could not perform token issuing", http.StatusBadRequest)
-				return
-			}
-		}
-
 		res, err = processing.BurnToken(ctx, TokenRequest, merchantID, merchantID+"-S")
 		if err != nil {
 			log.Println(err)
