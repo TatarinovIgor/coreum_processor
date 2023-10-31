@@ -116,7 +116,7 @@ func (s CoreumProcessing) GetTransactionStatus(_ context.Context, hash string) (
 
 func (s CoreumProcessing) TransferToReceiving(ctx context.Context, request service.TransferRequest,
 	merchantID, externalId string) (*service.TransferResponse, error) {
-	_, _, userWallet, err := s.store.GetByUser(merchantID, externalId)
+	_, key, userWallet, err := s.store.GetByUser(merchantID, externalId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -127,36 +127,21 @@ func (s CoreumProcessing) TransferToReceiving(ctx context.Context, request servi
 	//check gas
 	_, err = s.updateGas(ctx, sendingWallet.WalletAddress, coreumFeeSendFT)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
-	senderInfo, err := s.clientCtx.Keyring().NewAccount(
-		sendingWallet.WalletAddress,
-		string(sendingWallet.WalletSeed),
-		"",
-		sdk.GetConfig().GetFullBIP44Path(),
-		hd.Secp256k1,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = s.clientCtx.Keyring().DeleteByAddress(senderInfo.GetAddress()) }()
+
 	msg := &banktypes.MsgSend{
-		FromAddress: sendingWallet.WalletAddress,
+		FromAddress: key,
 		ToAddress:   s.receivingWallet.WalletAddress,
 		Amount: sdk.NewCoins(sdk.NewInt64Coin(fmt.Sprintf("%s-%s", request.Asset, request.Issuer),
 			int64(request.Amount))),
 	}
-	bech32, err := sdk.AccAddressFromBech32(sendingWallet.WalletAddress)
+
+	result, err := s.broadcastTrx(ctx, merchantID, externalId, "deposit-transfer-receiving",
+		key, sendingWallet, msg)
 	if err != nil {
-		return nil, err
-	}
-	result, err := client.BroadcastTx(
-		ctx,
-		s.clientCtx.WithFromAddress(bech32),
-		s.factory,
-		msg,
-	)
-	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	return &service.TransferResponse{TransferHash: result.TxHash}, nil
@@ -418,7 +403,7 @@ func (s CoreumProcessing) updateGas(ctx context.Context, address string, txGasPr
 	if err != nil {
 		return "", err
 	}
-	if int64(core) > txGasPrice {
+	if int64(core) >= txGasPrice {
 		return "", nil
 	}
 	trx, err := s.transferCoreumFT(ctx, "", "", "",
