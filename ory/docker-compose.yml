@@ -154,3 +154,25 @@ services:
       default:
         aliases:
           - coreum-processing
+  coreum-multisign-service:
+    image: birdhousedockers/coreum_multisign_service:latest
+    depends_on:
+      - coreum-processor
+    ports:
+      - '9095:9095'
+    volumes:
+      - type: bind
+        source: ./config
+        target: /config
+    environment:
+      - PORT=9095
+      - PUBLIC_KEY=/config/keys/cryptoProcessorKey.key.pub
+      - MNEMONICS=innocent beyond seed awful program shiver link flat february claw focus glimpse canvas slush forest code rough emotion juice another satisfy boil dutch unknown
+      - NETWORK_TYPE=Testnet
+      #env here
+    command: serve
+    restart: unless-stopped
+    networks:
+      default:
+        aliases:
+          - coreum-multisign-service

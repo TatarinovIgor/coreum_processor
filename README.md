@@ -1,9 +1,35 @@
 # Coreum processing
-Coreum processing is a part of 
+Coreum processing is a part of solution 
+it contains of the following modules:
+1. [ory/kratos](https://www.ory.sh/kratos/) - authentication and user management
+2. coreum_processor - an example of crypto processing on the base of [Coreum](https://www.coreum.com/) blockchain 
+3. coreum_multisign_service - an example of the services to implement multi-signature from merchant infrastructure
 
 ## How to start locally
-
-### Coreum processing
+1. To build coreum processor you should run the following docker command:
+```
+   docker build . -t birdhousedockers/coreum_processor:latest -f ./Dockerfile
+```
+2. To build coreum mulrisign service you should run the following docker command
+```
+   docker build . -t birdhousedockers/coreum_multisign_service:latest -f ./Dockerfile-MS
+```
+3. Go to folder ./ory where located files to run docker compose
+- if you would like to run Coreum processing on you local computer run the following command:
+```
+docker compose -f docker-compose.yml up
+```
+- if you would like to run Coreum from IDE you should specify requried env variable 
+to run coreum_processor and coreum_multisign_service and use the following docker compose command:
+```
+docker compose -f docker-compose-local.yml up
+```
+***
+provided docker compose files are responsible to start and run required infrastructure components like 
+postgres, ory/kratos, and run required migration scripts for database </br>
+if docker-compose.yml was started successfully the coreum_processor component will respond on address http://127.0.0.1:9090
+***
+### Coreum processing ENV variable
 
 the following env variables should be provided to run coreum processing
 
@@ -25,7 +51,7 @@ the following env variables should be provided to run coreum processing
 | WALLET_SENDER_ADDRESS     | testcore1w2x4hwhasqfvg8cm6kyduzgwngvp0wf46eshmc                                                                                                              | sending wallet address of the processing             |
 | WALLET_SENDER_SEED        | tube pledge side laundry volume actress route pink ring galaxy vendor obscure detect patient early memory reflect glue salon valid summer scatter damp total | mnemonic for sending wallet                          |
 
-### Coreum multi-signature service
+### Coreum multi-signature service ENV variable
 the following env variables should be provided to run coreum multi-signature service
 
 | name         | example                                                                                                                                                         | description                                         |
@@ -34,3 +60,6 @@ the following env variables should be provided to run coreum multi-signature ser
 | PUBLIC_KEY   | ./cmd/cryptoProcessorKey.key.pub                                                                                                                                | path to a file with public key to verify JWT        |
 | MNEMONICS    | innocent beyond seed awful program shiver link flat february claw focus glimpse canvas slush forest code rough emotion juice another satisfy boil dutch unknown | mnemonic for multisignature operation               |
 | NETWORK_TYPE | Testnet                                                                                                                                                         | type of Coreum network                              |
+
+## Coreum processing user interface
+
