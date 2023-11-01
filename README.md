@@ -27,7 +27,8 @@ docker compose -f docker-compose-local.yml up
 ***
 provided docker compose files are responsible to start and run required infrastructure components like 
 postgres, ory/kratos, and run required migration scripts for database </br>
-if docker-compose.yml was started successfully the coreum_processor component will respond on address http://127.0.0.1:9090
+if docker-compose.yml was started successfully the coreum_processor component 
+will respond on address http://127.0.0.1:9090 and coreum_multisign_service on address  http://127.0.0.1:9095
 ***
 ### Coreum processing ENV variable
 
