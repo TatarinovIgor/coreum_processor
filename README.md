@@ -63,3 +63,16 @@ the following env variables should be provided to run coreum multi-signature ser
 
 ## Coreum processing user interface
 
+### Registration of first user as admin with default merchant
+
+### Registration of second user and new merchant
+
+### Approval for new merchant
+
+### Activation of new merchant and request of FT assets
+
+### Approval of requested FT assets (issuing requested FT)
+
+### Transfer issued FT from receiving to transferring wallets
+
+
