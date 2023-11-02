@@ -84,9 +84,9 @@ the following env variables should be provided to run coreum multi-signature ser
 to link new registered client with default merchant created by migration scripts </br>
    ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/007-defaultmerchant.png)
 
-7. On dashboard page push 'Create' button to activate the first merchant
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/008-dashboard.png)
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/009-dashboard.png)
+7. On dashboard page push 'Create' button to activate the first merchant </br>
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/008-dashboard.png) </br>
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/009-activation.png)
 
 ### Registration of second user and new merchant
 
