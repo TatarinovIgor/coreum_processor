@@ -166,7 +166,7 @@ update users set access = 4099 where identity = '<put_your_user_identity>';
 
 ### Approval of requested FT assets (issuing requested FT)
 22. Goto assets page and approve requested token
-    ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/016-gotomerchantdashboard.png)
+    ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/022-approverequestft.png)
 
 23. Switch to merchant panel to generate a deposit wallet</br>
     ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/023-switchtomerchant.png)
