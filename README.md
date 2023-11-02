@@ -69,24 +69,26 @@ the following env variables should be provided to run coreum multi-signature ser
    ![Screenshot of landing](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/001-landing.png)
 2. Push "Register" and fill registration form </br>
    ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/002-signup.png)
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/003-verify.png)
+   ![Screenshot of verify](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/003-verify.png)
 
 3. After "Sign up" open a page with MailSlurper that deployed by docker compose at address http://127.0.0.1:4436 </br>
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/004-smtp.png)
+   ![Screenshot of smtp](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/004-smtp.png)
  
 4. Return page with verification form and put code to the form</br>
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/005-verification.png)
+   ![Screenshot of verification](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/005-verification.png)
 
 5. Push "Continue" and fill personal information in registration wizard</br>
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/006-personaldata.png)
+   ![Screenshot of personal data](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/006-personaldata.png)
 
 6. On next registration wizard page put the following merchant id `aaef4567-b438-48a4-9a3a-f3a730b0e1ec` 
 to link new registered client with default merchant created by migration scripts </br>
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/007-defaultmerchant.png)
+   ![Screenshot of default merchant](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/007-defaultmerchant.png)
 
 7. On dashboard page push 'Create' button to activate the first merchant </br>
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/008-dashboard.png) </br>
-   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/009-activation.png)
+   ![Screenshot of dashboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/008-dashboard.png) </br>
+
+8. Do logout in order continue scenarios </br>
+    ![Screenshot of activation](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/009-activation.png)
 
 ### Registration of second user and new merchant
 
