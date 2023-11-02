@@ -177,7 +177,12 @@ update users set access = 4099 where identity = '<put_your_user_identity>';
 
 25. Logout from Administrator
 
-### Transfer issued FT from receiving to transferring wallets
+### Transfer issued FT from receiving to transferring wallets and do withdrawal
 
+26. LogIn as merchant user and specify required parameters to make transfer from Receiving to Sending Wallet
+    ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/025-merchanttransferfromreceiving.png)</br>
+
+27. After successful transfer Merchant can do withdrawal to the addresses created on step 24
+    ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/026-merchantwithdrawal.png)</br>
 
 
