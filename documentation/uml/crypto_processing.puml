@@ -1,0 +1,51 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+autonumber
+actor Client
+actor Merchant
+
+box "Crypto processing"
+participant Client_wallet
+participant Receiving_wallet
+participant Sending_wallet
+participant FT_wallet
+end box
+
+Client --> Merchant : makes request to create wallet
+Merchant --> Merchant : Approves\n client
+Merchant -[#green]> Client_wallet : creates wallet using\n guid as external id\n(/create_client_wallet)\nand use merchant public\nkey as second signer
+Client -> Receiving_wallet : deposits money\nSends guid\n(/deposit)
+Receiving_wallet -> Receiving_wallet : Create mint transaction
+Receiving_wallet -> Merchant : Send request to sign transaction
+Merchant -[#green]> Receiving_wallet : Reply with signed transaction
+Receiving_wallet --> FT_wallet : Mint FT for deposited money\n(/token_mint )
+FT_wallet --> Client_wallet : Sends tokens to user's wallet
+
+actor Partner
+Client -> Partner : Makes request to buy a service
+Partner -> Client : Approves/rejects that \n he will send\n service to Client
+Client -> Client_wallet : Request service purchase
+Client_wallet -> Client_wallet : Create transaction
+Client_wallet -> Merchant : Send request to sign transaction
+Merchant -[#green]> Client_wallet : Reply with signed transaction
+Client_wallet -> Partner : Execute transaction
+
+Partner --> Client_wallet : Sends service/good/product as NFT
+Partner -> Client : Request to confirm that work is done
+Client -> Client_wallet : Confirms that work is done and sends NFT back
+
+Client -> Client_wallet : Request service purchase
+Client_wallet -> Client_wallet : Create transaction
+Client_wallet -> Merchant : Send request to sign transaction
+Merchant -[#green]> Client_wallet : Reply with signed transaction
+Client_wallet -> Partner : Execute transaction
+
+Partner -> Merchant : Makes a request to withdraw FT\n gives his wallet's address
+Merchant -> Sending_wallet : Withdraws FT to that wallet
+
+Sending_wallet -> Sending_wallet : Create transaction
+Sending_wallet -> Merchant : Send request to sign transaction
+Merchant -[#green]> Sending_wallet : Reply with signed transaction
+Sending_wallet -> Partner : Execute transaction \n(Sends funds to partner)
+
+@enduml

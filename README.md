@@ -17,12 +17,12 @@ it contains of the following modules:
 3. Go to folder ./ory where located files to run docker compose
 - if you would like to run Coreum processing on you local computer run the following command:
 ```
-docker compose -f docker-compose.yml up
+docker compose -f docker-compose.yml up -d
 ```
 - if you would like to run Coreum from IDE you should specify requried env variable 
 to run coreum_processor and coreum_multisign_service and use the following docker compose command:
 ```
-docker compose -f docker-compose-local.yml up
+docker compose -f docker-compose-local.yml up -d
 ```
 ***
 provided docker compose files are responsible to start and run required infrastructure components like 
@@ -65,6 +65,28 @@ the following env variables should be provided to run coreum multi-signature ser
 ## Coreum processing user interface
 
 ### Registration of first user as admin with default merchant
+1. open landing by address http://127.0.0.1:9090</br>
+   ![Screenshot of landing](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/001-landing.png)
+2. Push "Register" and fill registration form </br>
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/002-signup.png)
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/003-verify.png)
+
+3. After "Sign up" open a page with MailSlurper that deployed by docker compose at address http://127.0.0.1:4436 </br>
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/004-smtp.png)
+ 
+4. Return page with verification form and put code to the form</br>
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/005-verification.png)
+
+5. Push "Continue" and fill personal information in registration wizard</br>
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/006-personaldata.png)
+
+6. On next registration wizard page put the following merchant id `aaef4567-b438-48a4-9a3a-f3a730b0e1ec` 
+to link new registered client with default merchant created by migration scripts </br>
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/007-defaultmerchant.png)
+
+7. On dashboard page push 'Create' button to activate the first merchant
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/008-dashboard.png)
+   ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/009-dashboard.png)
 
 ### Registration of second user and new merchant
 
