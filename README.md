@@ -1,6 +1,8 @@
 # Coreum processing
-Coreum processing is a part of solution 
-it contains of the following modules:
+Coreum processing is an open-source project to show how [Coreum](https://www.coreum.com/) blockchain
+can be used in business to process payments and it is a part of a solution developed by [BirdHouse Technology](https://birdhouse.technology/)
+for small and medium businesses that would like to use digital assets in their business processes.
+It contains the following modules:
 1. [ory/kratos](https://www.ory.sh/kratos/) - authentication and user management
 2. coreum_processor - an example of crypto processing on the base of [Coreum](https://www.coreum.com/) blockchain 
 3. coreum_multisign_service - an example of the services to implement multi-signature from merchant infrastructure
