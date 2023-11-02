@@ -12,7 +12,7 @@ It contains the following modules:
 ```
    docker build . -t birdhousedockers/coreum_processor:latest -f ./Dockerfile
 ```
-2. To build coreum mulrisign service you should run the following docker command
+2. To build coreum multi-sign service you should run the following docker command
 ```
    docker build . -t birdhousedockers/coreum_multisign_service:latest -f ./Dockerfile-MS
 ```
@@ -113,27 +113,27 @@ update users set access = 4099 where identity = '<put_your_user_identity>';
 12. Provide information about merchant
     ![Screenshot of merchant data](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/011-merchantdata.png)
 
-12. Merchant approval pending
+13. Merchant approval pending
     ![Screenshot of merchant pending](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/012-merchantpending.png)
 
-13. Do logout by using the following link http://127.0.0.1:9090/logout
+14. Do logout by using the following link http://127.0.0.1:9090/logout
 
 ### Approval for new merchant t
-14. Login as administrator and approve merchant on the page http://127.0.0.1:9090/ui/admin/merchant-requests </br>
+15. Login as administrator and approve merchant on the page http://127.0.0.1:9090/ui/admin/merchant-requests </br>
     ![Screenshot of merchant approval](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/013-approvemerchant.png)
 
-15. Do logout from administrator 
+16. Do logout from administrator 
 ### Activation of new merchant and request of FT assets
-16. Login under newly approved merchant and switch to settings page
+17. Login under newly approved merchant and switch to settings page
     ![Screenshot of go to settings](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/014-gotomechantsettings.png)
 
-17. In setting page put callback url for multi-signature service (if docker-compose.yaml was user the correct address should be `http://host.docker.internal:9095')</br>
+18. In setting page put callback url for multi-signature service (if docker-compose.yaml was user the correct address should be `http://host.docker.internal:9095')</br>
     ![Screenshot of provide url for merchant multi-sign callbeack](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/015-putmerchantcallback.png)
 
-18. Goto dashboard page and create Coreum Wallet
-    ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/016-gotomerchantdashboard.png)
+19. Goto dashboard page and create Coreum Wallet
+    ![Screenshot of merchant dashboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/016-gotomerchantdashboard.png)
 
-19. After successful activation the multi-sign service should have a record in logs:
+20. After successful activation the multi-sign service should have a record in logs:
 ```
 
 2023-11-02T14:17:06.300072200Z 2023/11/02 14:17:06.299951 /go/src/app/cmd/multisign-service/service/multisign-service.go:133: On blockchain: coreum
@@ -159,32 +159,32 @@ update users set access = 4099 where identity = '<put_your_user_identity>';
 2023-11-02T14:17:34.774088400Z 
 
 ```
-   ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/017-merchantwalletactivation.png)
+   ![Screenshot of merchant wallet activation](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/017-merchantwalletactivation.png)
 
-20. Goto Assets page and requests a FT, by filling required fields
-    ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/018-merchantrequestft.png)
+21. Goto Assets page and requests a FT, by filling required fields
+    ![Screenshot of merchant request FT](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/018-merchantrequestft.png)
 
-21. Logout from the merchant
+22. Logout from the merchant
 
 ### Approval of requested FT assets (issuing requested FT)
-22. Goto assets page and approve requested token
-    ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/022-approverequestft.png)
+23. Goto assets page and approve requested token
+    ![Screenshot of approve requested FT](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/022-approverequestft.png)
 
-23. Switch to merchant panel to generate a deposit wallet</br>
+24. Switch to merchant panel to generate a deposit wallet</br>
     ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/023-switchtomerchant.png)
 
-24. Create a deposit request by providing unique id for deposit user and push "Deposit"</br>
-    ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/024-makedeposit.png)</br>
+25. Create a deposit request by providing unique id for deposit user and push "Deposit"</br>
+    ![Screenshot of merchant deposit request](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/024-makedeposit.png)</br>
     after generation of wallet address you should store it for following steps
 
-25. Logout from Administrator
+26. Logout from Administrator
 
 ### Transfer issued FT from receiving to transferring wallets and do withdrawal
 
-26. Login as merchant user and specify required parameters to make transfer from Receiving to Sending Wallet
-    ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/025-merchanttransferfromreceiving.png)</br>
+27. Login as merchant user and specify required parameters to make transfer from Receiving to Sending Wallet
+    ![Screenshot of merchant transfer to receiving](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/025-merchanttransferfromreceiving.png)</br>
 
-27. After successful transfer, Merchant can do withdrawal to the addresses created on step 24
-    ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/026-merchantwithdrawal.png)</br>
+28. After successful transfer, Merchant can do withdrawal to the addresses created on step 25
+    ![Screenshot of merchant withdrawal](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/026-merchantwithdrawal.png)</br>
 
 
