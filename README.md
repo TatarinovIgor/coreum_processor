@@ -90,14 +90,94 @@ to link new registered client with default merchant created by migration scripts
 8. Do logout in order continue scenarios </br>
     ![Screenshot of activation](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/009-activation.png)
 
+9. Login to postgres container to update the register user access rights by using the following command:
+```
+docker exec -it ory-db-psql-1 psql -d coreum_processor -U postgres
+```
+- find user id database
+```
+select * from users;
+```
+- update user access in database
+```
+update users set access = 4099 where identity = '<put_your_user_identity>';
+```
 ### Registration of second user and new merchant
+10. Do steps 1 - 5 from [Registration of first user as admin with default merchant](https://github.com/TatarinovIgor/coreum_processor#registration-of-first-user-as-admin-with-default-merchant)
 
-### Approval for new merchant
+11. on step 6 push option use option "I would like to make new merchant"
+    ![Screenshot of new merchant](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/010-newmerchant.png)
 
+12. Provide information about merchant
+    ![Screenshot of merchant data](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/011-merchantdata.png)
+
+12. Merchant approval pending
+    ![Screenshot of merchant pending](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/012-merchantpending.png)
+
+13. Do LogOut by using the following link http://127.0.0.1:9090/logout
+
+### Approval for new merchant t
+14. Login as administrator and approve merchant on the page http://127.0.0.1:9090/ui/admin/merchant-requests </br>
+    ![Screenshot of merchant approval](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/013-approvemerchant.png)
+
+15. Do logout from administrator 
 ### Activation of new merchant and request of FT assets
+16. Login under newly approved merchant and switch to settings page
+    ![Screenshot of go to settings](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/014-gotomechantsettings.png)
+
+17. In setting page put callback url for mutli-signature service (if docker-compose.yaml was user the correct address should be `http://host.docker.internal:9095')</br>
+    ![Screenshot of provide url for merchant multi-sign callbeack](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/015-putmerchantcallback.png)
+
+18. Goto dashboard page and create Coreum Wallet
+    ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/016-gotomerchantdashboard.png)
+
+19. After successful activation the multi-sign service should have a record in logs:
+```
+
+2023-11-02T14:17:06.300072200Z 2023/11/02 14:17:06.299951 /go/src/app/cmd/multisign-service/service/multisign-service.go:133: On blockchain: coreum
+2023-11-02T14:17:06.300112200Z 	for external id: 3b23b632-1b9a-4882-8713-271552c0515e-R
+2023-11-02T14:17:06.300115400Z 	Given the following addresses:
+2023-11-02T14:17:06.300117300Z 	 testcore1jug4e9pw92zc8vhcewdtnj3v0zp6r2c0e2hc3e
+2023-11-02T14:17:06.300119300Z 
+2023-11-02T14:17:10.324532500Z 2023/11/02 14:17:10.324398 /go/src/app/cmd/multisign-service/handler/handler.go:60: On blockchain: coreum 
+2023-11-02T14:17:10.324567500Z  for external id: 3b23b632-1b9a-4882-8713-271552c0515e-R 
+2023-11-02T14:17:10.324570700Z  Sign the following transaction: activate-ms-testcore1l9fp9j8sfzv88cwuuzd62ek8ed59l742c04ge4
+2023-11-02T14:17:13.173877800Z 2023/11/02 14:17:13.173762 /go/src/app/cmd/multisign-service/service/multisign-service.go:133: On blockchain: coreum
+2023-11-02T14:17:13.173909400Z 	for external id: 3b23b632-1b9a-4882-8713-271552c0515e-S
+2023-11-02T14:17:13.173913700Z 	Given the following addresses:
+2023-11-02T14:17:13.173916500Z 	 testcore1jug4e9pw92zc8vhcewdtnj3v0zp6r2c0e2hc3e
+2023-11-02T14:17:13.173919200Z 
+2023-11-02T14:17:16.347297500Z 2023/11/02 14:17:16.347139 /go/src/app/cmd/multisign-service/handler/handler.go:60: On blockchain: coreum 
+2023-11-02T14:17:16.347329300Z  for external id: 3b23b632-1b9a-4882-8713-271552c0515e-S 
+2023-11-02T14:17:16.347333000Z  Sign the following transaction: activate-ms-testcore1fecutgj7t0vvtll4psv0965z2j30s6k4h2vgzf
+2023-11-02T14:17:34.774034800Z 2023/11/02 14:17:34.773910 /go/src/app/cmd/multisign-service/service/multisign-service.go:133: On blockchain: 
+2023-11-02T14:17:34.774079300Z 	for external id: 
+2023-11-02T14:17:34.774083100Z 	Given the following addresses:
+2023-11-02T14:17:34.774085900Z 	 testcore1jug4e9pw92zc8vhcewdtnj3v0zp6r2c0e2hc3e
+2023-11-02T14:17:34.774088400Z 
+
+```
+   ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/017-merchantwalletactivation.png)
+
+20. Goto Assets page and requests a FT, by filling required fields
+    ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/018-merchantrequestft.png)
+
+21. Logout from the merchant
 
 ### Approval of requested FT assets (issuing requested FT)
+22. Goto assets page and approve requested token
+    ![Screenshot of merchant dashaboard](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/016-gotomerchantdashboard.png)
+
+23. Switch to merchant panel to generate a deposit wallet</br>
+    ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/023-switchtomerchant.png)
+
+24. Create a deposit request by providing unique id for deposit user and push "Deposit"</br>
+    ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/024-makedeposit.png)</br>
+    after generation of wallet address you should store it for following steps
+
+25. Logout from Administrator
 
 ### Transfer issued FT from receiving to transferring wallets
+
 
 
