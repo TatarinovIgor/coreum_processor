@@ -1,6 +1,6 @@
 # Coreum processing
 Coreum processing is an open-source project to show how [Coreum](https://www.coreum.com/) blockchain
-can be used in business to process payments and it is a part of a solution developed by [BirdHouse Technology](https://birdhouse.technology/)
+can be used in business to process payments. It is a part of a solution developed by [BirdHouse Technology](https://birdhouse.technology/)
 for small and medium businesses that would like to use digital assets in their business processes.
 It contains the following modules:
 1. [ory/kratos](https://www.ory.sh/kratos/) - authentication and user management
@@ -17,24 +17,24 @@ It contains the following modules:
    docker build . -t birdhousedockers/coreum_multisign_service:latest -f ./Dockerfile-MS
 ```
 3. Go to folder ./ory where located files to run docker compose
-- if you would like to run Coreum processing on you local computer run the following command:
+- if you would like to run Coreum processing on you local computer, run the following command:
 ```
 docker compose -f docker-compose.yml up -d
 ```
-- if you would like to run Coreum from IDE you should specify requried env variable 
+- If you would like to run Coreum from IDE you should specify requried env variable 
 to run coreum_processor and coreum_multisign_service and use the following docker compose command:
 ```
 docker compose -f docker-compose-local.yml up -d
 ```
 ***
-provided docker compose files are responsible to start and run required infrastructure components like 
-postgres, ory/kratos, and run required migration scripts for database </br>
+Provided docker compose files are responsible for starting and running required infrastructure components(such as 
+postgres, ory/kratos, etc.), as well as for runnning required migration scripts for database </br>
 if docker-compose.yml was started successfully the coreum_processor component 
 will respond on address http://127.0.0.1:9090 and coreum_multisign_service on address  http://127.0.0.1:9095
 ***
 ### Coreum processing ENV variable
 
-the following env variables should be provided to run coreum processing
+The following env variables should be provided to run coreum processing
 
 | name                      | example                                                                                                                                                      | description                                          |
 |---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
@@ -55,7 +55,7 @@ the following env variables should be provided to run coreum processing
 | WALLET_SENDER_SEED        | tube pledge side laundry volume actress route pink ring galaxy vendor obscure detect patient early memory reflect glue salon valid summer scatter damp total | mnemonic for sending wallet                          |
 
 ### Coreum multi-signature service ENV variable
-the following env variables should be provided to run coreum multi-signature service
+The following env variables should be provided to run coreum multi-signature service
 
 | name         | example                                                                                                                                                         | description                                         |
 |--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
@@ -67,7 +67,7 @@ the following env variables should be provided to run coreum multi-signature ser
 ## Coreum processing user interface
 
 ### Registration of first user as admin with default merchant
-1. open landing by address http://127.0.0.1:9090</br>
+1. Open landing by address http://127.0.0.1:9090</br>
    ![Screenshot of landing](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/001-landing.png)
 2. Push "Register" and fill registration form </br>
    ![Screenshot of signup](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/002-signup.png)
@@ -116,7 +116,7 @@ update users set access = 4099 where identity = '<put_your_user_identity>';
 12. Merchant approval pending
     ![Screenshot of merchant pending](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/012-merchantpending.png)
 
-13. Do LogOut by using the following link http://127.0.0.1:9090/logout
+13. Do logout by using the following link http://127.0.0.1:9090/logout
 
 ### Approval for new merchant t
 14. Login as administrator and approve merchant on the page http://127.0.0.1:9090/ui/admin/merchant-requests </br>
@@ -127,7 +127,7 @@ update users set access = 4099 where identity = '<put_your_user_identity>';
 16. Login under newly approved merchant and switch to settings page
     ![Screenshot of go to settings](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/014-gotomechantsettings.png)
 
-17. In setting page put callback url for mutli-signature service (if docker-compose.yaml was user the correct address should be `http://host.docker.internal:9095')</br>
+17. In setting page put callback url for multi-signature service (if docker-compose.yaml was user the correct address should be `http://host.docker.internal:9095')</br>
     ![Screenshot of provide url for merchant multi-sign callbeack](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/015-putmerchantcallback.png)
 
 18. Goto dashboard page and create Coreum Wallet
@@ -181,10 +181,10 @@ update users set access = 4099 where identity = '<put_your_user_identity>';
 
 ### Transfer issued FT from receiving to transferring wallets and do withdrawal
 
-26. LogIn as merchant user and specify required parameters to make transfer from Receiving to Sending Wallet
+26. Login as merchant user and specify required parameters to make transfer from Receiving to Sending Wallet
     ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/025-merchanttransferfromreceiving.png)</br>
 
-27. After successful transfer Merchant can do withdrawal to the addresses created on step 24
+27. After successful transfer, Merchant can do withdrawal to the addresses created on step 24
     ![Screenshot of switch merchant panel](https://github.com/TatarinovIgor/coreum_processor/blob/main/documentation/images/026-merchantwithdrawal.png)</br>
 
 
