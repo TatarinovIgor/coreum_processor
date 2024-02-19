@@ -6,8 +6,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: local-postgres0!
       POSTGRES_DB: kratos
+      POSTGRES_PORT: 5433
     ports:
-      - 5438:5432
+      - 5437:5433
+    command: -p 5433
     volumes:
       - ./data-db:/var/lib/postgresql/data
     networks:
@@ -19,7 +21,7 @@ services:
       - db-psql
     image: oryd/kratos
     environment:
-      - DSN=postgres://postgres:local-postgres0!@db-psql:5432/kratos?sslmode=disable
+      - DSN=postgres://postgres:local-postgres0!@db-psql:5433/kratos?sslmode=disable
     volumes:
       - type: bind
         source: ./config-local
@@ -49,7 +51,7 @@ services:
       - '4434:4434' # admin
     restart: unless-stopped
     environment:
-      - DSN=postgres://postgres:local-postgres0!@db-psql:5432/kratos?sslmode=disable
+      - DSN=postgres://postgres:local-postgres0!@db-psql:5433/kratos?sslmode=disable
       - LOG_LEVEL=trace
     volumes:
       - type: bind
@@ -110,10 +112,10 @@ services:
       - sh
       - -c
       - |
-        echo "SELECT 'CREATE DATABASE coreum_processor' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'coreum_processor')\gexec" | psql -U postgres -h db-psql -p 5432 
+        echo "SELECT 'CREATE DATABASE coreum_processor' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'coreum_processor')\gexec" | psql -U postgres -h db-psql -p 5433 
                 for migration_file in $(ls migrations/*.sql); do 
                   echo $$migration_file;
-                  psql -U postgres -h db-psql -p 5432  -d coreum_processor -f $$migration_file;
+                  psql -U postgres -h db-psql -p 5433  -d coreum_processor -f $$migration_file;
                 done
     restart: on-failure
     networks:
