@@ -351,10 +351,10 @@ func AssetRequestMerchant(assetService *asset.Service) httprouter.Handle {
 			w.Write([]byte(`{"message":"` + `data parsing error` + `"}`))
 			return
 		}
-
-		if issuer != "" {
+		//ToDo what is the reason for this???
+		/*if issuer != "" {
 			merchantOwnerID = ""
-		}
+		}*/
 
 		err = assetService.CreateAssetRequest(blockchain, code, issuer, name, description, assetType, merchantOwnerID, nil)
 		if err != nil {
